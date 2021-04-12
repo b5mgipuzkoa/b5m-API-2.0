@@ -1,0 +1,22 @@
+Options -Indexes
+Options +FollowSymLinks
+RewriteBase /api/2.0
+RewriteEngine on
+RewriteCond %{HTTPS} !on
+RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# OSGeo TMS
+RewriteRule ^(osgeo)$ osgeo_tms.php?osgeo=$1 [L]
+RewriteRule ^(osgeo)/$ osgeo_tms.php?osgeo=$1 [L]
+RewriteRule ^(osgeo)/([^/]+)$ osgeo_tms.php?osgeo=$1&service=$2 [L]
+RewriteRule ^(osgeo)/([^/]+)/$ osgeo_tms.php?osgeo=$1&service=$2 [L]
+RewriteRule ^(osgeo)/([^/]+)/([^/]+)$ osgeo_tms.php?osgeo=$1&service=$2&version=$3 [L]
+RewriteRule ^(osgeo)/([^/]+)/([^/]+)/$ osgeo_tms.php?osgeo=$1&service=$2&version=$3 [L]
+RewriteRule ^(osgeo)/([^/]+)/([^/]+)/([^/]+)$ osgeo_tms.php?osgeo=$1&service=$2&version=$3&tileset=$4 [L]
+RewriteRule ^(osgeo)/([^/]+)/([^/]+)/([^/]+)/$ osgeo_tms.php?osgeo=$1&service=$2&version=$3&tileset=$4 [L]
+RewriteRule ^(osgeo)/([^/]+)/([^/]+)/([^/]+)/([^/]+)$ osgeo_tms.php?osgeo=$1&service=$2&version=$3&tileset=$4&z=$5 [L]
+RewriteRule ^(osgeo)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/$ osgeo_tms.php?osgeo=$1&service=$2&version=$3&tileset=$4&z=$5 [L]
+RewriteRule ^(osgeo)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)$ osgeo_tms.php?osgeo=$1&service=$2&version=$3&tileset=$4&z=$5&x=$6 [L]
+RewriteRule ^(osgeo)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/$ osgeo_tms.php?osgeo=$1&service=$2&version=$3&tileset=$4&z=$5&x=$6 [L]
+RewriteRule ^(osgeo)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)$ osgeo_tms.php?osgeo=$1&service=$2&version=$3&tileset=$4&z=$5&x=$6&y=$7 [L]
+RewriteRule ^(osgeo)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/$ osgeo_tms.php?osgeo=$1&service=$2&version=$3&tileset=$4&z=$5&x=$6&y=$7 [L]
