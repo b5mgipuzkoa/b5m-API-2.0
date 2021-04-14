@@ -6,3 +6,4 @@ The API architecture has the following elements:
 
 - [.htaccess](/.htaccess): Apache Access Configuration file.
 - [osgeo_tms.php](/osgeo_tms.php): OSGeo TMS Service Server API.
+- [toposearch2.php](/toposearch2.php): Toponymic Finder.
