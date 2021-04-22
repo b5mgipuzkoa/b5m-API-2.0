@@ -514,9 +514,16 @@ if ($lon != "" and $lat != "" and $que != "") {
 
 // If there are no parameters (count = -1), refer to documentation
 if ($count == -1) {
+	if (empty($lang)) $lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
+	if ($lang == "es")
+		$base_url = "https://b5mdev/web5000/es/api-rest";
+	else if ($lang == "en")
+		$base_url = "https://b5mdev/web5000/en/rest-api";
+	else
+		$base_url = "https://b5mdev/web5000/eu/rest-apia";
 	$response = (object) [
     'help' => 'Documentation',
-    'url' => 'https://b5mdev/web5000/rest-apia'
+    'url' => $base_url
   ];
 }
 
