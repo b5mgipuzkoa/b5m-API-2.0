@@ -349,14 +349,14 @@ function query_function($search_type) {
 		$solr_query->addParam("pt", $pt);
 		$solr_query->addParam("sfield", "center");
 		$solr_query->addParam("d", $dist);
-		$solr_query->addParam("cadena", $string);
+		$solr_query->addParam("main_string", $string);
 		$solr_query->addField("distance:div(rint(product(geodist(),100)),100)");
 		$solr_query->addParam("q.op", "AND");
 	} else {
 		if ($nor == "1") {
 			$solr_query->setQuery("_query_:\"{!func}scale(query(\$main_string),1,100)\"");
 			$solr_query->addFilterQuery("{!cache=false v=\$main_string}");
-			$solr_query->addParam("cadena", " " . $string);
+			$solr_query->addParam("main_string", " " . $string);
 			$solr_query->addParam("q.op", "AND");
 		} else {
 			$solr_query->setQuery($sele);
