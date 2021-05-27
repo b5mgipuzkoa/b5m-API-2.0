@@ -12,7 +12,7 @@ define("SOLR_SERVER_PATH", "solr/b5mboundaries");
 
 // Includes
 include_once("includes/subrulesolr.php");
-include_once("includes/xmlencode.php");
+include_once("includes/json2xml.php");
 
 // Input Parameters
 $lang = @$_REQUEST["lang"];
@@ -173,14 +173,17 @@ for ($i = 0; $i < count($response["response"]["docs"]); $i++) {
 }
 
 // Output Format (JSON by default)
-if (strtolower($format) == "xml") {
-	header("Content-type: application/xml;charset=utf-8");
-	print_r(xml_encode($doc));
-} else if ((strtolower($format) == "php") || (strtolower($format) == "phps")) {
+if ((strtolower($format) == "php") || (strtolower($format) == "phps")) {
 	header("Content-type: text/plain;charset=utf-8");
 	print_r($doc);
 } else {
-	header("Content-type: application/json;charset=utf-8");
-	print_r(json_encode($doc, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+	$jsonres = json_encode($doc, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+	if (strtolower($format) == "xml") {
+		header("Content-type: application/xml;charset=utf-8");
+		print_r(json2xml($jsonres));
+	} else {
+		header("Content-type: application/json;charset=utf-8");
+		print_r($jsonres);
+	}
 }
 ?>
