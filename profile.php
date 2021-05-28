@@ -10,7 +10,31 @@
 // Requests
 $coors = $_REQUEST["coors"];
 $srs = $_REQUEST["srs"];
-$fmt = $_REQUEST["format"];
+$format = $_REQUEST["format"];
+
+// Includes
+include_once("includes/json2xml.php");
+
+// Variables
+$wcs = "https://b5mprod/ogc/wcs/gipuzkoa_wcs?SERVICE=WCS&VERSION=1.0.0&REQUEST=GetCoverage&FORMAT=GEOTIFFFLOAT32&COVERAGE=LIDAR%202008:%20Lur%20eredua-Modelo%20de%20suelo&CRS=";
+$srs_global = "epsg:25830";
+$offset = 0.1;
+$width_wcs = 1;
+$height_wcs = $width_wcs;
+$distance_min = 20; // Minimum distance between two points
+$point_max = 40; // Maximum number of points in a section
+$statuscode = 1;
+
+// License and metadata variables
+$provider = "b5m - Gipuzkoa Spatial Data Infrastructure - Gipuzkoa Provincial Council - 2021";
+$url_license = "https://b5m.gipuzkoa.eus/web5000/en/legal-information";
+$url_base = "https://b5m.gipuzkoa.eus";
+$image_url = "https://b5m.gipuzkoa.eus/api/2.0/info/b5m_logo.png";
+$altimetry_data = "Digital Terrain Model (DTM) of 1m from the Autonomous Community of the Basque Country, based on LIDAR data. Year 2012";
+$altimetry_data_url = "http://www.geo.euskadi.eus/lidar-lur-zoruaren-eredu-digitalean-oinarritutako-euskal-autonomi-erkidegoko-norantza-mapa-2012-urtea/s69-geodir/eu";
+$altimetry_units = "meters";
+$response_time_units = "seconds";
+$messages = "";
 
 // Function to convert coordinates
 function coordinate_convert($x, $y, $srs1, $srs2)
@@ -27,8 +51,8 @@ function coordinate_convert($x, $y, $srs1, $srs2)
 
 // Function to get height values
 function height($x, $y) {
-	global $session_id, $srs_global, $offset, $width, $height, $wcs;
-	$wcs2 = $wcs . $srs_global . "&RESPONSE_CRS=" . $srs_global . "&WIDTH=" . $width . "&HEIGHT=" . $height . "&BBOX=";
+	global $session_id, $srs_global, $offset, $width_wcs, $height_wcs, $wcs;
+	$wcs2 = $wcs . $srs_global . "&RESPONSE_CRS=" . $srs_global . "&WIDTH=" . $width_wcs . "&HEIGHT=" . $height_wcs . "&BBOX=";
 
 	$xo = $x + $offset;
 	$yo = $y - $offset;
@@ -55,13 +79,14 @@ function height($x, $y) {
 
 	unlink($f_name);
 
-	$height_wcs = explode(" ", $output[3]);
-	return round($height_wcs[5], 2);
+	$height = explode(" ", $output[3]);
+	return $height[5];
 }
 
 // Profile points making function
 function profile_points($x1_srs_ori, $y1_srs_ori, $x2_srs_ori, $y2_srs_ori, $srs) {
 	global $srs_global, $distance_min, $point_max;
+
 	// Converting to $srs_global to calculate the distance between two points
 	if (strtolower($srs) != $srs_global) {
 		$coord1_array = explode(" ", coordinate_convert($x1_srs_ori, $y1_srs_ori, strtolower($srs), $srs_global));
@@ -83,15 +108,12 @@ function profile_points($x1_srs_ori, $y1_srs_ori, $x2_srs_ori, $y2_srs_ori, $srs
 	// Coordinates to query
 	if ($distance <= $distance_min) {
 		$coor_query_array[0] = $x1 . " " . $y1 . " 0.00";
-		//$coor_query_array[1] = $x2 . " " . $y2 . " " . round($distance, 2);
 		$coor_query_array[1] = $x2 . " " . $y2 . " " . $distance;
 	} else {
 		$number_of_points = floor($distance / $distance_min);
-		//echo "ZZ31: $number_of_points " . microtime(true) . "<br />";
 		if ($number_of_points > $point_max) {
 			$distance_min = $distance / $point_max;
 			$number_of_points = $point_max - 1;
-			//echo "ZZ32: $distance_min " . microtime(true) . "<br />";
 		}
 		$coor_query_array[0] = $x1 . " " . $y1 . " " . $x1_srs_ori . " " . $y1_srs_ori . " 0.00";
 
@@ -116,60 +138,31 @@ function profile_points($x1_srs_ori, $y1_srs_ori, $x2_srs_ori, $y2_srs_ori, $srs
 				$x_inter_srs_ori = $x_inter;
 				$y_inter_srs_ori = $y_inter;
 			}
-			//$coor_query_array[$k] = $x_inter . " " . $y_inter . " " . round($distance_min, 2);
 			$coor_query_array[$k] = $x_inter . " " . $y_inter . " " . $x_inter_srs_ori . " " . $y_inter_srs_ori . " " . $distance_min;
 		}
-		//echo "ZZ35: " . microtime(true) . "<br />";
 		$distance_final = sqrt(pow($x2 - $x_inter, 2) + pow($y2 - $y_inter, 2));
-		//$coor_query_array[$k] = $x2 . " " . $y2 . " " . round($distance_final, 2);
 		$coor_query_array[$k] = $x2 . " " . $y2 . " " . $x2_srs_ori . " " . $y2_srs_ori . " " . $distance_final;
 	}
-	/*
-	echo "ZZ61 <br/>";
-	print_r($coor_query_array);
-	echo "ZZ62 <br/>";
-	$j = 1;
-	$k = 0;
-	foreach ($coor_query_array as $coor_query)  {
-		$coor_query_isol_array = explode(" ", $coor_query);
-		$x_alt = $coor_query_isol_array[0];
-		$y_alt = $coor_query_isol_array[1];
-		$distance_alt = $coor_query_isol_array[2];
-		//$height = height($x_alt, $y_alt, $srs_global);
-		// echo "ZZ21: " . microtime(true) . "<br />";
-		//$point_data_array[$k] = $x_alt . " " . $y_alt . " " . $distance_alt . " " . $height;
-		$point_data_array[$k] = $x_alt . " " . $y_alt . " " . $distance_alt;
-		$k++;
-	}
-	echo "ZZ71 <br/>";
-	print_r($point_data_array);
-	echo "ZZ72 <br/>";
-	return $point_data_array;
-	*/
 	return $coor_query_array;
 }
-
-// Variables
-$wcs = "https://b5mprod/ogc/wcs/gipuzkoa_wcs?SERVICE=WCS&VERSION=1.0.0&REQUEST=GetCoverage&FORMAT=GEOTIFFFLOAT32&COVERAGE=LIDAR%202008:%20Lur%20eredua-Modelo%20de%20suelo&CRS=";
-$srs_global = "epsg:25830";
-$offset = 0.1;
-$width = 1;
-$height = $width;
-$distance_min = 20; // Minimum distance between two points
-$point_max = 40; // Maximum number of points in a section
 
 // Session start
 $session_id = session_create_id();
 session_id($session_id);
 session_start();
 
+// Show entered coordinates and origin SRS
+$doc2["coordinates"] = $coors;
+$doc2["srs"] = $srs;
+
 // Coordinates loop
-echo "<br />ZZ91: " . microtime(true) . "<br /><br/ >";
+$init_time = microtime(true);
 $distance_profile = 0;
 $coors_array = explode(",", $coors);
 $i = 1;
 $j = 1;
 foreach ($coors_array as $coor)  {
+	$statuscode = 0;
 	if ($i == 1) {
 		$x1 = $coor;
 	} else if ($i == 2) {
@@ -178,11 +171,7 @@ foreach ($coors_array as $coor)  {
 		$x2 = $coor;
 	} else if ($i == 4) {
 		$y2 = $coor;
-		//echo "ZZ1: " . microtime(true) . "$x1 $y1 $x2 $y2 <br />";
 		$profile_array = profile_points($x1, $y1, $x2, $y2, $srs);
-		//echo "ZZ2: " . microtime(true) . "<br />";
-		//print_r($profile_array);
-		//echo "<br />ZZ3: " . microtime(true) . "<br /><br/ >";
 
 		// Profile loop
 		foreach ($profile_array as $profile_coor)  {
@@ -192,13 +181,11 @@ foreach ($coors_array as $coor)  {
 			$x_fin_srs_ori = $profile_array_2[2];
 			$y_fin_srs_ori = $profile_array_2[3];
 			$distance_fin = $profile_array_2[4];
-			//$distance_coor = (float)$profile_array_2[4];
-			//echo "ZZ4: " . $profile_coor . " - " . $profile_array_2[2] . " - ". $j . " - " . $distance_coor . "<br />";
 			if (($j == 1) || ($distance_fin != 0)) {
-			//if (($j == 1) || ($distance_coor != 0)) {
 				$distance_profile = $distance_profile + $distance_fin;
 				$height = height($x_fin, $y_fin);
-				echo "ZZ5: " . $x_fin . " " . $y_fin . " " . $x_fin_srs_ori. " " . $y_fin_srs_ori . " " . $distance_profile . " " . $height . "<br />";
+				$doc2["elevationProfile"][$j-1]["distance"] = sprintf("%.2f", $distance_profile);
+				$doc2["elevationProfile"][$j-1]["height"] = sprintf("%.2f", $height);
 				$j++;
 			}
 		}
@@ -209,9 +196,39 @@ foreach ($coors_array as $coor)  {
 	$i++;
 }
 
-echo "<br/ >$coors<br />";
+// Data license and metadata
+$final_time = microtime(true);
+$response_time = sprintf("%.2f", $final_time - $init_time);
+$doc1["info"]["license"]["provider"] = $provider;
+$doc1["info"]["license"]["urlLicense"] = $url_license;
+$doc1["info"]["license"]["urlBase"] = $url_base;
+$doc1["info"]["license"]["imageUrl"] = $image_url;
+$doc1["info"]["metadata"]["altimetryData"] = $altimetry_data;
+$doc1["info"]["metadata"]["altimetryDataUrl"] = $altimetry_data_url;
+$doc1["info"]["metadata"]["altimetryUnits"] = $altimetry_units;
+$doc1["info"]["responseTime"]["time"] = $response_time;
+$doc1["info"]["responseTime"]["units"] = $response_time_units;
+$doc1["info"]["statuscode"] = $statuscode;
+$doc1["info"]["messages"] = $messages;
+
+// Merge Arrays
+$doc = array_merge($doc1, $doc2);
+
+// Output Format (JSON by default)
+if ((strtolower($format) == "php") || (strtolower($format) == "phps")) {
+	header("Content-type: text/plain;charset=utf-8");
+	print_r($doc);
+} else {
+	$jsonres = json_encode($doc, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+	if (strtolower($format) == "xml") {
+		header("Content-type: application/xml;charset=utf-8");
+		print_r(json2xml($jsonres));
+	} else {
+		header("Content-type: application/json;charset=utf-8");
+		print_r($jsonres);
+	}
+}
 
 // Session end
 session_destroy();
 session_write_close();
-echo "<br />ZZ92: " . microtime(true) . "<br /><br/ >";
