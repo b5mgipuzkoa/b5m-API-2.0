@@ -11,6 +11,8 @@
 $coors = $_REQUEST["coors"];
 $srs = $_REQUEST["srs"];
 $format = $_REQUEST["format"];
+$show_coors = $_REQUEST["show_coors"];
+if (empty($show_coors)) $show_coors = 0;
 
 // Includes
 include_once("includes/json2xml.php");
@@ -39,11 +41,7 @@ $messages = "";
 // Function to convert coordinates
 function coordinate_convert($x, $y, $srs1, $srs2)
 {
-	if (strtolower($srs2) == "epsg:4326") {
-		$floating_number = 6;
-	} else {
-		$floating_number = 2;
-	}
+	global $floating_number;
 	$conversion_array1 = explode(" ", exec("echo \"" . $x . " " . $y . "\" | cs2cs -f \"%." . $floating_number . "f\" +init=" . $srs1 . " +to +init=" . $srs2));
 	$conversion_array2 = explode("	", $conversion_array1[0]);
 	return $conversion_array2[0] . " " . $conversion_array2[1];
@@ -85,7 +83,7 @@ function height($x, $y) {
 
 // Profile points making function
 function profile_points($x1_srs_ori, $y1_srs_ori, $x2_srs_ori, $y2_srs_ori, $srs) {
-	global $srs_global, $distance_min, $point_max;
+	global $srs_global, $distance_min, $point_max, $show_coors;
 
 	// Converting to $srs_global to calculate the distance between two points
 	if (strtolower($srs) != $srs_global) {
@@ -122,7 +120,6 @@ function profile_points($x1_srs_ori, $y1_srs_ori, $x2_srs_ori, $y2_srs_ori, $srs
 		$y_offset = (($y2 - $y1) / $distance) * $distance_min;
 		$x_inter_new = $x1;
 		$y_inter_new = $y1;
-		//echo "ZZ33: " . microtime(true) . "<br />";
 		for ($k = 1; $k <= $number_of_points; $k++) {
 			$x_inter = $x_inter_new + $x_offset;
 			$y_inter = $y_inter_new + $y_offset;
@@ -130,7 +127,7 @@ function profile_points($x1_srs_ori, $y1_srs_ori, $x2_srs_ori, $y2_srs_ori, $srs
 			$y_inter_new = $y_inter;
 
 			// Intermediate point in the original srs
-			if (strtolower($srs) != $srs_global) {
+			if ((strtolower($srs) != $srs_global) && ($show_coors == 1)) {
 				$coord3_array = explode(" ", coordinate_convert($x_inter, $y_inter, $srs_global, strtolower($srs)));
 				$x_inter_srs_ori = $coord3_array[0];
 				$y_inter_srs_ori = $coord3_array[1];
@@ -150,6 +147,13 @@ function profile_points($x1_srs_ori, $y1_srs_ori, $x2_srs_ori, $y2_srs_ori, $srs
 $session_id = session_create_id();
 session_id($session_id);
 session_start();
+
+// Floating number of coordinates
+if (strtolower($srs) == "epsg:4326") {
+	$floating_number = 6;
+} else {
+	$floating_number = 2;
+}
 
 // Show entered coordinates and origin SRS
 $doc2["coordinates"] = $coors;
@@ -184,6 +188,10 @@ foreach ($coors_array as $coor)  {
 			if (($j == 1) || ($distance_fin != 0)) {
 				$distance_profile = $distance_profile + $distance_fin;
 				$height = height($x_fin, $y_fin);
+				if ($show_coors == 1) {
+						// Show point coordinates
+						$doc2["elevationProfile"][$j-1]["coordinates"] = sprintf("%." . $floating_number . "f", $x_fin_srs_ori) . "," . sprintf("%." . $floating_number . "f", $y_fin_srs_ori);
+				}
 				$doc2["elevationProfile"][$j-1]["distance"] = sprintf("%.2f", $distance_profile);
 				$doc2["elevationProfile"][$j-1]["height"] = sprintf("%.2f", $height);
 				$j++;
