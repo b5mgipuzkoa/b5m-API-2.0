@@ -1,12 +1,6 @@
 <?php
 // Toponymic Finder
 
-// Solr Server Domain Name
-define("SOLR_SERVER_HOSTNAME", "b5mdev");
-
-// HTTP Port for the Connection
-define("SOLR_SERVER_PORT", 8983);
-
 // Connection Path
 define("SOLR_SERVER_PATH_A", array(
 	"solr/b5mtopo",
@@ -15,6 +9,7 @@ define("SOLR_SERVER_PATH_A", array(
 ));
 
 // Includes
+include_once("includes/config.php");
 include_once("includes/subrulesolr.php");
 include_once("includes/json2xml.php");
 
@@ -168,7 +163,9 @@ function query_function($search_type) {
 	(
 		"hostname" => SOLR_SERVER_HOSTNAME,
 		"port"     => SOLR_SERVER_PORT,
-		"path"	   => SOLR_SERVER_PATH_A[$i]
+		"path"	   => SOLR_SERVER_PATH_A[$i],
+		"proxy_host" => SOLR_PROXY_HOST,
+		"proxy_port" => SOLR_PROXY_PORT
 	);
 	$solr_client = new SolrClient($options);
 

@@ -1,16 +1,11 @@
 <?php
 // API to report available INSPIRE services
 
-// Solr Server Domain Name
-define("SOLR_SERVER_HOSTNAME", "b5mdev");
-
-// Connection HTTP Port
-define("SOLR_SERVER_PORT", 8983);
-
 // Connection Path
 define("SOLR_SERVER_PATH", "solr/b5minspire");
 
 // Includes
+include_once("includes/config.php");
 include_once("includes/subrulesolr.php");
 include_once("includes/json2xml.php");
 
@@ -42,7 +37,9 @@ $options = array
 (
 	"hostname" => SOLR_SERVER_HOSTNAME,
 	"port"     => SOLR_SERVER_PORT,
-	"path"	   => SOLR_SERVER_PATH
+	"path"	   => SOLR_SERVER_PATH,
+	"proxy_host" => SOLR_PROXY_HOST,
+	"proxy_port" => SOLR_PROXY_PORT
 );
 
 $solr_client = new SolrClient($options);
