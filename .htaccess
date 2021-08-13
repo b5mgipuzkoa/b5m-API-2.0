@@ -24,6 +24,12 @@ RewriteRule ^(osgeo)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/$ osgeo_tms
 # Toposearch
 RewriteRule ^(toposearch2)$ toposearch2.php
 
+# Geodetic Benchmarks
+RewriteRule ^(geodeticbenchmarks)$ geodeticbenchmarks.php
+
+# Distance between Municipalities
+RewriteRule ^(distancemuni)$ distancemuni.php
+
 # Municipal Cartography
 RewriteRule ^(cartomuni)$ cartomuni.php
 
@@ -35,3 +41,6 @@ RewriteRule ^(datasets)$ datasets.php
 
 # INSPIRE info
 RewriteRule ^(inspireinfo)$ inspireinfo.php
+
+# Profile API
+RewriteRule ^(profile)$ profile.php
