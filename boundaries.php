@@ -121,7 +121,7 @@ for ($i = 0; $i < count($response["response"]["docs"]); $i++) {
 	$response2 = $response_query2->getResponse();
 	if (is_array($response2["response"]["docs"]) == TRUE) {
 		for ($j = 0; $j < count($response2["response"]["docs"]); $j++) {
-			$doc["response"]["docs"][$i]["agreements"][$j]["id_agreement"] = $response2["response"]["docs"][$j]["idut"];
+			$doc["response"]["docs"][$i]["agreements"][$j]["id_agreement"] = $response2["response"]["docs"][$j]["id_acta"];
 			$doc["response"]["docs"][$i]["agreements"][$j]["enclave2"] = $response2["response"]["docs"][$j]["encl2_" . $lang2];
 			$doc["response"]["docs"][$i]["agreements"][$j]["municipality2"] = $response2["response"]["docs"][$j]["muni2_" . $lang2];
 			$doc["response"]["docs"][$i]["agreements"][$j]["agreement"] = $response2["response"]["docs"][$j]["agreement"];
