@@ -513,11 +513,11 @@ if ($lon != "" and $lat != "" and $que != "") {
 if ($count == -1) {
 	if (empty($lang)) $lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
 	if ($lang == "es")
-		$base_url = "https://" . $_SERVER['SERVER_NAME'] . "/web5000/es/api-rest";
+		$base_url = "https://" . $_SERVER['SERVER_NAME'] . "/web5000/es/api-rest/geographical-search-engine";
 	else if ($lang == "en")
-		$base_url = "https://" . $_SERVER['SERVER_NAME'] . "/web5000/en/rest-api";
+		$base_url = "https://" . $_SERVER['SERVER_NAME'] . "/web5000/en/rest-api/buscador-geografico";
 	else
-		$base_url = "https://" . $_SERVER['SERVER_NAME'] . "/web5000/eu/rest-apia";
+		$base_url = "https://" . $_SERVER['SERVER_NAME'] . "/web5000/eu/rest-apia/bilatzaile-geografikoa";
 	$response = (object) [
     'help' => 'Documentation',
     'url' => $base_url
