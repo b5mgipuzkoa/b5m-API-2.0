@@ -24,10 +24,11 @@ $max_number_coors = 20;
 
 // Messages
 $msg001="Warning: there are cases out of our range (Gipuzkoa: https://b5m.gipuzkoa.eus) where no height data exists, and the resulting height value is -9999";
-$msg002="Missing required parameter: coors";
-$msg003="SRS not supported. It should be: EPSG:25830, EPSG:4326 or EPSG:3857 (https://epsg.io)";
-$msg004="The maximum number of coordinate pairs has been exceeded (" . $max_number_coors . ")";
-$msg005="https://kokoalberti.com/articles/creating-elevation-profiles-with-gdal-and-two-point-equidistant-projection";
+$msg002="Warning: all the profile data is out of our range (Gipuzkoa: https://b5m.gipuzkoa.eus)";
+$msg003="Missing required parameter: coors";
+$msg004="SRS not supported. It should be: EPSG:25830, EPSG:4326 or EPSG:3857 (https://epsg.io)";
+$msg005="The maximum number of coordinate pairs has been exceeded (" . $max_number_coors . ")";
+$msg006="https://kokoalberti.com/articles/creating-elevation-profiles-with-gdal-and-two-point-equidistant-projection";
 
 // License and metadata variables
 $provider = "b5m - Gipuzkoa Spatial Data Infrastructure - Gipuzkoa Provincial Council - 2021";
@@ -37,6 +38,7 @@ $image_url = "https://" . $server_name . "/web5000/assets/img/logo-b5m.svg";
 $altimetry_data = "Digital Terrain Model (DTM) of 1m from the Historical Territory of Gipuzkoa, based on LIDAR data. Year 2008";
 $altimetry_data_url = "https://b5m.gipuzkoa.eus/web5000/en/csw2/GFA.LIDS08";
 $altimetry_units = "meters";
+$distance_units = "meters";
 $response_time_units = "seconds";
 $messages = "";
 
@@ -45,47 +47,44 @@ $statuscode = 0;
 $init_time = microtime(true);
 
 // Checking Requests
-if ($coors == "" && $srs == "" && $precision == "" && $format == "") {
+if ($coors == "" && $srs == "" && $precision == "" && $format == "")
 	$statuscode = -1;
-}
 
 // Precision
-if (($precision > 1) && ($precision < 6)){
+if ($precision > 1 && $precision < 6)
 	$precision = $precision;
-} else {
+else
 	$precision = 1;
-}
 
 // Coordinates
 if ($coors == "" && $statuscode == 0) {
-	$statuscode = 2;
-	$messages = $msg002;
+	$statuscode = 3;
+	$messages = $msg003;
 }
 
 // SRS
-if (($srs != "") && (strtolower($srs) != "epsg:25830") && (strtolower($srs) != "epsg:4326") && (strtolower($srs) != "epsg:3857") && ($statuscode == 0)) {
-	$statuscode = 3;
-	$messages = $msg003;
+if ($srs != "" && strtolower($srs) != "epsg:25830" && strtolower($srs) != "epsg:4326" && strtolower($srs) != "epsg:3857" && $statuscode == 0) {
+	$statuscode = 4;
+	$messages = $msg004;
 }
 
 // Maximum number of coordinates
 if ($statuscode == 0) {
 	$coors_array = explode(",", $coors);
 	if (count($coors_array) / 2 > $max_number_coors) {
-		$statuscode = 4;
-		$messages = $msg004;
+		$statuscode = 5;
+		$messages = $msg005;
 	}
 }
 
 // Trying to guess the SRS
 if ($srs == "" && $statuscode == 0) {
-	if (($coors_array[0] >= -90) && ($coors_array[0] <= 90)) {
+	if ($coors_array[0] >= -90 && $coors_array[0] <= 90)
 		$srs = "epsg:4326";
-	} else if ($coors_array[0] > 90) {
+	else if ($coors_array[0] > 90)
 		$srs = "epsg:25830";
-	} else {
+	else
 		$srs = "epsg:3857";
-	}
 }
 
 if ($statuscode == 0) {
@@ -95,6 +94,7 @@ if ($statuscode == 0) {
 	$data_last = array_pop($data);
 
 	$i = 0;
+	$statuscode2 = 2;
 	foreach ($data as $value) {
 		$value_array = explode(" ", $value);
 		$doc2["elevationProfile"][$i]["distance"] = $value_array[0];
@@ -105,13 +105,19 @@ if ($statuscode == 0) {
 			$statuscode = 1;
 			$messages = $msg001;
 		}
+		if ($value_array[1] != "-9999" && $value_array[1] != "0.00")
+			$statuscode2 = 0;
 		$i++;
+	}
+	if ($statuscode2 == 2) {
+			$statuscode = 2;
+			$messages = $msg002;
 	}
 } else {
 	$doc2 = [];
 }
 
-if ($statuscode == 0) {
+if ($statuscode == 0 || $statuscode == 1) {
 	// Data license and metadata
 	$final_time = microtime(true);
 	$response_time = sprintf("%.2f", $final_time - $init_time);
@@ -122,11 +128,14 @@ if ($statuscode == 0) {
 	$doc1["info"]["metadata"]["altimetryData"] = $altimetry_data;
 	$doc1["info"]["metadata"]["altimetryDataUrl"] = $altimetry_data_url;
 	$doc1["info"]["metadata"]["altimetryUnits"] = $altimetry_units;
+	$doc1["info"]["metadata"]["distanceUnits"] = $distance_units;
 	$doc1["info"]["responseTime"]["time"] = $response_time;
 	$doc1["info"]["responseTime"]["units"] = $response_time_units;
 	$doc1["info"]["statuscode"] = $statuscode;
-	$doc1["info"]["messages"]["type"] = "Calculation method";
-	$doc1["info"]["messages"]["url"] = $msg005;
+	$doc1["info"]["messages"]["method"]["type"] = "Calculation method";
+	$doc1["info"]["messages"]["method"]["url"] = $msg006;
+	if ($statuscode == 1)
+		$doc1["info"]["messages"]["warning"] = $msg001;
 	$doc1["coordinates"] = $coors;
 	$doc1["srs"] = $srs;
 	$doc1["precision"] = $precision;
@@ -143,12 +152,14 @@ if ($statuscode == 0) {
 		$base_url = "https://" . $_SERVER['SERVER_NAME'] . "/web5000/eu/rest-apia/profil-topografikoak";
 	$doc["info"]["help"] = "Documentation";
 	$doc["info"]["url"] = $base_url;
-	if ($messages != "" )
-		$doc["info"]["messages"] = $messages;
+	if ($messages != "" ) {
+		$doc["info"]["statuscode"] = $statuscode;
+		$doc["info"]["messages"]["warning"] = $messages;
+	}
 }
 
 // Output Format (JSON by default)
-if ((strtolower($format) == "php") || (strtolower($format) == "phps")) {
+if (strtolower($format) == "php" || strtolower($format) == "phps") {
 	header("Content-type: text/plain;charset=utf-8");
 	print_r($doc);
 } else {
