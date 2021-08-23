@@ -105,6 +105,7 @@ $response_query = $solr_client->query($solr_query);
 $response = $response_query->getResponse();
 
 // Output Format (JSON by default)
+header('Access-Control-Allow-Origin: *');
 if ((strtolower($format) == "php") || (strtolower($format) == "phps")) {
 	header("Content-type: text/plain;charset=utf-8");
 	print_r($response);

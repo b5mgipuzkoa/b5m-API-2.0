@@ -524,7 +524,8 @@ if ($count == -1) {
   ];
 }
 
-// Result Display
+// Output Format (JSON by default)
+header('Access-Control-Allow-Origin: *');
 if ((strtolower($format) == "php") || (strtolower($format) == "phps")) {
 	header("Content-type: text/plain;charset=utf-8");
 	print_r($response);
