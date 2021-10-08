@@ -50,7 +50,12 @@ function query_function($search_type) {
 	if (empty($street)) $street = 0;
 	if (empty($addr)) $addr = 0;
 	else if ($addr != "1") $addr = 0;
-	else $type = 'posta helbidea'; $addr = 0;
+	else {
+		if ($lang == "es") $type = 'dirección-postal';
+		else if ($lang == "en") $type = 'postal-address';
+		else $type = 'posta-helbidea';
+		$addr = 0;
+	}
 	if ($street != "0") $addr = 1;
 	if (empty($nor) || $nor != "1") $nor = 0;
 	if (empty($types) || $types != "1") $types = 0;
