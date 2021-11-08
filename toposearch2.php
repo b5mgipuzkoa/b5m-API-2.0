@@ -64,6 +64,18 @@ function query_function($search_type) {
 	if (empty($b5m_id)) $b5m_id = 0;
 	if (empty($city)) $city = 0;
 
+	// If the search is by b5m_id and type is D_*, then is an address
+	if ((substr($b5m_id, 0, 2) == "D_") && ($search_type == "topo1")) {
+		return null;
+	}
+
+	// If the search is a KP, cannot contain certain parameters
+	if ((substr($search_type, 0, 2) == "pk") && ($street == "0")) {
+		$city = 0;
+		$street = 0;
+		$addr = 0;
+	}
+
 	// We cannot have all 3 parameters at the same time and, if we have street, we must also have city
 	if ($b5m_id != "0") {
 		$city = 0;
@@ -284,6 +296,7 @@ function query_function($search_type) {
 		$response = $response_query->getResponse();
 		$objects = $response["facet_counts"]["facet_fields"][$field_type_f];
 		foreach ($objects as $obj => $value) {
+			$obj = str_replace("_", " ", $obj);
 			$types_a[] = $obj;
 		}
 		$count = -2;
