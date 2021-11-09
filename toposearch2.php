@@ -54,7 +54,7 @@ function query_function($search_type) {
 	if (empty($addr)) $addr = 0;
 	else if ($addr != "1") $addr = 0;
 	else {
-		if ($lang == "es") $type = 'dirección-postal';
+		if ($lang == "es") $type = 'direccion-postal';
 		else if ($lang == "en") $type = 'postal-address';
 		else $type = 'posta-helbidea';
 		$addr = 0;
@@ -343,7 +343,14 @@ function query_function($search_type) {
 		}
 	}
 	if ($type != "0") {
+		// Exceptions in types
 		$type = str_replace("-", " ", $type);
+		$type = str_replace("ñ", "n", $type);
+		$type = str_replace("á", "a", $type);
+		$type = str_replace("é", "e", $type);
+		$type = str_replace("í", "i", $type);
+		$type = str_replace("ó", "o", $type);
+		$type = str_replace("ú", "u", $type);
 		$type = str_replace("y o", "y/o", $type);
 		$type = str_replace("eta edo", "eta/edo", $type);
 		$type = str_replace("and or", "and/or", $type);
