@@ -8,6 +8,9 @@ define("SOLR_SERVER_PATH_A", array(
 	"solr/b5mpk"
 ));
 
+// Memory
+ini_set('memory_limit', '1024M');
+
 // Includes
 include_once("includes/config.php");
 include_once("includes/subrulesolr.php");
@@ -340,11 +343,15 @@ function query_function($search_type) {
 		}
 	}
 	if ($type != "0") {
+		$type = str_replace("-", " ", $type);
+		$type = str_replace("y o", "y/o", $type);
+		$type = str_replace("eta edo", "eta/edo", $type);
+		$type = str_replace("and or", "and/or", $type);
 		$cc = explode("|", $type);
 		$ccn = "(";
 		foreach($cc as $val) {
 			if (strlen($val) > 0) {
-				$ccn = $ccn . "\"" . $val . "\" ";
+				$ccn = $ccn . "\"" . $val . "\"";
 			}
 		}
 		$ccn = $ccn . ")";
