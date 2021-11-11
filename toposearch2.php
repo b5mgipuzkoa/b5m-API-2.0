@@ -314,8 +314,8 @@ function query_function($search_type) {
 	if ($b5m_id != "0")
 		$solr_query->addFilterQuery("code:" . "\"" . $b5m_id . "\"");
 	if ($street != "0") {
-		if (is_numeric($street)) $field_street2 = "codstreet:0"; else $field_street2 = $field_street . ":";
-		$solr_query->addFilterQuery($field_street2 . "\"" . $street . "\"");
+		if (is_numeric($street)) $field_street2 = "codstreet:0"; else $field_street2 = $field_street;
+		$solr_query->addFilterQuery($field_street2 . "_search:\"" . $street . "\"");
 		if (empty($pt))
 			$solr_query->addSortField("door_number_sort", $sort_asc);
 	}
@@ -330,7 +330,7 @@ function query_function($search_type) {
 			if ($search_type == "addr1" || $search_type == "addr2" || $search_type == "addr3") $field_muni2 = "codmuni"; else $field_muni2 = "codmuni_search";
 			$solr_query->addFilterQuery($field_muni2 . ":*" . $city . "*");
 		} else {
-			$solr_query->addFilterQuery($field_muni2 . ":\"" . $city . "\"");
+			$solr_query->addFilterQuery($field_muni2 . "_search:\"" . $city . "\"");
 		}
 	}
 	if ($road != "0") {
