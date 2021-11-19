@@ -38,6 +38,11 @@ $nor = @$_REQUEST["nor"];
 $numfound = @$_REQUEST["numfound"];
 $sort = strtolower(@$_REQUEST["sort"]);
 
+// Language Coding
+if (empty($lang)) $lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
+if ($lang != "eu" && $lang != "es" && $lang != "en") $lang = "en";
+if ($lang == "en") $lang2 = "eu"; else $lang2 = $lang;
+
 function query_function($search_type) {
 	// Global Variables
 	global $lang, $q, $format, $debug, $rows, $start, $addr, $city, $riverbasin, $road, $street, $b5m_id, $type, $viewbox, $pt, $dist, $types, $nor, $sort, $numfound;
@@ -54,9 +59,9 @@ function query_function($search_type) {
 	if (empty($addr)) $addr = 0;
 	else if ($addr != "1") $addr = 0;
 	else {
-		if ($lang == "es") $type = 'direccion-postal';
-		else if ($lang == "en") $type = 'postal-address';
-		else $type = 'posta-helbidea';
+		if ($lang == "eu") $type = 'posta-helbidea';
+		else if ($lang == "es") $type = 'direccion-postal';
+		else $type = 'postal-address';
 		$addr = 0;
 	}
 	if ($street != "0") $addr = 1;
@@ -112,11 +117,6 @@ function query_function($search_type) {
 	if (empty($start)) $start = 0;
 	if (empty($rows)) $rows = 1000000;
 	if ($numfound == 1) $rows = 1;
-
-	// Language Coding
-	if (empty($lang)) $lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
-	if ($lang != "eu" && $lang != "es" && $lang != "en") $lang = "eu";
-	if ($lang == "en") $lang2 = "eu"; else $lang2 = $lang;
 
 	// Search Type
 	$there_is_num = 0;
@@ -588,9 +588,9 @@ function coor_detect($q) {
 			$coor_22 = explode(" ", $coor_21[1]);
 			$y_4326 = $coor_22[0];
 		}
-		if ($lang == "es") $type = 'coordenadas';
-		else if ($lang == "en") $type = 'koordinates';
-		else $type = 'koordenatuak';
+		if ($lang == "eu") $type = 'koordenatuak';
+		else if ($lang == "es") $type = 'coordenadas';
+		else $type = 'coordinates';
 		$type2 = strtoupper(substr($type, 0 , 1)) . substr($type, 1, strlen($type)-1);
 		$coord_25830 = "ETRS89-UTM30N (EPSG:25830)";
 		$coord_4326 = "WGS84 (EPSG:4326)";
