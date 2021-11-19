@@ -451,16 +451,191 @@ function query_function($search_type) {
 	$count = $response["response"]["numFound"];
 }
 
-// Launch the Query
-query_function("topo1");
-if ($count == 0 || $count == -2) query_function("addr1");
-if ($count == 0) query_function("topo2");
-if ($count == 0) query_function("addr2");
-if ($count == 0) query_function("topo3");
-if ($count == 0) query_function("addr3");
-if ($count == 0 || $count == -2) query_function("pk1");
-if ($count == 0) query_function("pk2");
-if ($count == 0) query_function("pk3");
+// Coordinate Detection Function
+function coor_detect($q) {
+	global $lang;
+	global $response_coor, $count;
+
+	$x = "";
+	$y = "";
+	$tco = "";
+
+	$stringc1 = preg_replace("#N#", " ", $q);
+	$stringc1 = preg_replace("#W#", " " , $stringc1);
+	$stringc1 = preg_replace("#O#", " " , $stringc1);
+	$stringc1 = preg_replace("#-#", " " , $stringc1);
+	$stringc1 = preg_replace("#º#", " " , $stringc1);
+	$stringc1 = preg_replace("#°#", " " , $stringc1);
+	$stringc1 = preg_replace("#d#", " " , $stringc1);
+	$stringc1 = preg_replace("#'#", " " , $stringc1);
+	$stringc = preg_replace("#\"#", " " , $stringc1);
+	$pattern1 = "/^(?<longitude>(\s*)[-]?[1-2](?:\.[0-9]{1,10})?)(?<delimeter>.)(?<latitude>[-]?[4][2-3](?:\.[0-9]{1,10})?)(\s*)$/";
+	$pattern2 = "/^(?<latitude>(\s*)[-]?[4][2-3](?:\.[0-9]{1,10})?)(?<delimeter>.)(?<longitude>[-]?[1-2](?:\.[0-9]{1,10})?)(\s*)$/";
+	if (preg_match($pattern1, $stringc) || preg_match($pattern2, $stringc)) {
+		$tco = "epsg:4326";
+	  if (!preg_match($pattern1, $stringc, $matches))
+	  	preg_match($pattern2, $stringc, $matches);
+	  if (substr(trim($matches["longitude"]), 0, 1) != "-")
+			$longitude = "-" . trim($matches["longitude"]);
+	  else
+			$longitude = trim($matches["longitude"]);
+
+	  $x = $longitude;
+	  $y = trim($matches["latitude"]);
+	} else {
+	  $pattern1 = "/^(?<X>(\s*)[-]?[5-6][0-9][0-9][0-9][0-9][0-9](?:\.[0-9]{1,10})?)(?<delimeter>.)(?<Y>[-]?[4][7-8][0-9][0-9][0-9][0-9][0-9](?:\.[0-9]{1,10})?)(\s*)$/";
+	  $pattern2 = "/^(?<Y>(\s*)[-]?[4][7-8][0-9][0-9][0-9][0-9][0-9](?:\.[0-9]{1,10})?)(?<delimeter>.)(?<X>[-]?[5-6][0-9][0-9][0-9][0-9][0-9](?:\.[0-9]{1,10})?)(\s*)$/";
+	  if (preg_match($pattern1, $stringc) || preg_match($pattern2, $stringc)) {
+	  	$tco = "epsg:25830";
+	    if (!preg_match($pattern1, $stringc, $matches))
+	  		preg_match($pattern2, $stringc, $matches);
+
+	    $x = trim($matches["X"]);
+	    $y = trim($matches["Y"]);
+	  } else {
+	    $pattern1 = "/^(?<longitude>(\s*)[-]?[1-2](?:\s+[0-9]{1,2})?(?:\s+[0-9]{1,2}(?:\.*[0-9]{1,10})?)?)(\s+.)(?<latitude>[-]?[4][2-3](?:\s+[0-9]{1,2})?(?:\s+[0-9]{1,2}(?:\.*[0-9]{1,10})?)?)(\s*)$/";
+	    $pattern2 = "/^(?<latitude>(\s*)[-]?[4][2-3](?:\s+[0-9]{1,2})?(?:\s+[0-9]{1,2}(?:\.*[0-9]{1,10})?)?)(\s+.)(?<longitude>[-]?[1-2](?:\s+[0-9]{1,2})?(?:\s+[0-9]{1,2}(?:\.*[0-9]{1,10})?)?)(\s*)$/";
+	    if (preg_match($pattern1, $stringc) || preg_match($pattern2, $stringc)) {
+	    	$tco = "epsg:4326s";
+	      if (!preg_match($pattern1, $stringc, $matches))
+	      	preg_match($pattern2, $stringc, $matches);
+	      if (substr(trim($matches["longitude"]), 0, 1) != "-")
+					$longitude = "-" . trim($matches["longitude"]);
+	      else
+					$longitude = trim($matches["longitude"]);
+
+	      $x = $longitude;
+	      $y = trim($matches["latitude"]);
+	    }
+	  }
+	}
+	// Search by coordinates
+	if ($x != "" and $y != "" and $tco != "") {
+		if ($tco == "epsg:25830") {
+			// epsg:25830
+			$x_25830 = $x;
+			$y_25830 = $y;
+
+			// epsg:4326
+			$coor_1 = shell_exec('echo "' . $x . ' ' . $y . '" | /usr/local/bin/cs2cs -f "%.5f" +init=epsg:25830 +to +init=epsg:4326 2> /dev/null');
+			$coor_11 = explode("	", $coor_1);
+			$x_4326 = $coor_11[0];
+			$coor_12 = explode(" ", $coor_11[1]);
+			$y_4326 = $coor_12[0];
+
+			// epsg:4326 sexagesimal
+			$coor_2 = shell_exec('echo "' . $x . ' ' . $y . '" | /usr/local/bin/cs2cs init=epsg:25830 +to +init=epsg:4326 2> /dev/null');
+			$coor_21 = explode("	", $coor_2);
+			$coor_211 = explode("'", $coor_21[0]);
+			$coor_212 = explode('"', $coor_211[1]);
+			$coor_213 = sprintf("%.1f", $coor_212[0]);
+			$x_4326s = str_replace($coor_212[0], $coor_213, $coor_21[0]);
+			$coor_22 = explode(" ", $coor_21[1]);
+			$coor_221 = explode("'", $coor_22[0]);
+			$coor_222 = explode('"', $coor_221[1]);
+			$coor_223 = sprintf("%.1f", $coor_222[0]);
+			$y_4326s = str_replace($coor_222[0], $coor_223, $coor_22[0]);
+		} else if ($tco == "epsg:4326") {
+			// epsg:4326
+			$x_4326 = $x;
+			$y_4326 = $y;
+
+			// epsg:25830
+			$coor_1 = shell_exec('echo "' . $x . ' ' . $y . '" | /usr/local/bin/cs2cs -f "%.2f" +init=epsg:4326 +to +init=epsg:25830 2> /dev/null');
+			$coor_11 = explode("	", $coor_1);
+			$x_25830 = $coor_11[0];
+			$coor_12 = explode(" ", $coor_11[1]);
+			$y_25830 = $coor_12[0];
+
+			// epsg:4326 sexagesimal
+			$coor_2 = shell_exec('echo "' . $x . ' ' . $y . '" | /usr/local/bin/cs2cs init=epsg:4326 +to +init=epsg:4326 2> /dev/null');
+			$coor_21 = explode("	", $coor_2);
+			$coor_211 = explode("'", $coor_21[0]);
+			$coor_212 = explode('"', $coor_211[1]);
+			$coor_213 = sprintf("%.1f", $coor_212[0]);
+			$x_4326s = str_replace($coor_212[0], $coor_213, $coor_21[0]);
+			$coor_22 = explode(" ", $coor_21[1]);
+			$coor_221 = explode("'", $coor_22[0]);
+			$coor_222 = explode('"', $coor_221[1]);
+			$coor_223 = sprintf("%.1f", $coor_222[0]);
+			$y_4326s = str_replace($coor_222[0], $coor_223, $coor_22[0]);
+		} else {
+			// epsg:4326s
+			$x_1 = explode(" ", $x);
+			if ($x_1[0] < 0)
+				$xt = "W";
+			else
+				$xt = "E";
+			$y_1 = explode(" ", $y);
+			if ($y_1[0] > 0)
+				$yt = "N";
+			else
+				$yt = "S";
+			$x_4326s = str_replace("-", "", $x_1[0]) . "d" . $x_1[1] . "'" . $x_1[2] . '"' . $xt;
+			$y_4326s = str_replace("-", "", $y_1[0]) . "d" . $y_1[1] . "'" . $y_1[2] . '"' . $yt;
+
+			// epsg:25830
+			$coor_1 = shell_exec('echo "' . str_replace("\"", "\\\"", $x_4326s) . ' ' . str_replace("\"", "\\\"", $y_4326s) . '" | /usr/local/bin/cs2cs -f "%.2f" +init=epsg:4326 +to +init=epsg:25830 2> /dev/null');
+			$coor_11 = explode("	", $coor_1);
+			$x_25830 = $coor_11[0];
+			$coor_12 = explode(" ", $coor_11[1]);
+			$y_25830 = $coor_12[0];
+
+			// epsg:4326
+			$coor_2 = shell_exec('echo "' . str_replace("\"", "\\\"", $x_4326s) . ' ' . str_replace("\"", "\\\"", $y_4326s) . '" | /usr/local/bin/cs2cs -f "%.5f" +init=epsg:4326 +to +init=epsg:4326 2> /dev/null');
+			$coor_21 = explode("	", $coor_2);
+			$x_4326 = $coor_21[0];
+			$coor_22 = explode(" ", $coor_21[1]);
+			$y_4326 = $coor_22[0];
+		}
+		if ($lang == "es") $type = 'coordenadas';
+		else if ($lang == "en") $type = 'koordinates';
+		else $type = 'koordenatuak';
+		$type2 = strtoupper(substr($type, 0 , 1)) . substr($type, 1, strlen($type)-1);
+		$coord_25830 = "ETRS89-UTM30N (EPSG:25830)";
+		$coord_4326 = "WGS84 (EPSG:4326)";
+		$coord_4326s = "WGS84 sexag. (EPSG:4326)";
+		$coord_display_name = $type2 . " - " . $coord_25830 . ": " . $x_25830 . ", " . $y_25830 . " / "  . $coord_4326 . ": " . $x_4326 . ", " . $y_4326 . " / "  . $coord_4326s . ": " . $x_4326s . ", " . $y_4326s;
+		$doc = array();
+		$doc["response"]["numFound"] = 1;
+		$doc["response"]["start"] = 0;
+		$doc["response"]["maxScore"] = 1;
+		$doc["response"]["docs"][0]["boundingbox"][0] = $x_4326;
+		$doc["response"]["docs"][0]["boundingbox"][1] = $y_4326;
+		$doc["response"]["docs"][0]["boundingbox"][2] = $x_4326;
+		$doc["response"]["docs"][0]["boundingbox"][3] = $y_4326;
+		$doc["response"]["docs"][0]["display_name"] = $coord_display_name;
+		$doc["response"]["docs"][0]["b5m_id"] = "XY_" . $x_4326 . "_" . $y_4326;
+		$doc["response"]["docs"][0]["map_link"] = "https://b5mdev/map-2021/mapa/" . $doc["response"]["docs"][0]["b5m_id"];
+		$doc["response"]["docs"][0]["type"] = $type;
+		$doc["response"]["docs"][0]["coords_epsg:25830"][0] = $x_25830;
+		$doc["response"]["docs"][0]["coords_epsg:25830"][1] = $y_25830;
+		$doc["response"]["docs"][0]["coords_epsg:4326"][0] = $x_4326;
+		$doc["response"]["docs"][0]["coords_epsg:4326"][1] = $y_4326;
+		$doc["response"]["docs"][0]["coords_epsg:4326_sexagesimal"][0] = $x_4326s;
+		$doc["response"]["docs"][0]["coords_epsg:4326_sexagesimal"][1] = $y_4326s;
+		$response_coor = $doc;
+	}
+}
+
+// Coordinate detection
+coor_detect($q);
+
+if ($response_coor) {
+	// Show coordinates
+	$response = $response_coor;
+} else {
+	// Launch the Query
+	query_function("topo1");
+	if ($count == 0 || $count == -2) query_function("addr1");
+	if ($count == 0) query_function("topo2");
+	if ($count == 0) query_function("addr2");
+	if ($count == 0) query_function("topo3");
+	if ($count == 0) query_function("addr3");
+	if ($count == 0 || $count == -2) query_function("pk1");
+	if ($count == 0) query_function("pk2");
+	if ($count == 0) query_function("pk3");
+}
 
 // See if only the number of records has been requested
 if (empty($numfound) || $numfound != "1") $numfound = 0;
@@ -483,62 +658,6 @@ if ($count == -2) {
 	}
 	array_multisort($doc);
 	$response["response"]["types"] = $doc;
-}
-
-// Test if they are coordinates with the initial string q
-$lon = "";
-$lat = "";
-$que = "";
-
-$stringc1 = preg_replace("#N#", " ", $q);
-$stringc1 = preg_replace("#W#", " " , $stringc1);
-$stringc1 = preg_replace("#O#", " " , $stringc1);
-$stringc = preg_replace("#-#", " " , $stringc1);
-$pattern1 = "/^(?<longitude>(\s*)[-]?[1-2](?:\.[0-9]{1,10})?)(\s+)(?<latitude>[-]?[4][2-3](?:\.[0-9]{1,10})?)(\s*)$/";
-$pattern2 = "/^(?<latitude>(\s*)[-]?[4][2-3](?:\.[0-9]{1,10})?)(\s+)(?<longitude>[-]?[1-2](?:\.[0-9]{1,10})?)(\s*)$/";
-if (preg_match($pattern1, $stringc) || preg_match($pattern2, $stringc)) {
-	$que = "DECIMAL";
-  if (!preg_match($pattern1, $stringc, $matches))
-  	preg_match($pattern2, $stringc, $matches);
-  if (substr(trim($matches["longitude"]), 0, 1) != "-")
-		$longitude = "-" . trim($matches["longitude"]);
-  else
-		$longitude = trim($matches["longitude"]);
-
-  $lon = $longitude;
-  $lat = trim($matches["latitude"]);
-} else {
-  $pattern1 = "/^(?<X>(\s*)[-]?[5-6][0-9][0-9][0-9][0-9][0-9](?:\.[0-9]{1,10})?)(\s+)(?<Y>[-]?[4][7-8][0-9][0-9][0-9][0-9][0-9](?:\.[0-9]{1,10})?)(\s*)$/";
-  $pattern2 = "/^(?<Y>(\s*)[-]?[4][7-8][0-9][0-9][0-9][0-9][0-9](?:\.[0-9]{1,10})?)(\s+)(?<X>[-]?[5-6][0-9][0-9][0-9][0-9][0-9](?:\.[0-9]{1,10})?)(\s*)$/";
-  if (preg_match($pattern1, $stringc) || preg_match($pattern2, $stringc)) {
-  	$que = "ETRS89";
-    if (!preg_match($pattern1, $stringc, $matches))
-  		preg_match($pattern2, $stringc, $matches);
-
-    $lon = trim($matches["X"]);
-    $lat = trim($matches["Y"]);
-  } else {
-    $pattern1 = "/^(?<longitude>(\s*)[-]?[1-2](?:\s+[0-9]{1,2})?(?:\s+[0-9]{1,2}(?:\.*[0-9]{1,10})?)?)(\s+)(?<latitude>[-]?[4][2-3](?:\s+[0-9]{1,2})?(?:\s+[0-9]{1,2}(?:\.*[0-9]{1,10})?)?)(\s*)$/";
-    $pattern2 = "/^(?<latitude>(\s*)[-]?[4][2-3](?:\s+[0-9]{1,2})?(?:\s+[0-9]{1,2}(?:\.*[0-9]{1,10})?)?)(\s+)(?<longitude>[-]?[1-2](?:\s+[0-9]{1,2})?(?:\s+[0-9]{1,2}(?:\.*[0-9]{1,10})?)?)(\s*)$/";
-    if (preg_match($pattern1, $stringc) || preg_match($pattern2, $stringc)) {
-    	$que = "SEXAGESIMAL";
-      if (!preg_match($pattern1, $stringc, $matches))
-      	preg_match($pattern2, $stringc, $matches);
-      if (substr(trim($matches["longitude"]), 0, 1) != "-")
-				$longitude = "-" . trim($matches["longitude"]);
-      else
-				$longitude = trim($matches["longitude"]);
-
-      $lon = $longitude;
-      $lat = trim($matches["latitude"]);
-    }
-  }
-}
-
-// If they are coordinates the search is aborted
-if ($lon != "" and $lat != "" and $que != "") {
-	echo "type=" . $que . " lon=" . $lon . " lat=" . $lat;
-	exit;
 }
 
 // If there are no parameters (count = -1), refer to documentation
