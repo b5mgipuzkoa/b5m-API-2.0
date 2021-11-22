@@ -45,7 +45,7 @@ if ($lang == "en") $lang2 = "eu"; else $lang2 = $lang;
 
 function query_function($search_type) {
 	// Global Variables
-	global $lang, $q, $format, $debug, $rows, $start, $addr, $city, $riverbasin, $road, $street, $b5m_id, $type, $viewbox, $pt, $dist, $types, $nor, $sort, $numfound;
+	global $lang, $lang2, $q, $format, $debug, $rows, $start, $addr, $city, $riverbasin, $road, $street, $b5m_id, $type, $viewbox, $pt, $dist, $types, $nor, $sort, $numfound;
 	global $response, $count;
 	global $types_a;
 
@@ -605,7 +605,7 @@ function coor_detect($q) {
 		$doc["response"]["docs"][0]["boundingbox"][2] = $x_4326;
 		$doc["response"]["docs"][0]["boundingbox"][3] = $y_4326;
 		$doc["response"]["docs"][0]["display_name"] = $coord_display_name;
-		$doc["response"]["docs"][0]["b5m_id"] = "XY_" . $x_4326 . "_" . $y_4326;
+		$doc["response"]["docs"][0]["b5m_id"] = "L_" . $x_4326 . "_" . $y_4326 . "_WGS84";
 		$doc["response"]["docs"][0]["map_link"] = "https://b5mdev/map-2021/mapa/" . $doc["response"]["docs"][0]["b5m_id"];
 		$doc["response"]["docs"][0]["type"] = $type;
 		$doc["response"]["docs"][0]["coords_epsg:25830"][0] = $x_25830;
