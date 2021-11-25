@@ -482,13 +482,15 @@ function coor_detect($q) {
 	$tco = "";
 
 	$stringc1 = preg_replace("#N#", " ", $q);
+	$stringc1 = preg_replace("#I#", " " , $stringc1);
 	$stringc1 = preg_replace("#W#", " " , $stringc1);
 	$stringc1 = preg_replace("#O#", " " , $stringc1);
-	$stringc1 = preg_replace("#-#", " " , $stringc1);
+	$stringc1 = preg_replace("#M#", " " , $stringc1);
 	$stringc1 = preg_replace("#º#", " " , $stringc1);
 	$stringc1 = preg_replace("#°#", " " , $stringc1);
 	$stringc1 = preg_replace("#d#", " " , $stringc1);
 	$stringc1 = preg_replace("#'#", " " , $stringc1);
+	$stringc1 = preg_replace("#, #", "," , $stringc1);
 	$stringc = preg_replace("#\"#", " " , $stringc1);
 	$pattern1 = "/^(?<longitude>(\s*)[-]?[1-2](?:\.[0-9]{1,10})?)(?<delimeter>.)(?<latitude>[-]?[4][2-3](?:\.[0-9]{1,10})?)(\s*)$/";
 	$pattern2 = "/^(?<latitude>(\s*)[-]?[4][2-3](?:\.[0-9]{1,10})?)(?<delimeter>.)(?<longitude>[-]?[1-2](?:\.[0-9]{1,10})?)(\s*)$/";
