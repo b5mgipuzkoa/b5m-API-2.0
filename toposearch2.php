@@ -1,6 +1,9 @@
 <?php
 // Toponymic Finder
 
+// Dependencies
+// cs2cs from PROJ: https://proj.org/apps/cs2cs.html
+
 // Connection Path
 define("SOLR_SERVER_PATH_A", array(
 	"solr/b5mtopo",
@@ -286,6 +289,9 @@ function query_function($search_type) {
 	$field_type = "type_" . $lang;
 	$field_type_s = "type_" . $lang . "_search";
 	$field_type_f = "type_" . $lang . "_facet";
+	$field_name_s = "name_" . $lang2 . "_search";
+	$field_street_s = "street_" . $lang2 . "_search";
+	$field_address_s = "address_" . $lang2 . "_search";
 
 	// Types
 	if ($types == "1") {
@@ -336,7 +342,7 @@ function query_function($search_type) {
 	if ($road != "0") {
 		if (is_numeric($road)) $field_road="id_carre";
 		$solr_query->addFilterQuery($field_road . ":\"" . $road . "\"");
-		$solr_query->addFilterQuery("type_en:(\"KM\" )");
+		$solr_query->addFilterQuery("type_en:(\"kilometre point\" )");
 		if (empty($pt)) {
 			$solr_query->addSortField("kil_sort", $sort_asc);
 			$solr_query->addSortField("sentido_sort", $sort_asc);
@@ -363,6 +369,21 @@ function query_function($search_type) {
 		}
 		$ccn = $ccn . ")";
 		$solr_query->addFilterQuery($field_type_s . ":" . $ccn);
+		if ($search_type == "topo1" || $search_type == "topo2" || $search_type == "topo3") {
+			if ($q != "*") {
+				$solr_query->addFilterQuery($field_name_s . ":\"" . $q . "\"");
+				$sele = "{!q.op=AND}*";
+			}
+		}
+		if ($search_type == "addr1" || $search_type == "addr2" || $search_type == "addr3") {
+			if ($q != "*" && $street == 0) {
+				$solr_query->addFilterQuery($field_street_s . ":\"" . $q . "\"");
+				$sele = "{!q.op=AND}*";
+			} else if ($q != "*" && $street != 0) {
+				$solr_query->addFilterQuery($field_address_s . ":\"" . $q . "\"");
+				$sele = "{!q.op=AND}*";
+			}
+		}
 	}
 	if (($street == "0" && $road == "0" && $riverbasin == "0") || (!empty($pt)))
 		$solr_query->addSortField($sort_field, $sort);
@@ -399,11 +420,11 @@ function query_function($search_type) {
 
 	// Fields to Show
 	if ($lang == "es")
-		$kp="PK";
+		$kp="punto kilométrico";
 	else if ($lang == "en")
-		$kp="KM";
+		$kp="kilometre point";
 	else
-		$kp="KP";
+		$kp="kilometro-puntua";
 	if ($debug!=0) {
 		$solr_query->addField("field_search");
 		$solr_query->addField("field_search2");
