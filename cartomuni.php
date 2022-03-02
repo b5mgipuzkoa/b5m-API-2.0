@@ -71,12 +71,15 @@ if (!empty($municipality)) {
 	// Search String Encoding
 	$string = subrulesolr($municipality);
 	if (is_numeric($string)) {
-		$field_type = "codmuni";
+		$filter = "codmuni:" . $municipality;
 	} else {
-		$field_type = $field_muni . "_aux";
-		$string = $string . "*";
+		$municipality = str_replace("_", "-", $municipality);
+		$municipality = str_replace("onati", "oñati", $municipality);
+		$municipality = str_replace("Onati", "oñati", $municipality);
+		$municipality = str_replace("ONATI", "oñati", $municipality);
+		$filter = $field_muni . ":\"" . $municipality . "\"";
 	}
-	$solr_query->addFilterQuery($field_type . ":" . $string);
+	$solr_query->addFilterQuery($filter);
 }
 
 $solr_query->setStart(0);
@@ -103,6 +106,15 @@ $solr_query->addSortField($sort_field, SolrQuery::ORDER_ASC);
 // Response
 $response_query = $solr_client->query($solr_query);
 $response = $response_query->getResponse();
+
+// If nothing is found, a broader search is launched
+if ($response["response"]["numFound"] == 0) {
+	$filter2 = $field_muni . "_aux:" . $string . "*";
+	$solr_query->removeFilterQuery($filter);
+	$solr_query->addFilterQuery($filter2);
+	$response_query = $solr_client->query($solr_query);
+	$response = $response_query->getResponse();
+}
 
 // Output Format (JSON by default)
 header('Access-Control-Allow-Origin: *');
