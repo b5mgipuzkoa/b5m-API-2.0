@@ -118,60 +118,76 @@ if (($x == "") || ( $y == "" )) {
 
 // Development version
 if ($version == "1.0.0_desa") {
-	$ruta = "$home_dev/$tileset/$z/$x/$y";
+	$path = "$home_dev/$tileset/$z/$x/$y";
 } else {
-	$ruta = "$home/$version/$tileset/$z/$x/$y";
+	$path = "$home/$version/$tileset/$z/$x/$y";
 }
 
 // Definition of the action to perform according to the type of tileset
-if (in_array($type, array("mam", "ort", "teu", "tes", "heu", "hes", "pap", "err", "pk2"))) {
+// Equivalences with the basemap
+// map -> oin
+// mam -> oim
+// meu -> oiu
+// mes -> ois
+// teu -> otu
+// tes -> ots
+if (in_array($type, array("mam", "ort", "teu", "tes", "heu", "hes", "pap", "err", "pk2", "oim", "otu", "ots"))) {
 	// Image is served directly
-	if (file_exists($ruta)) {
-		$type_imagen = image_type_to_mime_type(exif_imagetype($ruta));
+	if (file_exists($path)) {
+		$image_type = image_type_to_mime_type(exif_imagetype($path));
 		header('Access-Control-Allow-Origin: *');
-		header('Content-Type: '.$type_imagen);
-		if ($fp = @fopen($ruta, 'rb')) {
-			header('Content-Length: ' . filesize($ruta));
+		header('Content-Type: '.$image_type);
+		if ($fp = @fopen($path, 'rb')) {
+			header('Content-Length: ' . filesize($path));
 			fpassthru($fp);
 		}
 	} else {
 		message_404("You requested a map tile [ $osgeo/$service/$version/$tileset/$z/$x/$y ] that does not exist");
 		exit();
 	}
-} else if (in_array($type, array("map", "meu", "mes", "hib", "oeu", "oes"))) {
-	$type2 = substr($ruta, strlen($tileset)-3, 3);
+} else if (in_array($type, array("map", "meu", "mes", "hib", "oeu", "oes", "oin", "oiu", "ois"))) {
+	$type2 = substr($path, strlen($tileset)-3, 3);
 
 	// Two images overlappping
 	if ($type == "meu") {
-		$ruta1 = str_replace('meu', 'mam', $ruta);
-		$ruta2 = str_replace('meu', 'teu', $ruta);
+		$path1 = str_replace('meu', 'mam', $path);
+		$path2 = str_replace('meu', 'teu', $path);
 	} else if ($type == "mes") {
-		$ruta1 = str_replace('mes', 'mam', $ruta);
-		$ruta2 = str_replace('mes', 'tes', $ruta);
+		$path1 = str_replace('mes', 'mam', $path);
+		$path2 = str_replace('mes', 'tes', $path);
 	} else if ($type == "map") {
-		$ruta1 = str_replace('map', 'mam', $ruta);
-		$ruta2 = str_replace('map', 't'.$lang2, $ruta);
+		$path1 = str_replace('map', 'mam', $path);
+		$path2 = str_replace('map', 't'.$lang2, $path);
 	} else if ($type == "hib") {
-		$ruta1 = str_replace('hib', 'ort', $ruta);
-		$ruta1 = str_replace('png', 'jpg', $ruta1);
-		$ruta2 = str_replace('hib', 'h'.$lang2, $ruta);
+		$path1 = str_replace('hib', 'ort', $path);
+		$path1 = str_replace('png', 'jpg', $path1);
+		$path2 = str_replace('hib', 'h'.$lang2, $path);
 	} else if ($type == "oeu") {
-		$ruta1 = str_replace('oeu', 'ort', $ruta);
-		$ruta1 = str_replace('png', 'jpg', $ruta1);
-		$ruta2 = str_replace('oeu', 'heu', $ruta);
+		$path1 = str_replace('oeu', 'ort', $path);
+		$path1 = str_replace('png', 'jpg', $path1);
+		$path2 = str_replace('oeu', 'heu', $path);
 	} else if ($type == "oes") {
-		$ruta1 = str_replace('oes', 'ort', $ruta);
-		$ruta1 = str_replace('png', 'jpg', $ruta1);
-		$ruta2 = str_replace('oes', 'hes', $ruta);
+		$path1 = str_replace('oes', 'ort', $path);
+		$path1 = str_replace('png', 'jpg', $path1);
+		$path2 = str_replace('oes', 'hes', $path);
+	} else if ($type == "oiu") {
+		$path1 = str_replace('oiu', 'oim', $path);
+		$path2 = str_replace('oiu', 'otu', $path);
+	} else if ($type == "ois") {
+		$path1 = str_replace('ois', 'oim', $path);
+		$path2 = str_replace('ois', 'ots', $path);
+	} else if ($type == "oin") {
+		$path1 = str_replace('oin', 'oim', $path);
+		$path2 = str_replace('oin', 'ot'.substr($lang2,1,1), $path);
 	}
-	if (file_exists($ruta1) && file_exists($ruta2)) {
-		$type_imagen1=image_type_to_mime_type(exif_imagetype($ruta1));
-		if ($type_imagen1 == "image/png" ) {
-			$image1 = imagecreatefrompng($ruta1);
+	if (file_exists($path1) && file_exists($path2)) {
+		$image_type1=image_type_to_mime_type(exif_imagetype($path1));
+		if ($image_type1 == "image/png" ) {
+			$image1 = imagecreatefrompng($path1);
 		} else {
-			$image1 = imagecreatefromjpeg($ruta1);
+			$image1 = imagecreatefromjpeg($path1);
 		}
-		$image2 = imagecreatefrompng($ruta2);
+		$image2 = imagecreatefrompng($path2);
 
 		imagealphablending($image1, true);
 		imagesavealpha($image1, true);
