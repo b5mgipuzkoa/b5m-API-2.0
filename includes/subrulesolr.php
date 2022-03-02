@@ -1,11 +1,11 @@
 <?php
 // Sting Replacement Function
 function subrulesolr ($cad) {
-	$cad = $cad . " ";
+	//$cad = $cad . " ";
 	$cad = str_replace(".", "", $cad);
 	$cad = str_replace(",", " ", $cad);
 	$cad = str_replace(";", " ", $cad);
-	$cad = mb_strtoupper($cad);
+	$cad = strtoupper($cad);
 	$cad = str_replace(" AV ", " AVENIDA ", $cad);
 	$cad = str_replace(" AVD ", " AVENIDA ", $cad);
 	$cad = str_replace(" AVDA ", " AVENIDA ", $cad);
