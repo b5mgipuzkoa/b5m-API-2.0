@@ -41,6 +41,14 @@ $nor = @$_REQUEST["nor"];
 $numfound = @$_REQUEST["numfound"];
 $sort = strtolower(@$_REQUEST["sort"]);
 
+// map_link
+$map_link_eu="/b5map/r1/eu/mapa/lekutu/";
+$map_link_es="/b5map/r1/es/mapa/localizar/";
+$map_link_en="/b5map/r1/en/map/locate/";
+if ($lang == "en") $map_link = $map_link_en;
+else if ($lang == "es") $map_link = $map_link_es;
+else $map_link = $map_link_eu;
+
 // Language Coding
 if (empty($lang)) $lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
 if ($lang != "eu" && $lang != "es" && $lang != "en") $lang = "en";
@@ -419,12 +427,6 @@ function query_function($search_type) {
 	$solr_query->setStart($start);
 
 	// Fields to Show
-	if ($lang == "es")
-		$kp="punto kilométrico";
-	else if ($lang == "en")
-		$kp="kilometre point";
-	else
-		$kp="kilometro-puntua";
 	if ($debug!=0) {
 		$solr_query->addField("field_search");
 		$solr_query->addField("field_search2");
@@ -451,7 +453,7 @@ function query_function($search_type) {
 	$solr_query->addField("road:" . $field_road);
 	$solr_query->addField("GFA_idcarre:id_carre");
 	$solr_query->addField("GFA_idut:id_pk");
-	$solr_query->addField($kp . ":kil");
+	$solr_query->addField("kilometre_point:kil");
 	$solr_query->addField("way:sentido_" . $lang);
 	$solr_query->addField("boundingbox");
 	$solr_query->addField("lon:xcen");
@@ -474,7 +476,7 @@ function query_function($search_type) {
 
 // Coordinate Detection Function
 function coor_detect($q) {
-	global $lang;
+	global $lang, $map_link;
 	global $response_coor, $count;
 
 	$x = "";
@@ -629,7 +631,7 @@ function coor_detect($q) {
 		$doc["response"]["docs"][0]["boundingbox"][3] = $y_4326;
 		$doc["response"]["docs"][0]["display_name"] = $coord_display_name;
 		$doc["response"]["docs"][0]["b5m_id"] = "L_" . $x_4326 . "_" . $y_4326 . "_WGS84";
-		$doc["response"]["docs"][0]["map_link"] = "https://b5mdev/map-2021/mapa/" . $doc["response"]["docs"][0]["b5m_id"];
+		$doc["response"]["docs"][0]["map_link"] = "https://" . $_SERVER['SERVER_NAME'] . $map_link . $doc["response"]["docs"][0]["b5m_id"];
 		$doc["response"]["docs"][0]["type"] = $type;
 		$doc["response"]["docs"][0]["coords_epsg:25830"][0] = $x_25830;
 		$doc["response"]["docs"][0]["coords_epsg:25830"][1] = $y_25830;
