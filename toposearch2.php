@@ -42,9 +42,9 @@ $numfound = @$_REQUEST["numfound"];
 $sort = strtolower(@$_REQUEST["sort"]);
 
 // map_link
-$map_link_eu="/b5map/r1/eu/mapa/lekutu/";
-$map_link_es="/b5map/r1/es/mapa/localizar/";
-$map_link_en="/b5map/r1/en/map/locate/";
+$map_link_eu="/map-2021/mapa/";
+$map_link_es="/map-2021/mapa/";
+$map_link_en="/map-2021/mapa/";
 if ($lang == "en") $map_link = $map_link_en;
 else if ($lang == "es") $map_link = $map_link_es;
 else $map_link = $map_link_eu;
