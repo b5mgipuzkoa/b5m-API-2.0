@@ -368,7 +368,11 @@ function query_function($search_type) {
 		$type = str_replace("y o", "y/o", $type);
 		$type = str_replace("eta edo", "eta/edo", $type);
 		$type = str_replace("and or", "and/or", $type);
-		$cc = explode("_", $type);
+		if (preg_match("/\|/", $type) == 1) {
+			$cc = explode("|", $type);
+		} else {
+			$cc = explode("_", $type);
+		}
 		$ccn = "(";
 		foreach($cc as $val) {
 			if (strlen($val) > 0) {
