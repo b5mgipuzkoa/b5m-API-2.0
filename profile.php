@@ -163,6 +163,10 @@ header('Access-Control-Allow-Origin: *');
 if (strtolower($format) == "php" || strtolower($format) == "phps") {
 	header("Content-type: text/plain;charset=utf-8");
 	print_r($doc);
+} else if (strtolower($format) == "text" || strtolower($format) == "txt") {
+	foreach ($doc["elevationProfile"] as $val) {
+	  echo $val["distance"] . " " . $val["height"] . " ";
+	}
 } else {
 	$jsonres = json_encode($doc, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_NUMERIC_CHECK | JSON_PRESERVE_ZERO_FRACTION);
 	if (strtolower($format) == "xml") {
