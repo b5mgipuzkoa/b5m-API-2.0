@@ -165,7 +165,11 @@ if (strtolower($format) == "php" || strtolower($format) == "phps") {
 	print_r($doc);
 } else if (strtolower($format) == "text" || strtolower($format) == "txt") {
 	foreach ($doc["elevationProfile"] as $val) {
+<<<<<<< HEAD
 	  echo $val["distance"] . " " . $val["height"] . "\r\n";
+=======
+	  echo $val["distance"] . " " . $val["height"] . " ";
+>>>>>>> 56e42d9173a21e197d96774cd290b5baaf62798f
 	}
 } else {
 	$jsonres = json_encode($doc, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_NUMERIC_CHECK | JSON_PRESERVE_ZERO_FRACTION);
