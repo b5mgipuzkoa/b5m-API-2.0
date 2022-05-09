@@ -40,6 +40,8 @@ $types = @$_REQUEST["types"];
 $nor = @$_REQUEST["nor"];
 $numfound = @$_REQUEST["numfound"];
 $sort = strtolower(@$_REQUEST["sort"]);
+$word = strtolower(@$_REQUEST["word"]);
+$listwords = strtolower(@$_REQUEST["listwords"]);
 
 // map_link
 $map_link_eu="/map-2021/mapa/";
@@ -56,7 +58,7 @@ if ($lang == "en") $lang2 = "eu"; else $lang2 = $lang;
 
 function query_function($search_type) {
 	// Global Variables
-	global $lang, $lang2, $q, $format, $debug, $rows, $start, $addr, $city, $riverbasin, $road, $street, $b5m_id, $type, $viewbox, $pt, $dist, $types, $nor, $sort, $numfound;
+	global $lang, $lang2, $q, $format, $debug, $rows, $start, $addr, $city, $riverbasin, $road, $street, $b5m_id, $type, $viewbox, $pt, $dist, $types, $nor, $sort, $word, $numfound;
 	global $response, $count;
 	global $types_a;
 
@@ -242,9 +244,11 @@ function query_function($search_type) {
 		$search_field = "field_search";
 	}
 
-	// Selection
+	// Selection: if there is a word, only names that begin with that word
 	$sele = "{!q.op=AND}";
-	if ($q == "*")
+	if ($word != "")
+		$sele = "name_" . $lang2 . "_search2:" . strtolower(mb_substr($word, 0, 1)) . "*";
+	else if ($q == "*")
 		$sele = $sele . "*";
 	else
 		$sele = $sele . $string;
@@ -656,14 +660,16 @@ if ($response_coor) {
 } else {
 	// Launch the Query
 	query_function("topo1");
-	if ($count == 0 || $count == -2) query_function("addr1");
-	if ($count == 0) query_function("topo2");
-	if ($count == 0) query_function("addr2");
-	if ($count == 0) query_function("topo3");
-	if ($count == 0) query_function("addr3");
-	if ($count == 0 || $count == -2) query_function("pk1");
-	if ($count == 0) query_function("pk2");
-	if ($count == 0) query_function("pk3");
+	if (empty($word)) {
+		if ($count == 0 || $count == -2) query_function("addr1");
+		if ($count == 0) query_function("topo2");
+		if ($count == 0) query_function("addr2");
+		if ($count == 0) query_function("topo3");
+		if ($count == 0) query_function("addr3");
+		if ($count == 0 || $count == -2) query_function("pk1");
+		if ($count == 0) query_function("pk2");
+		if ($count == 0) query_function("pk3");
+	}
 }
 
 // See if only the number of records has been requested
@@ -675,7 +681,6 @@ if ($numfound == 1) {
 }
 
 // Show the types, if $types = 1
-header("Content-type: text/plain;charset=utf-8");
 if ($count == -2) {
 	$response = array();
 	$response["response"]["numFound"] = count($types_a);
@@ -687,6 +692,30 @@ if ($count == -2) {
 	}
 	array_multisort($doc);
 	$response["response"]["types"] = $doc;
+}
+
+// Show list of first words if requested
+if ($listwords == 1) {
+	$responsew = array();
+	if ($count == 0) {
+		$responsew["response"]["numFound"] = $count;
+	} else {
+		$doc = array();
+		for($i = 0; $i < count($response["response"]["docs"]); $i++) {
+			$str_name = mb_substr(mb_strtoupper($response["response"]["docs"][$i]["display_name"]), 0, 1);
+			if ($str_name != 'Á' && $str_name != 'É' && $str_name != 'Í' && $str_name != 'Ó' && $str_name != 'Ú')
+				$doc[$i] = $str_name;
+		}
+		$doc_unique = array_unique($doc);
+		setlocale(LC_COLLATE, 'es_ES.utf8');
+		function custom_sort($a, $b) {
+  		  return strcoll ($a, $b);
+		}
+		usort($doc_unique, 'custom_sort');
+		$responsew["response"]["numFound"] = count($doc_unique);
+		$responsew["response"]["words"] = $doc_unique;
+	}
+	$response = $responsew;
 }
 
 // If there are no parameters (count = -1), refer to documentation
