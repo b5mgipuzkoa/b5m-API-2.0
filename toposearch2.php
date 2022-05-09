@@ -333,6 +333,8 @@ function query_function($search_type) {
 		$solr_query->addFilterQuery("code:" . "\"" . $b5m_id . "\"");
 	if ($street != "0") {
 		if (is_numeric($street)) $field_street2 = "codstreet:0"; else $field_street2 = $field_street;
+		$street = str_replace("(", "", $street);
+		$street = str_replace(")", "", $street);
 		$solr_query->addFilterQuery($field_street2 . "_search:\"" . $street . "\"");
 		if (empty($pt))
 			$solr_query->addSortField("door_number_sort", $sort_asc);
@@ -387,6 +389,8 @@ function query_function($search_type) {
 		$solr_query->addFilterQuery($field_type_s . ":" . $ccn);
 		if ($search_type == "topo1" || $search_type == "topo2" || $search_type == "topo3") {
 			if ($q != "*") {
+				$q = str_replace("(", "", $q);
+				$q = str_replace(")", "", $q);
 				$solr_query->addFilterQuery($field_name_s . ":\"" . $q . "\"");
 				$sele = "{!q.op=AND}*";
 			}
