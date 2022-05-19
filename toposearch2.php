@@ -661,6 +661,19 @@ coor_detect($q);
 if ($response_coor) {
 	// Show coordinates
 	$response = $response_coor;
+} else if ($listwords == 1 && ($type == "eraikina" || $type == "edificio" || "$type" == "building") && ($city == "")) {
+	// List of first words, case of type=building
+	$response = array();
+	$range_a = array();
+	$range_a = array_merge(range(1, 9), range('A', 'Z'));
+	$eli = 0;
+	foreach ($range_a as $elem) {
+		$response["response"]["docs"][$eli]["display_name"] = $elem;
+		$eli ++;
+	}
+	$response["response"]["docs"][$eli]["display_name"] = "Ñ";
+	$eli ++;
+	$count = $eli;
 } else {
 	// Launch the Query
 	query_function("topo1");
