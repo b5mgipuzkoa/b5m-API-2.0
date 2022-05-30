@@ -726,11 +726,25 @@ if ($listwords == 1) {
 		$doc_unique = array_unique($doc);
 		setlocale(LC_COLLATE, 'es_ES.utf8');
 		function custom_sort($a, $b) {
-  		  return strcoll ($a, $b);
+  		return strcoll ($a, $b);
 		}
 		usort($doc_unique, 'custom_sort');
-		$responsew["response"]["numFound"] = count($doc_unique);
-		$responsew["response"]["words"] = $doc_unique;
+		$doc_unique2 == array();
+		$j = 0;
+		for($i = 0; $i < count($doc_unique); $i++) {
+			if (! is_numeric($doc_unique[$i])) {
+				$doc_unique2[$j] = $doc_unique[$i];
+				$j++;
+			}
+		}
+		for($i = 0; $i < count($doc_unique); $i++) {
+			if (is_numeric($doc_unique[$i])) {
+				$doc_unique2[$j] = $doc_unique[$i];
+				$j++;
+			}
+		}
+		$responsew["response"]["numFound"] = count($doc_unique2);
+		$responsew["response"]["words"] = $doc_unique2;
 	}
 	$response = $responsew;
 }
