@@ -65,7 +65,7 @@ function subrulesolr ($cad) {
 	$cad = str_replace("(", "", $cad);
 	$cad = str_replace(")", "", $cad);
 	$cad = str_replace("_", "", $cad);
-	$cad = str_replace("-", "", $cad);
+	$cad = str_replace("-", " ", $cad);
 	$cad = str_replace("H", "", $cad);
 	$cad = str_replace("Ñ", "N", $cad);
 	$cad = str_replace("Á", "A", $cad);
