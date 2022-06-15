@@ -729,7 +729,7 @@ if ($listwords == 1) {
   		return strcoll ($a, $b);
 		}
 		usort($doc_unique, 'custom_sort');
-		$doc_unique2 == array();
+		$doc_unique2 = array();
 		$j = 0;
 		for($i = 0; $i < count($doc_unique); $i++) {
 			if (! is_numeric($doc_unique[$i])) {
