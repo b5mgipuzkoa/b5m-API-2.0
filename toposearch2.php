@@ -206,9 +206,9 @@ function query_function($search_type) {
 	$solr_query = new SolrQuery();
 
 	// Search Field and String
-	if ($search_type == "topo3") $search_field = "field_search2";
+	if ($search_type == "topo4" || $search_type == "topo5") $search_field = "field_search2";
 		else $search_field = "field_search";
-	if ($search_type == "topo2" || $search_type == "addr2" || $search_type == "topo3" || $search_type == "pk2") {
+	if ($search_type == "topo2" || $search_type == "addr2" || $search_type == "topo4" || $search_type == "pk2") {
 		$string2 = explode(" ", $string);
 		$string3 = "";
 		foreach($string2 as $val) {
@@ -218,7 +218,7 @@ function query_function($search_type) {
 			}
 		}
 		$string = $string3;
-	} else if ($search_type == "addr3") {
+	} else if ($search_type == "addr3" || $search_type == "topo3" || $search_type == "topo5") {
 		$string4 = explode(" ", $string);
 		$string5 = "";
 		foreach($string4 as $val) {
@@ -683,6 +683,8 @@ if ($response_coor) {
 		if ($count == 0) query_function("addr2");
 		if ($count == 0) query_function("topo3");
 		if ($count == 0) query_function("addr3");
+		if ($count == 0) query_function("topo4");
+		if ($count == 0) query_function("topo5");
 		if ($count == 0 || $count == -2) query_function("pk1");
 		if ($count == 0) query_function("pk2");
 		if ($count == 0) query_function("pk3");
