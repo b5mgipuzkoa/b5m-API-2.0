@@ -37,12 +37,14 @@ if ($lang2 == "es") {
 	$field_bo3 = $field_en . "2_es";
 	$field_bo4 = $field_mu . "2_es";
 	$field_map = "map_link_es";
+	$field_comment = "comment_es";
 } else {
 	$field_bo1 = $field_en . "1_eu";
 	$field_bo2 = $field_mu . "1_eu";
 	$field_bo3 = $field_en . "2_eu";
 	$field_bo4 = $field_mu . "2_eu";
 	$field_map = "map_link_eu";
+	$field_comment = "comment_eu";
 }
 
 $options = array
@@ -146,7 +148,7 @@ if ($response["response"]["numFound"] > 0) {
 				$doc["response"]["docs"][$i]["agreements"][$j]["fieldlog_file_type"] = $response2["response"]["docs"][$j]["fieldlog_file_type"];
 				$doc["response"]["docs"][$i]["agreements"][$j]["fieldlog_link_type"] = $response2["response"]["docs"][$j]["fieldlog_link_type"];
 				$doc["response"]["docs"][$i]["agreements"][$j]["fieldlog_size_kb"] = $response2["response"]["docs"][$j]["fieldlog_size_kb"];
-				$doc["response"]["docs"][$i]["agreements"][$j]["comment"] = $response2["response"]["docs"][$j]["comment"];
+				$doc["response"]["docs"][$i]["agreements"][$j]["comment"] = $response2["response"]["docs"][$j][$field_comment];
 				$doc["response"]["docs"][$i]["agreements"][$j]["map_link"] = $response2["response"]["docs"][$j]["map_link_agreement_" . $lang2];
 				$doc["response"]["docs"][$i]["agreements"][$j]["number_of_boundarystones"] = $response2["response"]["docs"][$j]["number_of_boundarystones"];
 
