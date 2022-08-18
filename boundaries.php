@@ -97,6 +97,7 @@ $solr_query->setOmitHeader(true);
 // Sort
 $sort_1 = $field_bo2 . "_sort";
 $sort_2 = $field_bo1 . "_sort";
+$solr_query->addSortField("main_muni1", SolrQuery::ORDER_DESC);
 $solr_query->addSortField($sort_1, SolrQuery::ORDER_ASC);
 $solr_query->addSortField($sort_2, SolrQuery::ORDER_ASC);
 
