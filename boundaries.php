@@ -14,6 +14,7 @@ $lang = @$_REQUEST["lang"];
 $q = @$_REQUEST["q"];
 $format = @$_REQUEST["format"];
 $limit = @$_REQUEST["limit"];
+$debug = @$_REQUEST["debug"];
 
 // Language Encoding
 if ($lang != "eu" && $lang != "es" && $lang != "en") {
@@ -27,6 +28,9 @@ if ($lang == "es") {
 
 // Record Limit
 if (empty($limit)) $limit = 10000;
+
+// Debug
+if (empty($debug)) $debug = "0";
 
 // Search, Order and Display Fields
 $field_en = "encl";
@@ -96,6 +100,13 @@ $sort_2 = $field_bo1 . "_sort";
 $solr_query->addSortField($sort_1, SolrQuery::ORDER_ASC);
 $solr_query->addSortField($sort_2, SolrQuery::ORDER_ASC);
 
+// Debug
+if ($debug != 0) {
+	$solr_query->setEchoParams("all");
+	$solr_query->setShowDebugInfo(true);
+	$solr_query->setOmitHeader(false);
+}
+
 $response_query = $solr_client->query($solr_query);
 $response = $response_query->getResponse();
 
@@ -110,6 +121,26 @@ if ($response["response"]["numFound"] == 0) {
 
 // Create a new array
 $doc = array();
+
+// Debug
+if ($debug != 0) {
+	$doc["responseHeader"]["status"] = $response["responseHeader"]["status"];
+	$doc["responseHeader"]["QTime"] = $response["responseHeader"]["QTime"];
+	$doc["responseHeader"]["params"]["q"] = $response["responseHeader"]["params"]["q"];
+	$doc["responseHeader"]["params"]["df"] = $response["responseHeader"]["params"]["df"];
+	$doc["responseHeader"]["params"]["indent"] = $response["responseHeader"]["params"]["indent"];
+	$doc["responseHeader"]["params"]["omitHeader"] = $response["responseHeader"]["params"]["omitHeader"];
+	$doc["responseHeader"]["params"]["echoParams"] = $response["responseHeader"]["params"]["echoParams"];
+	$doc["responseHeader"]["params"]["fl"] = $response["responseHeader"]["params"]["fl"];
+	$doc["responseHeader"]["params"]["start"] = $response["responseHeader"]["params"]["start"];
+	$doc["responseHeader"]["params"]["fq"] = $response["responseHeader"]["params"]["fq"];
+	$doc["responseHeader"]["params"]["sort"] = $response["responseHeader"]["params"]["sort"];
+	$doc["responseHeader"]["params"]["rows"] = $response["responseHeader"]["params"]["rows"];
+	$doc["responseHeader"]["params"]["version"] = $response["responseHeader"]["params"]["version"];
+	$doc["responseHeader"]["params"]["wt"] = $response["responseHeader"]["params"]["wt"];
+}
+
+// Response
 $doc["response"]["numFound"] = $response["response"]["numFound"];
 $doc["response"]["start"] = $response["response"]["start"];
 
