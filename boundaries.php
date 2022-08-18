@@ -119,6 +119,7 @@ if ($response["response"]["numFound"] > 0) {
 		$doc["response"]["docs"][$i]["id_enclave"] = $response["response"]["docs"][$i]["id_enclave"];
 		$doc["response"]["docs"][$i]["enclave1"] = $response["response"]["docs"][$i]["encl1_" . $lang2];
 		$doc["response"]["docs"][$i]["municipality1"] = $response["response"]["docs"][$i]["muni1_" . $lang2];
+		$doc["response"]["docs"][$i]["territory1"] = $response["response"]["docs"][$i]["terr1_" . $lang2];
 
 		// Searching Agreeements
 		$idp1 = $response["response"]["docs"][$i]["id"];
@@ -140,6 +141,7 @@ if ($response["response"]["numFound"] > 0) {
 				$doc["response"]["docs"][$i]["agreements"][$j]["id_agreement"] = $response2["response"]["docs"][$j]["id_acta"];
 				$doc["response"]["docs"][$i]["agreements"][$j]["enclave2"] = $response2["response"]["docs"][$j]["encl2_" . $lang2];
 				$doc["response"]["docs"][$i]["agreements"][$j]["municipality2"] = $response2["response"]["docs"][$j]["muni2_" . $lang2];
+				$doc["response"]["docs"][$i]["agreements"][$j]["territory2"] = $response2["response"]["docs"][$j]["terr2_" . $lang2];
 				$doc["response"]["docs"][$i]["agreements"][$j]["agreement"] = $response2["response"]["docs"][$j]["agreement"];
 				$doc["response"]["docs"][$i]["agreements"][$j]["agreement_file_type"] = $response2["response"]["docs"][$j]["agreement_file_type"];
 				$doc["response"]["docs"][$i]["agreements"][$j]["agreement_link_type"] = $response2["response"]["docs"][$j]["agreement_link_type"];
