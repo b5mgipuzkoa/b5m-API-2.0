@@ -59,7 +59,7 @@ if ($lang == "en") $lang2 = "eu"; else $lang2 = $lang;
 function query_function($search_type) {
 	// Global Variables
 	global $lang, $lang2, $q, $format, $debug, $rows, $start, $addr, $city, $riverbasin, $road, $street, $b5m_id, $type, $viewbox, $pt, $dist, $types, $nor, $sort, $word, $numfound;
-	global $response, $count;
+	global $response, $count, $count_topo, $count_addr;
 	global $types_a;
 
 	// Connection Type
@@ -208,7 +208,7 @@ function query_function($search_type) {
 	// Search Field and String
 	if ($search_type == "topo4" || $search_type == "topo5") $search_field = "field_search2";
 		else $search_field = "field_search";
-	if ($search_type == "topo2" || $search_type == "addr2" || $search_type == "topo4" || $search_type == "pk2") {
+	if ($search_type == "topo2" || $search_type == "addr2" || $search_type == "topo4" || $search_type == "topo5" || $search_type == "pk2") {
 		$string2 = explode(" ", $string);
 		$string3 = "";
 		foreach($string2 as $val) {
@@ -218,17 +218,19 @@ function query_function($search_type) {
 			}
 		}
 		$string = $string3;
-	} else if ($search_type == "addr3" || $search_type == "topo3" || $search_type == "topo5") {
+	}
+	if ($search_type == "addr3" || $search_type == "topo3" || $search_type == "topo5") {
 		$string4 = explode(" ", $string);
 		$string5 = "";
 		foreach($string4 as $val) {
 			if (strlen($val) > 0) {
-				if (strlen($val) < 10) $string5 = $string5 . $val . "* ";
-				else $string5 = $string5 . $val . " ";
+				if (strlen($val) < 10) $string5 = $string5 . $val . "~1 OR " . $val . "* ";
+				else $string5 = $string5 . $val . "~  OR " . $val . " ";
 			}
 		}
 		$string = $string5;
-	} else if ($search_type == "pk3") {
+	}
+	if ($search_type == "pk3") {
 		$string6 = explode(" ", $string);
 		$string7 = "";
 		$cu = 0;
@@ -484,6 +486,10 @@ function query_function($search_type) {
 	$response_query = $solr_client->query($solr_query);
 	$response = $response_query->getResponse();
 	$count = $response["response"]["numFound"];
+	if ($search_type == "topo1" || $search_type == "topo2" || $search_type == "topo3")
+		$count_topo = $response["response"]["numFound"];
+	if ($search_type == "addr1" || $search_type == "addr2")
+		$count_addr = $response["response"]["numFound"];
 }
 
 // Coordinate Detection Function
@@ -676,12 +682,14 @@ if ($response_coor) {
 	$count = $eli;
 } else {
 	// Launch the Query
+	$count_topo = 0;
+	$count_addr = 0;
 	query_function("topo1");
 	if (empty($word)) {
 		if ($count == 0 || $count == -2) query_function("addr1");
-		if ($count == 0) query_function("topo2");
+		if ($count_addr == 0 && $count_topo <= 5) query_function("topo2");
 		if ($count == 0) query_function("addr2");
-		if ($count == 0) query_function("topo3");
+		if ($count_addr == 0 && $count_topo <= 5) query_function("topo3");
 		if ($count == 0) query_function("addr3");
 		if ($count == 0) query_function("topo4");
 		if ($count == 0) query_function("topo5");
