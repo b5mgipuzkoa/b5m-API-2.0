@@ -56,6 +56,12 @@ if (empty($lang)) $lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
 if ($lang != "eu" && $lang != "es" && $lang != "en") $lang = "en";
 if ($lang == "en") $lang2 = "eu"; else $lang2 = $lang;
 
+// KP case
+if ($type == "kilometro-puntua" || $type == "punto kilométrico" || $type == "kilometre point")
+	$type_kp = 1;
+else
+	$type_kp = 0;
+
 function query_function($search_type) {
 	// Global Variables
 	global $lang, $lang2, $q, $format, $debug, $rows, $start, $addr, $city, $riverbasin, $road, $street, $b5m_id, $type, $viewbox, $pt, $dist, $types, $nor, $sort, $word, $numfound;
@@ -634,11 +640,11 @@ function coor_detect($q) {
 		if ($lang == "eu") $type = 'koordenatuak';
 		else if ($lang == "es") $type = 'coordenadas';
 		else $type = 'coordinates';
-		$type2 = strtoupper(substr($type, 0 , 1)) . substr($type, 1, strlen($type)-1);
+		$type_f_upper = strtoupper(substr($type, 0 , 1)) . substr($type, 1, strlen($type)-1);
 		$coord_25830 = "ETRS89-UTM30N (EPSG:25830)";
 		$coord_4326 = "WGS84 (EPSG:4326)";
 		$coord_4326s = "WGS84 sexag. (EPSG:4326)";
-		$coord_display_name = $type2 . " - " . $coord_25830 . ": " . $x_25830 . ", " . $y_25830 . " / "  . $coord_4326 . ": " . $x_4326 . ", " . $y_4326 . " / "  . $coord_4326s . ": " . $x_4326s . ", " . $y_4326s;
+		$coord_display_name = $type_f_upper . " - " . $coord_25830 . ": " . $x_25830 . ", " . $y_25830 . " / "  . $coord_4326 . ": " . $x_4326 . ", " . $y_4326 . " / "  . $coord_4326s . ": " . $x_4326s . ", " . $y_4326s;
 		$doc = array();
 		$doc["response"]["numFound"] = 1;
 		$doc["response"]["start"] = 0;
@@ -687,12 +693,12 @@ if ($response_coor) {
 	query_function("topo1");
 	if (empty($word)) {
 		if ($count == 0 || $count == -2) query_function("addr1");
-		if ($count_addr == 0 && $count_topo <= 5) query_function("topo2");
-		if ($count == 0) query_function("addr2");
-		if ($count_addr == 0 && $count_topo <= 5) query_function("topo3");
-		if ($count == 0) query_function("addr3");
-		if ($count == 0) query_function("topo4");
-		if ($count == 0) query_function("topo5");
+		if ($count_addr == 0 && $count_topo <= 5 && $type_kp == 0) query_function("topo2");
+		if ($count == 0 && $type_kp == 0) query_function("addr2");
+		if ($count_addr == 0 && $count_topo <= 5 && $type_kp == 0) query_function("topo3");
+		if ($count == 0 && $type_kp == 0) query_function("addr3");
+		if ($count == 0 && $type_kp == 0) query_function("topo4");
+		if ($count == 0 && $type_kp == 0) query_function("topo5");
 		if ($count == 0 || $count == -2) query_function("pk1");
 		if ($count == 0) query_function("pk2");
 		if ($count == 0) query_function("pk3");
