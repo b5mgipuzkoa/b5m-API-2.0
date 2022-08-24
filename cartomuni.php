@@ -37,6 +37,7 @@ if ($lang == "es") {
 	$field_owner = "propietario_eu";
 	$field_map = "map_link_eu";
 }
+$field_company = "empresa";
 
 // Sort
 if ($sort == "1" || $sort == "2") {
@@ -91,6 +92,7 @@ $solr_query->addField("GFA_codmunicipality:codmuni");
 $solr_query->addField("municipality:" . $field_muni);
 $solr_query->addField("name:" . $field_name);
 $solr_query->addField("owner:" . $field_owner);
+$solr_query->addField("company:" . $field_company);
 $solr_query->addField("scale:escala");
 $solr_query->addField("digitalization_date:f_digitalizacion");
 $solr_query->addField("survey_date:f_levanoriginal");
