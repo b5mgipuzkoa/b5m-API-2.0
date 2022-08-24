@@ -18,6 +18,7 @@ ini_set('memory_limit', '1024M');
 include_once("includes/config.php");
 include_once("includes/subrulesolr.php");
 include_once("includes/json2xml.php");
+include_once("includes/normal_chars.php");
 
 // Input Parameters
 $lang = @$_REQUEST["lang"];
@@ -56,8 +57,11 @@ if (empty($lang)) $lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
 if ($lang != "eu" && $lang != "es" && $lang != "en") $lang = "en";
 if ($lang == "en") $lang2 = "eu"; else $lang2 = $lang;
 
+// type filter
+$type_filtered = str_replace(" ","-",normal_chars($type));
+
 // KP case
-if ($type == "kilometro-puntua" || $type == "punto kilométrico" || $type == "kilometre point")
+if ($type_filtered == "kilometro-puntua" || $type_filtered == "punto-kilometrico" || $type_filtered == "kilometre-point")
 	$type_kp = 1;
 else
 	$type_kp = 0;
@@ -693,9 +697,9 @@ if ($response_coor) {
 	query_function("topo1");
 	if (empty($word)) {
 		if ($count == 0 || $count == -2) query_function("addr1");
-		if ($count_addr == 0 && $count_topo <= 5 && $type_kp == 0) query_function("topo2");
+		if ($count_addr == 0 && $count_topo <= 5 && $type_kp == 0 && $count != -2) query_function("topo2");
 		if ($count == 0 && $type_kp == 0) query_function("addr2");
-		if ($count_addr == 0 && $count_topo <= 5 && $type_kp == 0) query_function("topo3");
+		if ($count_addr == 0 && $count_topo <= 5 && $type_kp == 0 && $count != -2) query_function("topo3");
 		if ($count == 0 && $type_kp == 0) query_function("addr3");
 		if ($count == 0 && $type_kp == 0) query_function("topo4");
 		if ($count == 0 && $type_kp == 0) query_function("topo5");
