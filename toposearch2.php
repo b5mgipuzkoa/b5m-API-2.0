@@ -218,7 +218,7 @@ function query_function($search_type) {
 	// Search Field and String
 	if ($search_type == "topo4" || $search_type == "topo5") $search_field = "field_search2";
 		else $search_field = "field_search";
-	if ($search_type == "topo2" || $search_type == "addr2" || $search_type == "topo4" || $search_type == "topo5" || $search_type == "pk2") {
+	if ($search_type == "topo2" || $search_type == "addr2" || $search_type == "topo4" || $search_type == "topo5") {
 		$string2 = explode(" ", $string);
 		$string3 = "";
 		foreach($string2 as $val) {
@@ -240,7 +240,7 @@ function query_function($search_type) {
 		}
 		$string = $string5;
 	}
-	if ($search_type == "pk3") {
+	if ($search_type == "pk2") {
 		$string6 = explode(" ", $string);
 		$string7 = "";
 		$cu = 0;
@@ -370,7 +370,7 @@ function query_function($search_type) {
 		$solr_query->addFilterQuery($field_road . ":\"" . $road . "\"");
 		$solr_query->addFilterQuery("type_en:(\"kilometre point\" )");
 		if (empty($pt)) {
-			$solr_query->addSortField("kil_sort", $sort_asc);
+			$solr_query->addSortField("kil", $sort_asc);
 			$solr_query->addSortField("sentido_sort", $sort_asc);
 		}
 	}
@@ -419,6 +419,20 @@ function query_function($search_type) {
 	}
 	if (($street == "0" && $road == "0" && $riverbasin == "0") || (!empty($pt)))
 		$solr_query->addSortField($sort_field, $sort);
+
+	if ($search_type == "pk1" || $search_type == "pk3") {
+		$sele = "{!q.op=AND}*";
+		if ($search_type == "pk3") {
+			$q_array = explode(" ", $q);
+			$q = $q_array[0];
+			if ($q_array[1] != "") $solr_query->addFilterQuery("kil:(\"" . $q_array[1] . "\")");
+		}
+		$solr_query->addFilterQuery($field_road . ":(\"" . strtoupper($q) . "\")");
+		if (empty($pt)) {
+			$solr_query->addSortField("kil", $sort_asc);
+			$solr_query->addSortField("sentido_sort", $sort_asc);
+		}
+	}
 
 	// Centroid Filter
 	if (!empty($pt)) {
@@ -692,9 +706,20 @@ if ($response_coor) {
 	$count = $eli;
 } else {
 	// Launch the Query
+	$count = 0;
 	$count_topo = 0;
 	$count_addr = 0;
-	query_function("topo1");
+
+	// Search if it is a road
+	$q_road_1 = strtoupper(mb_substr($q, 0, 2));
+	$q_road_2 = strtoupper(mb_substr($q, 0, 3));
+	if ($q_road_1 == 'A-' || $q_road_1 == 'N-' || $q_road_2 == "AP-" || $q_road_2 == "GI-") {
+		query_function("topo1");
+		if ($count != 1) query_function("pk3");
+		if ($count != 0) $count_topo = 10;
+	}
+	//query_function("topo1");
+	if ($count == 0) query_function("topo1");
 	if (empty($word)) {
 		if ($count == 0 || $count == -2) query_function("addr1");
 		if ($count_addr == 0 && $count_topo <= 5 && $type_kp == 0 && $count != -2) query_function("topo2");
@@ -705,7 +730,6 @@ if ($response_coor) {
 		if ($count == 0 && $type_kp == 0) query_function("topo5");
 		if ($count == 0 || $count == -2) query_function("pk1");
 		if ($count == 0) query_function("pk2");
-		if ($count == 0) query_function("pk3");
 	}
 }
 
