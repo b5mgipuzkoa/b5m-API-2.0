@@ -425,7 +425,7 @@ function query_function($search_type) {
 		if ($search_type == "pk3") {
 			$q_array = explode(" ", $q);
 			$q = $q_array[0];
-			if ($q_array[1] != "") $solr_query->addFilterQuery("kil:(\"" . $q_array[1] . "\")");
+			if (count($q_array) > 1) $solr_query->addFilterQuery("kil:(\"" . $q_array[1] . "\")");
 		}
 		$solr_query->addFilterQuery($field_road . ":(\"" . strtoupper($q) . "\")");
 		if (empty($pt)) {
