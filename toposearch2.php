@@ -95,10 +95,13 @@ function query_function($search_type) {
 	if (empty($b5m_id)) $b5m_id = 0;
 	if (empty($city)) $city = 0;
 
+	// If the search_type is code, then is the b5m_id
+	if ($search_type == "code")
+		$b5m_id = $q;
+
 	// If the search is by b5m_id and type is D_*, then is an address
-	if ((substr($b5m_id, 0, 2) == "D_") && ($search_type == "topo1")) {
-		return null;
-	}
+	if (substr($b5m_id, 0, 2) == "D_")
+		$i = 1;
 
 	// If the search is a KP, cannot contain certain parameters
 	if ((substr($search_type, 0, 2) == "pk") && ($street == "0")) {
@@ -109,11 +112,11 @@ function query_function($search_type) {
 
 	// We cannot have all 3 parameters at the same time and, if we have street, we must also have city
 	if ($b5m_id != "0") {
-		$city = 0;
-		$riverbasin = 0;
-		$road = 0;
-		$street = 0;
-		$q = "*";
+		$city2 = $city; $city = 0;
+		$riverbasin2 = $riverbasin; $riverbasin = 0;
+		$road2 = $road; $road = 0;
+		$street2 = $street; $street = 0;
+		$q2 = $q; $q = "*";
 	}
 	if ($city != "0") {
 		$b5m_id = 0;
@@ -513,6 +516,17 @@ function query_function($search_type) {
 		$count_topo = $response["response"]["numFound"];
 	if ($search_type == "addr1" || $search_type == "addr2")
 		$count_addr = $response["response"]["numFound"];
+
+	// Reset the code
+	if ($count == 0 && $search_type == "code") {
+		//$q = $b5m_id;
+		$b5m_id = 0;
+		$city = $city2;
+		$riverbasin = $riverbasin2;
+		$road = $road2;
+		$street = $street2;
+		$q = $q2;
+	}
 }
 
 // Coordinate Detection Function
@@ -717,7 +731,7 @@ if ($response_coor) {
 		if ($count != 1) query_function("pk3");
 		if ($count != 0) $count_topo = 10;
 	}
-	//query_function("topo1");
+	if ($count == 0 && empty($b5m_id)) query_function("code");
 	if ($count == 0) query_function("topo1");
 	if (empty($word)) {
 		if ($count == 0 || $count == -2) query_function("addr1");
