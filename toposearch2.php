@@ -138,7 +138,7 @@ function query_function($search_type) {
 
 	// Record Limit and Pagination Start
 	if (empty($start)) $start = 0;
-	if (empty($rows)) $rows = 1000000;
+	if (empty($rows)) $rows = 10000;
 	if ($numfound == 1) $rows = 1;
 
 	// Search Type
@@ -234,8 +234,7 @@ function query_function($search_type) {
 		$string5 = "";
 		foreach($string4 as $val) {
 			if (strlen($val) > 0) {
-				if (strlen($val) < 10) $string5 = $string5 . $val . "~1 OR " . $val . "* ";
-				else $string5 = $string5 . $val . "~  OR " . $val . " ";
+				$string5 = $string5 . $val . " OR " . $val . "* ";
 			}
 		}
 		$string = $string5;
@@ -728,6 +727,10 @@ if ($response_coor) {
 		if ($count == 0 && $type_kp == 0) query_function("addr3");
 		if ($count == 0 && $type_kp == 0) query_function("topo4");
 		if ($count == 0 && $type_kp == 0) query_function("topo5");
+
+		// Preventing exaggerated multiple matches
+		if ($count >= 10000 && $type == 0) $count = 0;
+
 		if ($count == 0 || $count == -2) query_function("pk1");
 		if ($count == 0) query_function("pk2");
 	}
