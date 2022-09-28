@@ -177,3 +177,4 @@ if (strtolower($format) == "php" || strtolower($format) == "phps") {
 		print_r($jsonres);
 	}
 }
+?>

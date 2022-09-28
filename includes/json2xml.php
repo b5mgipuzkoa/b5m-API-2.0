@@ -61,12 +61,12 @@ function xml2json($xml) {
     $f = function($f,$a) use ($t) {
         $c = null;
         if ($t($a)=='null') {
-            $c = null; 
+            $c = null;
         } else if ($t($a)=='boolean') {
             $b = substr(strtolower($a->textContent),0,1);
             $c = in_array($b,array('1','t'));
         } else if ($t($a)=='number') {
-            $c = $a->textContent+0; 
+            $c = $a->textContent+0;
         } else if ($t($a)=='string') {
             $c = $a->textContent;
         } else if ($t($a)=='object') {
@@ -91,3 +91,4 @@ function xml2json($xml) {
     $c = $f($f,$a);
     return json_encode($c,64);//64=JSON_UNESCAPED_SLASHES
 }
+?>
