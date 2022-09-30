@@ -2,8 +2,8 @@ Options -Indexes
 Options +FollowSymLinks
 RewriteBase /api/2.0
 RewriteEngine on
-RewriteCond %{HTTPS} !on
-RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+#RewriteCond %{HTTPS} !on
+#RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 # OSGeo TMS
 RewriteRule ^(osgeo)$ osgeo_tms.php?osgeo=$1 [L]
@@ -23,6 +23,9 @@ RewriteRule ^(osgeo)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/$ osgeo_tms
 
 # Toposearch
 RewriteRule ^(toposearch2)$ toposearch2.php
+
+# Toquery
+RewriteRule ^(topoquery2)$ topoquery2.php
 
 # Geodetic Benchmarks
 RewriteRule ^(geodeticbenchmarks)$ geodeticbenchmarks.php
@@ -44,3 +47,14 @@ RewriteRule ^(inspireinfo)$ inspireinfo.php
 
 # Profile API
 RewriteRule ^(profile)$ profile.php
+
+# Altimetry API
+RewriteRule ^(altimetry)$ altimetry.php
+
+# PSI
+RewriteRule ^(psi)$ psi.php?psi=$1 [L]
+RewriteRule ^(psi)/$ psi.php?psi=$1 [L]
+RewriteRule ^(psi)/([^/]+)$ psi.php?psi=$1&type=$2 [L]
+RewriteRule ^(psi)/([^/]+)/$ psi.php?psi=$1&type=$2 [L]
+RewriteRule ^(psi)/([^/]+)/([^/]+)$ psi.php?psi=$1&type=$2&ps=$3 [L]
+RewriteRule ^(psi)/([^/]+)/([^/]+)/$ psi.php?psi=$1&type=$2&ps=$3 [L]

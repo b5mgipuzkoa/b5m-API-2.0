@@ -5,13 +5,20 @@
 //
 //
 
+// Includes
+include_once("includes/gipuzkoa_wfs_featuretypes_except.php");
+include_once("includes/json2xml.php");
+
 // Requests
+if (isset($_REQUEST['lang'])) $lang = $_REQUEST['lang']; else $lang = "";
 if (isset($_REQUEST['bbox'])) $bbox = $_REQUEST['bbox']; else $bbox = "";
 if (isset($_REQUEST['srs'])) $srs = $_REQUEST['srs']; else $srs = "";
 if (isset($_REQUEST['format'])) $format = $_REQUEST['format']; else $format = "";
 
-// Includes
-include_once("./includes/json2xml.php");
+// Language Coding
+if (empty($lang)) $lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
+if ($lang != "eu" && $lang != "es" && $lang != "en") $lang = "en";
+if ($lang == "eu") $lang2 = 0; else if ($lang == "es") $lang2 = 1; else $lang2 = 2;
 
 // Variables
 $server_name = $_SERVER['SERVER_NAME'];
@@ -20,11 +27,10 @@ $server_name = $_SERVER['SERVER_NAME'];
 $wfs_server = "http://b5mdev/ogc/wfs2/gipuzkoa_wfs";
 //$wfs_server = "https://" . $server_name . "/ogc/wfs2/gipuzkoa_wfs";
 //$wfs_server = $server_name . "/ogc/wfs2/gipuzkoa_wfs";
-$wfs_request = "?service=wfs&version=2.0.0&request=getFeature&typeNames=ms:";
+$wfs_service = "?service=wfs";
+$wfs_capab = $wfs_service . "&request=getcapabilities";
+$wfs_request = $wfs_service . "&version=2.0.0&request=getFeature&typeNames=";
 $wfs_output = "&outputFormat=application/json;%20subtype=geojson";
-
-// Query types array
-$types_a = array("m_municipalities", "d_postaladdresses");
 
 // Messages
 $msg001 = "Missing required parameter: bbox";
@@ -75,32 +81,70 @@ if ($srs == "" && $statuscode == 0) {
 		$srs = "epsg:3857";
 }
 
+// Collecting featuretype data from getcapabilites request
+$url_capab = $wfs_server . $wfs_capab;
+$ch1 = curl_init();
+curl_setopt($ch1, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($ch1, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch1, CURLOPT_URL, $url_capab);
+//$wfs_capab_response = xml2json(curl_exec($ch1));
+$wfs_capab_response = curl_exec($ch1);
+curl_close ($ch1);
+$wfs_capab_xml = new SimpleXMLElement($wfs_capab_response);
+$i = 0;
+foreach ($wfs_capab_xml->FeatureTypeList->FeatureType as $featuretype) {
+	 $featuretypes_a[$i]["name"] = $featuretype->Name;
+	 $featuretypes_a[$i]["title"] = explode(" / ", $featuretype->Title);
+	 $featuretypes_a[$i]["abstract"] = $featuretype->Abstract->__toString();
+	 $i++;
+}
+
 if ($statuscode == 0) {
 	// Data request
 	$statuscode = 3;
 	$i = 0;
-	foreach ($types_a as $val) {
-		$wfs_typename = $val;
+	$j = 0;
+	foreach ($featuretypes_a as $val) {
+		/*
+		echo $featuretypes_a[$i]["name"] . "<br>";
+		echo $featuretypes_a[$i]["title"]["0"] . "<br>";
+		echo $featuretypes_a[$i]["title"]["1"] . "<br>";
+		echo $featuretypes_a[$i]["title"]["2"] . "<br>";
+		echo $featuretypes_a[$i]["abstract"] . "<br>";
+		*/
+		$wfs_typename = $featuretypes_a[$i]["name"];
+
+		// Exceptions
+		$except_flag = 0;
+		foreach ($featuretypes_except as $val_except) {
+			if ($wfs_typename == $val_except) {
+				$except_flag = 1;
+				break;
+			}
+		}
+
 		$wfs_bbox = "&bbox=" . $bbox;
 		$url_request = $wfs_server . $wfs_request . $wfs_typename . $wfs_bbox . $wfs_output;
 
-		// Request
-		//$wfs_response = json_decode(file_get_contents($url_request), true);
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_URL, $url_request);
-		$wfs_response = json_decode(curl_exec($ch), true);
-		curl_close ($ch);
-		$wfs_response_feat = $wfs_response["features"];
-		if(count($wfs_response_feat) == 0) {
-			continue;
-		} else {
-			$statuscode = 0;
-			$doc2["items"][$i]["item_name"] = $val;
-			$doc2["items"][$i]["item"] = $wfs_response;
-			$i++;
+		if ($except_flag == 0) {
+			// Request
+			//$wfs_response = json_decode(file_get_contents($url_request), true);
+			$ch = curl_init();
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_URL, $url_request);
+			$wfs_response = json_decode(curl_exec($ch), true);
+			curl_close ($ch);
+			$wfs_response_feat = $wfs_response["features"];
+			if(count($wfs_response_feat) > 0) {
+				$statuscode = 0;
+				$doc2["items"][$j]["item_title"] = $featuretypes_a[$i]["title"][$lang2];
+				$doc2["items"][$j]["item_abstract"] = $featuretypes_a[$i]["abstract"];
+				$doc2["items"][$j]["item"] = $wfs_response;
+				$j++;
+			}
 		}
+		$i++;
 	}
 }
 
