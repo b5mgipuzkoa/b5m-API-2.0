@@ -16,6 +16,7 @@ if (isset($_REQUEST['lang'])) $lang = $_REQUEST['lang']; else $lang = "";
 if (isset($_REQUEST['coors'])) $coors = $_REQUEST['coors']; else $coors = "";
 if (isset($_REQUEST['offset'])) $offset = $_REQUEST['offset']; else $offset = "";
 if (isset($_REQUEST['srs'])) $srs = $_REQUEST['srs']; else $srs = "";
+if (isset($_REQUEST['types'])) $types = $_REQUEST['types']; else $types = "";
 if (isset($_REQUEST['format'])) $format = $_REQUEST['format']; else $format = "";
 
 // Language Coding
@@ -40,7 +41,8 @@ $offset_default = 1;
 $msg001 = "Missing required parameter: coors";
 $msg002 = "SRS not supported. It should be EPSG:25830, EPSG:4326 or EPSG:3857 (https://epsg.io)";
 $msg003 = "SRS epsg:4326, but invalid latitude or longitude (https://epsg.io)";
-$msg004 = "No data found";
+$msg004 = "Request type: Featuretypes list";
+$msg005 = "No data found";
 
 // License and metadata variables
 $year = date("Y");
@@ -54,6 +56,10 @@ $messages = "";
 // Init statuscode and time
 $statuscode = 0;
 $init_time = microtime(true);
+
+// Types Request
+if (strtolower($types) == "true")
+	$statuscode = 4;
 
 // Coors
 if ($coors == "" && $statuscode == 0) {
@@ -69,15 +75,17 @@ if ($statuscode == 0) {
 }
 
 // SRS
-if ($srs == "25830" || $srs == "4326" || $srs =="3857")
-	$srs = "epsg:" . $srs;
-if ($srs != "" && strtolower($srs) != "epsg:25830" && strtolower($srs) != "epsg:4326" && strtolower($srs) != "epsg:3857" && $statuscode == 0) {
-	$statuscode = 2;
-	$messages = $msg002;
-}
-if (strtolower($srs) == "epsg:4326" && (($x <= -180 || $x >= 180) || ($y <= -90 || $y >= 90))) {
-	$statuscode = 3;
-	$messages = $msg003;
+if ($statuscode == 0) {
+	if ($srs == "25830" || $srs == "4326" || $srs =="3857")
+		$srs = "epsg:" . $srs;
+	if ($srs != "" && strtolower($srs) != "epsg:25830" && strtolower($srs) != "epsg:4326" && strtolower($srs) != "epsg:3857" && $statuscode == 0) {
+		$statuscode = 2;
+		$messages = $msg002;
+	}
+	if (strtolower($srs) == "epsg:4326" && (($x <= -180 || $x >= 180) || ($y <= -90 || $y >= 90))) {
+		$statuscode = 3;
+		$messages = $msg003;
+	}
 }
 
 // Offset
@@ -93,15 +101,53 @@ if ($srs == "" && $statuscode == 0) {
 		$srs = "epsg:3857";
 }
 
-// SRS related extra parameters
-if (strtolower($srs) == "epsg:4326")
- $srs_extra="urn:ogc:def:crs:EPSG::4326";
-else if (strtolower($srs) == "epsg:3857")
- $srs_extra="urn:ogc:def:crs:EPSG::3857";
-else
- $srs_extra="";
+if ($statuscode == 0 || $statuscode == 4) {
+	// Collecting featuretype data from getcapabilites request
+	$url_capab = $wfs_server . $wfs_capab;
+	$ch1 = curl_init();
+	curl_setopt($ch1, CURLOPT_SSL_VERIFYPEER, false);
+	curl_setopt($ch1, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch1, CURLOPT_URL, $url_capab);
+	//$wfs_capab_response = xml2json(curl_exec($ch1));
+	$wfs_capab_response = curl_exec($ch1);
+	curl_close ($ch1);
+	$wfs_capab_xml = new SimpleXMLElement($wfs_capab_response);
+	$i = 0;
+	foreach ($wfs_capab_xml->FeatureTypeList->FeatureType as $featuretype) {
+		 $featuretypes_a[$i]["name"] = $featuretype->Name;
+		 $featuretypes_a[$i]["title"] = explode(" / ", $featuretype->Title);
+		 $featuretypes_a[$i]["abstract"] = $featuretype->Abstract->__toString();
+		 $i++;
+	}
+}
+
+if ($statuscode == 4) {
+	// Show gathered featuretypes
+	$i = 0;
+	foreach ($featuretypes_a as $val) {
+		$featuretype_name = $val["name"]->__toString();
+		$except_flag = 0;
+		foreach ($featuretypes_except as $val_except) {
+			if ($featuretype_name == $val_except) {
+				$except_flag = 1;
+				continue;
+			}
+		}
+		if ($except_flag == 0)
+			$doc2["featuretypes"][$i] = $featuretype_name;
+		$i++;
+	}
+}
 
 if ($statuscode == 0) {
+	// SRS related extra parameters
+	if (strtolower($srs) == "epsg:4326")
+	 $srs_extra="urn:ogc:def:crs:EPSG::4326";
+	else if (strtolower($srs) == "epsg:3857")
+	 $srs_extra="urn:ogc:def:crs:EPSG::3857";
+	else
+	 $srs_extra="";
+
 	// BBOX
 	if (strtolower($srs) == "epsg:4326") {
 		$coors_25830 = shell_exec('echo "' . $x . ' ' . $y . '" | /usr/local/bin/cs2cs -f "%.2f" +init=epsg:4326 +to +init=epsg:25830 2> /dev/null');
@@ -127,30 +173,11 @@ if ($statuscode == 0) {
 		$wfs_srsname = "";
 	}
 
-	// Collecting featuretype data from getcapabilites request
-	$url_capab = $wfs_server . $wfs_capab;
-	$ch1 = curl_init();
-	curl_setopt($ch1, CURLOPT_SSL_VERIFYPEER, false);
-	curl_setopt($ch1, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($ch1, CURLOPT_URL, $url_capab);
-	//$wfs_capab_response = xml2json(curl_exec($ch1));
-	$wfs_capab_response = curl_exec($ch1);
-	curl_close ($ch1);
-	$wfs_capab_xml = new SimpleXMLElement($wfs_capab_response);
-	$i = 0;
-	foreach ($wfs_capab_xml->FeatureTypeList->FeatureType as $featuretype) {
-		 $featuretypes_a[$i]["name"] = $featuretype->Name;
-		 $featuretypes_a[$i]["title"] = explode(" / ", $featuretype->Title);
-		 $featuretypes_a[$i]["abstract"] = $featuretype->Abstract->__toString();
-		 $i++;
-	}
-
 	// Data request
-	$statuscode = 4;
+	$statuscode = 5;
 	$i = 0;
-	$j = 0;
 	foreach ($featuretypes_a as $val) {
-		$wfs_typename = $featuretypes_a[$i]["name"];
+		$wfs_typename = $val["name"];
 
 		// Exceptions
 		$except_flag = 0;
@@ -176,17 +203,16 @@ if ($statuscode == 0) {
 			$wfs_response_feat = $wfs_response["features"];
 			if(count($wfs_response_feat) > 0) {
 				$statuscode = 0;
-				$doc2["items"][$j]["item_title"] = $featuretypes_a[$i]["title"][$lang2];
-				$doc2["items"][$j]["item_abstract"] = $featuretypes_a[$i]["abstract"];
-				$doc2["items"][$j]["item"] = $wfs_response;
-				$j++;
+				$doc2["items"][$i]["item_title"] = $val["title"][$lang2];
+				$doc2["items"][$i]["item_abstract"] = $val["abstract"];
+				$doc2["items"][$i]["item"] = $wfs_response;
+				$i++;
 			}
 		}
-		$i++;
 	}
 }
 
-if ($statuscode == 0 || $statuscode == 4) {
+if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5) {
 	// Data license
 	$final_time = microtime(true);
 	$response_time = sprintf("%.2f", $final_time - $init_time);
@@ -198,14 +224,18 @@ if ($statuscode == 0 || $statuscode == 4) {
 	$doc1["info"]["responseTime"]["units"] = $response_time_units;
 	$doc1["info"]["statuscode"] = $statuscode;
 	if ($statuscode == 4)
-		$doc1["info"]["messages"]["warning"] = $msg004;
-	$doc1["coors"] = $coors;
-	$doc1["offset"] = $offset;
-	$doc1["bbox"] = $bbox;
-	$doc1["srs"] = $srs;
+		$doc1["info"]["messages"]["request"] = $msg004;
+	if ($statuscode == 5)
+		$doc1["info"]["messages"]["warning"] = $msg005;
+	if ($statuscode != 4) {
+		$doc1["coors"] = $coors;
+		$doc1["offset"] = $offset;
+		$doc1["bbox"] = $bbox;
+		$doc1["srs"] = $srs;
+	}
 
 	// Merge Arrays
-	if ($statuscode == 4 ) {
+	if ($statuscode == 5 ) {
 		$doc = $doc1;
 	} else {
 		$doc = array_merge($doc1, $doc2);
