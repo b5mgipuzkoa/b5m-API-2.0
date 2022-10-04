@@ -17,6 +17,7 @@ if (isset($_REQUEST['coors'])) $coors = $_REQUEST['coors']; else $coors = "";
 if (isset($_REQUEST['offset'])) $offset = $_REQUEST['offset']; else $offset = "";
 if (isset($_REQUEST['srs'])) $srs = $_REQUEST['srs']; else $srs = "";
 if (isset($_REQUEST['types'])) $types = $_REQUEST['types']; else $types = "";
+if (isset($_REQUEST['typenames'])) $typenames = $_REQUEST['typenames']; else $typenames = "";
 if (isset($_REQUEST['format'])) $format = $_REQUEST['format']; else $format = "";
 
 // Language Coding
@@ -108,16 +109,30 @@ if ($statuscode == 0 || $statuscode == 4) {
 	curl_setopt($ch1, CURLOPT_SSL_VERIFYPEER, false);
 	curl_setopt($ch1, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch1, CURLOPT_URL, $url_capab);
-	//$wfs_capab_response = xml2json(curl_exec($ch1));
 	$wfs_capab_response = curl_exec($ch1);
 	curl_close ($ch1);
 	$wfs_capab_xml = new SimpleXMLElement($wfs_capab_response);
 	$i = 0;
+
+	// Typenames
+	if ($typenames != "")
+		$typenames_a = explode(",", $typenames);
 	foreach ($wfs_capab_xml->FeatureTypeList->FeatureType as $featuretype) {
-		 $featuretypes_a[$i]["name"] = $featuretype->Name;
-		 $featuretypes_a[$i]["title"] = explode(" / ", $featuretype->Title);
-		 $featuretypes_a[$i]["abstract"] = $featuretype->Abstract->__toString();
-		 $i++;
+		// Exceptions
+		$except_flag = 0;
+		foreach ($featuretypes_except as $val_except) {
+			if ($featuretype->Name == $val_except) {
+				$except_flag = 1;
+				break;
+			}
+		}
+
+		if ($except_flag == 0) {
+			$featuretypes_a[$i]["name"] = $featuretype->Name;
+			$featuretypes_a[$i]["title"] = explode(" / ", $featuretype->Title);
+			$featuretypes_a[$i]["abstract"] = $featuretype->Abstract->__toString();
+		}
+		$i++;
 	}
 }
 
@@ -125,16 +140,7 @@ if ($statuscode == 4) {
 	// Show gathered featuretypes
 	$i = 0;
 	foreach ($featuretypes_a as $val) {
-		$featuretype_name = $val["name"]->__toString();
-		$except_flag = 0;
-		foreach ($featuretypes_except as $val_except) {
-			if ($featuretype_name == $val_except) {
-				$except_flag = 1;
-				continue;
-			}
-		}
-		if ($except_flag == 0)
-			$doc2["featuretypes"][$i] = $featuretype_name;
+		$doc2["featuretypes"][$i] = str_replace("ms:", "", $val["name"]->__toString());
 		$i++;
 	}
 }
@@ -178,36 +184,24 @@ if ($statuscode == 0) {
 	$i = 0;
 	foreach ($featuretypes_a as $val) {
 		$wfs_typename = $val["name"];
-
-		// Exceptions
-		$except_flag = 0;
-		foreach ($featuretypes_except as $val_except) {
-			if ($wfs_typename == $val_except) {
-				$except_flag = 1;
-				break;
-			}
-		}
-
 		$wfs_bbox = "&bbox=" . $bbox2;
 		$url_request = $wfs_server . $wfs_request . $wfs_typename . $wfs_bbox . $wfs_output . $wfs_srsname;
 
-		if ($except_flag == 0) {
-			// Request
-			//$wfs_response = json_decode(file_get_contents($url_request), true);
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($ch, CURLOPT_URL, $url_request);
-			$wfs_response = json_decode(curl_exec($ch), true);
-			curl_close ($ch);
-			$wfs_response_feat = $wfs_response["features"];
-			if(count($wfs_response_feat) > 0) {
-				$statuscode = 0;
-				$doc2["items"][$i]["item_title"] = $val["title"][$lang2];
-				$doc2["items"][$i]["item_abstract"] = $val["abstract"];
-				$doc2["items"][$i]["item"] = $wfs_response;
-				$i++;
-			}
+		// Request
+		//$wfs_response = json_decode(file_get_contents($url_request), true);
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_URL, $url_request);
+		$wfs_response = json_decode(curl_exec($ch), true);
+		curl_close ($ch);
+		$wfs_response_feat = $wfs_response["features"];
+		if(count($wfs_response_feat) > 0) {
+			$statuscode = 0;
+			$doc2["items"][$i]["item_title"] = $val["title"][$lang2];
+			$doc2["items"][$i]["item_abstract"] = $val["abstract"];
+			$doc2["items"][$i]["item"] = $wfs_response;
+			$i++;
 		}
 	}
 }
