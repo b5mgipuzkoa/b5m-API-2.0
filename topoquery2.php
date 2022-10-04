@@ -249,8 +249,17 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6
 		$doc1["offset"] = $offset;
 		$doc1["bbox"] = $bbox;
 		$doc1["srs"] = $srs;
-		if ($featuretypenames != "")
+		if ($featuretypenames != "") {
 			$doc1["featuretypenames"] = $featuretypenames;
+		} else {
+			$featuretypenames2 = "";
+			foreach ($featuretypes_a as $valfeaturetype) {
+				if ($featuretypenames2 != "")
+					$featuretypenames2 = $featuretypenames2 . ",";
+				$featuretypenames2 = $featuretypenames2 . $valfeaturetype["name"];
+			}
+			$doc1["featuretypenames"] = $featuretypenames2;
+		}
 	}
 
 	// Merge Arrays
