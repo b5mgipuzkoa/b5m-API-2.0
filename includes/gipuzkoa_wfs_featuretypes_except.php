@@ -6,6 +6,6 @@
 // https://b5m.gipuzkoa.eus/ogc/wfs2/gipuzkoa_wfs?service=wfs&request=getcapabilities
 //
 
-$featuretypes_except = array("ms:dm_distancemunicipalities");
+$featuretypes_except = array("dm_distancemunicipalities");
 
 ?>
