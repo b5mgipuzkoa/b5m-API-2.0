@@ -13,6 +13,7 @@ include_once("includes/json2xml.php");
 
 // Requests
 if (isset($_REQUEST['lang'])) $lang = $_REQUEST['lang']; else $lang = "";
+if (isset($_REQUEST['b5m_id'])) $b5m_id = strtoupper($_REQUEST['b5m_id']); else $b5m_id = "";
 if (isset($_REQUEST['coors'])) $coors = $_REQUEST['coors']; else $coors = "";
 if (isset($_REQUEST['offset'])) $offset = $_REQUEST['offset']; else $offset = "";
 if (isset($_REQUEST['srs'])) $srs = $_REQUEST['srs']; else $srs = "";
@@ -37,7 +38,12 @@ $wfs_capab = $wfs_service . "&request=getcapabilities";
 $wfs_request = $wfs_service . "&version=2.0.0&request=getFeature&typeNames=";
 $wfs_output = "&outputFormat=application/json;%20subtype=geojson";
 $offset_default = 1;
+$offset_units = "metres";
+$b5mcode = "b5m_id";
+$bbox = "";
 $featuretypes_a = array();
+$doc1 = array();
+$doc2 = array();
 
 // Messages
 $msg001 = "Missing required parameter: coors";
@@ -46,6 +52,7 @@ $msg003 = "SRS epsg:4326, but invalid latitude or longitude (https://epsg.io)";
 $msg004 = "Request type: Featuretypes list";
 $msg005 = "No data found";
 $msg006 = "Invalid featuretypenames";
+$msg008 = "Out of range";
 
 // License and metadata variables
 $year = date("Y");
@@ -59,6 +66,12 @@ $messages = "";
 // Init statuscode and time
 $statuscode = 0;
 $init_time = microtime(true);
+
+// Id Request
+if ($b5m_id != "") {
+	$statuscode = 7;
+	$b5m_code = strtolower(explode("_", $b5m_id)[0]);
+}
 
 // Types Request
 if (strtolower($featuretypes) == "true")
@@ -93,6 +106,7 @@ if ($statuscode == 0) {
 
 // Offset
 if ($offset == "") $offset = $offset_default;
+if ($statuscode == 7) $offset = "";
 
 // Trying to guess the SRS
 if ($srs == "" && $statuscode == 0) {
@@ -102,9 +116,11 @@ if ($srs == "" && $statuscode == 0) {
 		$srs = "epsg:25830";
 	else
 		$srs = "epsg:3857";
+} else if ($srs == "" && $statuscode == 7) {
+		$srs = "epsg:25830";
 }
 
-if ($statuscode == 0 || $statuscode == 4) {
+if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 	// Collecting featuretype data from getcapabilites request
 	$url_capab = $wfs_server . $wfs_capab;
 	$ch1 = curl_init();
@@ -120,17 +136,28 @@ if ($statuscode == 0 || $statuscode == 4) {
 	if ($featuretypenames != "")
 		$featuretypenames_a = explode(",", $featuretypenames);
 	foreach ($wfs_capab_xml->FeatureTypeList->FeatureType as $featuretype) {
-		// Exceptions
-		$featuretype_name = str_replace("ms:", "", $featuretype->Name);
 		$except_flag = 0;
-		foreach ($featuretypes_except as $val_except) {
-			if ($featuretype_name == $val_except) {
-				$except_flag = 1;
-				break;
+		$featuretype_name = str_replace("ms:", "", $featuretype->Name);
+		$featuretype_title =	explode(" / ", $featuretype->Title);
+		$featuretype_abstract = $featuretype->Abstract->__toString();
+		if ($statuscode == 7) {
+			// Id Request
+			if (strtolower(explode("_", $b5m_id)[0]) == strtolower(explode("_", explode(":", $featuretype->Name->__toString())[1])[0])) {
+				$featuretypes_a[0]["name"] = $featuretype_name;
+				$featuretypes_a[0]["title"] = $featuretype_title;
+				$featuretypes_a[0]["abstract"] = $featuretype_abstract;
+			}
+		} else {
+			// Exceptions
+			foreach ($featuretypes_except as $val_except) {
+				if ($featuretype_name == $val_except) {
+					$except_flag = 1;
+					break;
+				}
 			}
 		}
 
-		if ($except_flag == 0) {
+		if ($except_flag == 0 && $statuscode != 7) {
 			$include_flag = 1;
 			if ($featuretypenames != "") {
 				$include_flag = 0;
@@ -141,8 +168,8 @@ if ($statuscode == 0 || $statuscode == 4) {
 			}
 			if ($include_flag == 1) {
 				$featuretypes_a[$i]["name"] = $featuretype_name;
-				$featuretypes_a[$i]["title"] = explode(" / ", $featuretype->Title);
-				$featuretypes_a[$i]["abstract"] = $featuretype->Abstract->__toString();
+				$featuretypes_a[$i]["title"] = $featuretype_title;
+				$featuretypes_a[$i]["abstract"] = $featuretype_abstract;
 			}
 		}
 		$i++;
@@ -150,7 +177,7 @@ if ($statuscode == 0 || $statuscode == 4) {
 }
 
 // Featuretypes count
-if (count($featuretypes_a) == 0)
+if (count($featuretypes_a) == 0 && $statuscode != 3 && $statuscode != 7)
 	$statuscode = 6;
 
 if ($statuscode == 4) {
@@ -164,70 +191,101 @@ if ($statuscode == 4) {
 	}
 }
 
-if ($statuscode == 0 || $statuscode == 6) {
-	// SRS related extra parameters
-	if (strtolower($srs) == "epsg:4326")
-	 $srs_extra="urn:ogc:def:crs:EPSG::4326";
-	else if (strtolower($srs) == "epsg:3857")
-	 $srs_extra="urn:ogc:def:crs:EPSG::3857";
-	else
-	 $srs_extra="";
+if ($statuscode == 0 || $statuscode == 7) {
+	if ($statuscode != 7) {
+		// SRS related extra parameters
+		if (strtolower($srs) == "epsg:4326")
+		 $srs_extra="urn:ogc:def:crs:EPSG::4326";
+		else if (strtolower($srs) == "epsg:3857")
+		 $srs_extra="urn:ogc:def:crs:EPSG::3857";
+		else
+		 $srs_extra="";
 
-	// BBOX
-	if (strtolower($srs) == "epsg:4326") {
-		$coors_25830 = shell_exec('echo "' . $x . ' ' . $y . '" | /usr/local/bin/cs2cs -f "%.2f" +init=epsg:4326 +to +init=epsg:25830 2> /dev/null');
-		$coors_25830_a1 = explode("	", $coors_25830);
-		$coors_25830_a2 = explode(" ", $coors_25830_a1[1]);
-		$x1 = $coors_25830_a1[0];
-		$y1 = $coors_25830_a2[0];
-		$coors_4326_1 = shell_exec('echo "' . $x1 - $offset . ' ' . $y1 - $offset . '" | /usr/local/bin/cs2cs -f "%.6f" +init=epsg:25830 +to +init=epsg:4326 2> /dev/null');
-		$coors_4326_2 = shell_exec('echo "' . $x1 + $offset . ' ' . $y1 + $offset . '" | /usr/local/bin/cs2cs -f "%.6f" +init=epsg:25830 +to +init=epsg:4326 2> /dev/null');
-		$coors_4326_a11 = explode("	", $coors_4326_1);
-		$coors_4326_a12 = explode(" ", $coors_4326_a11[1]);
-		$coors_4326_a21 = explode("	", $coors_4326_2);
-		$coors_4326_a22 = explode(" ", $coors_4326_a21[1]);
-		$bbox = $coors_4326_a12[0] . "," . $coors_4326_a11[0] . "," . $coors_4326_a22[0] . "," . $coors_4326_a21[0];
+		// BBOX
+		if (strtolower($srs) == "epsg:4326") {
+			$coors_25830 = shell_exec('echo "' . $x . ' ' . $y . '" | /usr/local/bin/cs2cs -f "%.2f" +init=epsg:4326 +to +init=epsg:25830 2> /dev/null');
+			$coors_25830_a1 = explode("	", $coors_25830);
+			$coors_25830_a2 = explode(" ", $coors_25830_a1[1]);
+			$x1 = $coors_25830_a1[0];
+			$y1 = $coors_25830_a2[0];
+			if (is_numeric($x) && is_numeric($y))
+				$statuscode = $statuscode;
+			else
+				$statuscode = 8;
+			if ($x1 == "*" || $statuscode == 8) {
+				// Out of range
+				$statuscode = 8;
+			} else {
+				$coors_4326_1 = shell_exec('echo "' . $x1 - $offset . ' ' . $y1 - $offset . '" | /usr/local/bin/cs2cs -f "%.6f" +init=epsg:25830 +to +init=epsg:4326 2> /dev/null');
+				$coors_4326_2 = shell_exec('echo "' . $x1 + $offset . ' ' . $y1 + $offset . '" | /usr/local/bin/cs2cs -f "%.6f" +init=epsg:25830 +to +init=epsg:4326 2> /dev/null');
+				$coors_4326_a11 = explode("	", $coors_4326_1);
+				$coors_4326_a12 = explode(" ", $coors_4326_a11[1]);
+				$coors_4326_a21 = explode("	", $coors_4326_2);
+				$coors_4326_a22 = explode(" ", $coors_4326_a21[1]);
+				$bbox = $coors_4326_a12[0] . "," . $coors_4326_a11[0] . "," . $coors_4326_a22[0] . "," . $coors_4326_a21[0];
+			}
+		} else {
+			$bbox = $x - ($offset / 2) . "," . $y - ($offset / 2) . "," . $x + ($offset / 2) . "," . $y + ($offset / 2);
+		}
+		if ($srs_extra != "") {
+			$bbox2 = $bbox. "," . $srs_extra;
+			$wfs_srsname = "&srsname=" . $srs;
+		} else {
+			$bbox2 = $bbox;
+			$wfs_srsname = "";
+		}
 	} else {
-		$bbox = $x - ($offset / 2) . "," . $y - ($offset / 2) . "," . $x + ($offset / 2) . "," . $y + ($offset / 2);
-	}
-	if ($srs_extra != "") {
-		$bbox2 = $bbox. "," . $srs_extra;
-		$wfs_srsname = "&srsname=" . $srs;
-	} else {
-		$bbox2 = $bbox;
-		$wfs_srsname = "";
+		if ($srs != "")
+			$wfs_srsname = "&srsname=" . $srs;
+		else
+			$wfs_srsname = "";
 	}
 
 	// Data request
-	if ($statuscode != 6)
-		$statuscode = 5;
-	$i = 0;
-	foreach ($featuretypes_a as $val) {
-		$wfs_typename = $val["name"];
-		$wfs_bbox = "&bbox=" . $bbox2;
-		$url_request = $wfs_server . $wfs_request . $wfs_typename . $wfs_bbox . $wfs_output . $wfs_srsname;
+	if ($statuscode != 8) {
+		if ($statuscode != 7)
+			$statuscode = 5;
+		$i = 0;
+		foreach ($featuretypes_a as $val) {
+			$wfs_typename = $val["name"];
+			if ($statuscode != 7) {
+				$wfs_bbox = "&bbox=" . $bbox2;
+				$wfs_filter = "";
+			} else {
+				$wfs_bbox = "";
+				$wfs_filter = "&filter=<Filter><PropertyIsEqualTo><PropertyName>" . $b5mcode . "</PropertyName><Literal>" . $b5m_id . "</Literal></PropertyIsEqualTo></Filter>";
+			}
+			$url_request = $wfs_server . $wfs_request . $wfs_typename . $wfs_bbox . $wfs_srsname . $wfs_filter . $wfs_output;
 
-		// Request
-		//$wfs_response = json_decode(file_get_contents($url_request), true);
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_URL, $url_request);
-		$wfs_response = json_decode(curl_exec($ch), true);
-		curl_close ($ch);
-		$wfs_response_feat = $wfs_response["features"];
-		if (count($wfs_response_feat) > 0) {
-			$statuscode = 0;
-			$doc2["items"][$i]["item_name"] = $val["name"];
-			$doc2["items"][$i]["item_title"] = $val["title"][$lang2];
-			$doc2["items"][$i]["item_abstract"] = $val["abstract"];
-			$doc2["items"][$i]["item"] = $wfs_response;
-			$i++;
+			// Request
+			if (count($featuretypes_a) > 0) {
+				//$wfs_response = json_decode(file_get_contents($url_request), true);
+				$ch = curl_init();
+				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+				curl_setopt($ch, CURLOPT_URL, $url_request);
+				$wfs_response = json_decode(curl_exec($ch), true);
+				$wfs_response_feat = $wfs_response["features"];
+				$wfs_response_count = count($wfs_response_feat);
+			} else {
+				$wfs_response_count = 0;
+			}
+			if ($wfs_response_count > 0) {
+				if ($statuscode != 7)
+					$statuscode = 0;
+				$doc2["items"][$i]["item_name"] = $val["name"];
+				$doc2["items"][$i]["item_title"] = $val["title"][$lang2];
+				$doc2["items"][$i]["item_abstract"] = $val["abstract"];
+				$doc2["items"][$i]["item"] = $wfs_response;
+				$i++;
+			}
 		}
 	}
+	if (count($doc2) == 0 && $statuscode != 8)
+		$statuscode = 5;
 }
 
-if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6) {
+if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6 || $statuscode == 7 || $statuscode == 8) {
 	// Data license
 	$final_time = microtime(true);
 	$response_time = sprintf("%.2f", $final_time - $init_time);
@@ -244,11 +302,17 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6
 		$doc1["info"]["messages"]["warning"] = $msg005;
 	if ($statuscode == 6)
 		$doc1["info"]["messages"]["warning"] = $msg006;
+	if ($statuscode == 8)
+		$doc1["info"]["messages"]["warning"] = $msg008;
 	if ($statuscode != 4) {
-		$doc1["coors"] = $coors;
-		$doc1["offset"] = $offset;
-		$doc1["bbox"] = $bbox;
-		$doc1["srs"] = $srs;
+		if ($statuscode != 6 && $statuscode != 7) {
+			if ($coors != "") $doc1["coors"] = $coors;
+			if ($offset != "") $doc1["offset"]["value"] = $offset;
+			if ($offset != "") $doc1["offset"]["units"] = $offset_units;
+			if ($bbox != "") $doc1["bbox"] = $bbox;
+		}
+		if ($statuscode != 6)
+			$doc1["srs"] = $srs;
 		if ($featuretypenames != "") {
 			$doc1["featuretypenames"] = $featuretypenames;
 		} else {
