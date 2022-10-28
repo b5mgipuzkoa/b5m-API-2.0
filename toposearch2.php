@@ -32,7 +32,7 @@ $city = @$_REQUEST["city"];
 $riverbasin = @$_REQUEST["riverbasin"];
 $road = @$_REQUEST["road"];
 $street = @$_REQUEST["street"];
-$b5m_id = @$_REQUEST["b5m_id"];
+$b5m_id = @strtoupper($_REQUEST["b5m_id"]);
 $type = @$_REQUEST["type"];
 $viewbox = @$_REQUEST["viewbox"];
 $pt = @$_REQUEST["pt"];
@@ -97,7 +97,7 @@ function query_function($search_type) {
 
 	// If the search_type is code, then is the b5m_id
 	if ($search_type == "code")
-		$b5m_id = $q;
+		$b5m_id = strtoupper($q);
 
 	// If the search is by b5m_id and type is D_*, then is an address
 	if (substr($b5m_id, 0, 2) == "D_")
