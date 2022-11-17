@@ -39,7 +39,7 @@ $wfs_request = $wfs_service . "&version=2.0.0&request=getFeature&typeNames=";
 $wfs_output = "&outputFormat=application/json;%20subtype=geojson";
 $offset_default = 1;
 $offset_units = "metres";
-$b5mcode = "b5m_id";
+$b5mcode = "b5mcode";
 $bbox = "";
 $featuretypes_a = array();
 $doc1 = array();
