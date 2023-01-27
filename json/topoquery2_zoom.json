@@ -1,0 +1,44 @@
+[{
+  "zoom": 9,
+  "featuretypenames": ["s_regions", "m_municipalities"]
+},
+{
+  "zoom": 10,
+  "featuretypenames": ["s_regions", "m_municipalities"]
+},
+{
+  "zoom": 11,
+  "featuretypenames": ["s_regions", "m_municipalities", "c_basins"]
+},
+{
+  "zoom": 12,
+  "featuretypenames": ["s_regions", "m_municipalities", "c_basins"]
+},
+{
+  "zoom": 13,
+  "featuretypenames": ["s_regions", "m_municipalities", "c_basins", "i_hydrography"]
+},
+{
+  "zoom": 14,
+  "featuretypenames": ["s_regions", "m_municipalities", "c_basins", "i_hydrography"]
+},
+{
+  "zoom": 15,
+  "featuretypenames": ["s_regions", "m_municipalities", "c_basins", "i_hydrography", "e_buildings"]
+},
+{
+  "zoom": 16,
+  "featuretypenames": ["s_regions", "m_municipalities", "c_basins", "i_hydrography", "e_buildings"]
+},
+{
+  "zoom": 17,
+  "featuretypenames": ["s_regions", "m_municipalities", "c_basins", "i_hydrography", "e_buildings"]
+},
+{
+  "zoom": 18,
+  "featuretypenames": ["s_regions", "m_municipalities", "c_basins", "i_hydrography", "e_buildings", "sg_geodeticbenchmarks"]
+},
+{
+  "zoom": 19,
+  "featuretypenames": ["s_regions", "m_municipalities", "c_basins", "i_hydrography", "e_buildings", "sg_geodeticbenchmarks"]
+}]

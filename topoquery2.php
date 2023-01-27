@@ -8,13 +8,16 @@
 //
 
 // Includes
-include_once("includes/gipuzkoa_wfs_featuretypes_except.php");
-include_once("includes/json2xml.php");
+include_once("./includes/gipuzkoa_wfs_featuretypes_except.php");
+include_once("./includes/json2xml.php");
+$file_json = "./json/topoquery2_zoom.json";
 
 // Requests
 if (isset($_REQUEST['lang'])) $lang = $_REQUEST['lang']; else $lang = "";
 if (isset($_REQUEST['b5m_id'])) $b5m_id = strtoupper($_REQUEST['b5m_id']); else $b5m_id = "";
 if (isset($_REQUEST['coors'])) $coors = $_REQUEST['coors']; else $coors = "";
+if (isset($_REQUEST['z'])) $z = $_REQUEST['z']; else $z = "";
+if (isset($_REQUEST['scale'])) $scale = $_REQUEST['scale']; else $scale = "";
 if (isset($_REQUEST['offset'])) $offset = $_REQUEST['offset']; else $offset = "";
 if (isset($_REQUEST['srs'])) $srs = $_REQUEST['srs']; else $srs = "";
 if (isset($_REQUEST['featuretypes'])) $featuretypes = $_REQUEST['featuretypes']; else $featuretypes = "";
@@ -28,11 +31,7 @@ if ($lang == "eu") $lang2 = 0; else if ($lang == "es") $lang2 = 1; else $lang2 =
 
 // Variables
 $server_name = $_SERVER['SERVER_NAME'];
-//$wfs_server = "https://b5m.gipuzkoa.eus/ogc/wfs2/gipuzkoa_wfs";
-//$wfs_server = "http://b5mlive1.gipuzkoa.eus/ogc/wfs2/gipuzkoa_wfs";
 $wfs_server = "http://b5mdev/ogc/wfs2/gipuzkoa_wfs";
-//$wfs_server = "https://" . $server_name . "/ogc/wfs2/gipuzkoa_wfs";
-//$wfs_server = $server_name . "/ogc/wfs2/gipuzkoa_wfs";
 $wfs_service = "?service=wfs";
 $wfs_capab = $wfs_service . "&request=getcapabilities";
 $wfs_request = $wfs_service . "&version=2.0.0&request=getFeature&typeNames=";
@@ -90,6 +89,32 @@ if ($statuscode == 0) {
 	$y = $coors_a[1];
 }
 
+// Zoom and scale
+if (is_numeric($z)) {
+	if ($z != "") {
+		if ($z < 9) $z = 9; else if ($z > 19) $z = 19;
+	}
+} else {
+	$z = "";
+}
+if ($z == "" && $scale != "") {
+	if (is_numeric($scale)) {
+		if ($scale > 600000) $z = 9;
+		else if ($scale <= 600000 && $scale > 300000) $z = 10;
+		else if ($scale <= 300000 && $scale > 150000) $z = 11;
+		else if ($scale <= 150000 && $scale > 75000) $z = 12;
+		else if ($scale <= 75000 && $scale > 37500) $z = 13;
+		else if ($scale <= 37500 && $scale > 18750) $z = 14;
+		else if ($scale <= 18750 && $scale > 9375) $z = 15;
+		else if ($scale <= 9375 && $scale > 4687) $z = 16;
+		else if ($scale <= 4687 && $scale > 2343) $z = 17;
+		else if ($scale <= 2343 && $scale > 1172) $z = 18;
+		else $z = 19;
+	} else {
+		$scale = "";
+	}
+}
+
 // SRS
 if ($statuscode == 0) {
 	if ($srs == "25830" || $srs == "4326" || $srs =="3857")
@@ -133,6 +158,14 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 	$i = 0;
 
 	// Typenames
+	if ($z != "") {
+		$data_json = file_get_contents($file_json);
+		$zoom_array = json_decode($data_json);
+		foreach($zoom_array as $obj) {
+				if($obj->zoom == $z)
+					$featuretypenames_a = $obj->featuretypenames;
+		}
+	}
 	if ($featuretypenames != "")
 		$featuretypenames_a = explode(",", $featuretypenames);
 	foreach ($wfs_capab_xml->FeatureTypeList->FeatureType as $featuretype) {
@@ -159,7 +192,7 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 
 		if ($except_flag == 0 && $statuscode != 7) {
 			$include_flag = 1;
-			if ($featuretypenames != "") {
+			if ($featuretypenames != "" || "$z" != "") {
 				$include_flag = 0;
 				foreach ($featuretypenames_a as $featuretypenames_n) {
 					if ($featuretypenames_n == $featuretype_name)
@@ -310,6 +343,8 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6
 			if ($offset != "") $doc1["offset"]["value"] = $offset;
 			if ($offset != "") $doc1["offset"]["units"] = $offset_units;
 			if ($bbox != "") $doc1["bbox"] = $bbox;
+			if ($z != "") $doc1["z"] = $z;
+			if ($scale != "") $doc1["scale"] = $scale;
 		}
 		if ($statuscode != 6)
 			$doc1["srs"] = $srs;
