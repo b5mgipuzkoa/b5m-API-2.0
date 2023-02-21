@@ -30,8 +30,7 @@ if ($lang != "eu" && $lang != "es" && $lang != "en") $lang = "en";
 if ($lang == "eu") $lang2 = 0; else if ($lang == "es") $lang2 = 1; else $lang2 = 2;
 
 // Variables
-$server_name = $_SERVER['SERVER_NAME'];
-$wfs_server = "http://b5mdev/ogc/wfs2/gipuzkoa_wfs";
+$wfs_server = "https://" . $_SERVER['SERVER_NAME'] . "/ogc/wfs2/gipuzkoa_wfs";
 $wfs_service = "?service=wfs";
 $wfs_capab = $wfs_service . "&request=getcapabilities";
 $wfs_request = $wfs_service . "&version=2.0.0&request=getFeature&typeNames=";
@@ -43,6 +42,51 @@ $bbox = "";
 $featuretypes_a = array();
 $doc1 = array();
 $doc2 = array();
+
+// Functions
+function get_url_info($url) {
+	// Get information from an URL
+	if ($_SERVER['SERVER_NAME'] == "b5m.gipuzkoa.eus") {
+		$ssl_check = true;
+		$proxy_tunnel = true;
+		$proxy_server = "http://proxy.sare.gipuzkoa.net";
+		$proxy_port = "8080";
+	} else {
+		$ssl_check = false;
+		$proxy_tunnel = false;
+		$proxy_server = "";
+		$proxy_port = "";
+	}
+	$options = array(
+		CURLOPT_RETURNTRANSFER => true,     	// return web page
+		CURLOPT_HEADER         => false,    	// don't return headers
+		CURLOPT_FOLLOWLOCATION => true,     	// follow redirects
+		CURLOPT_ENCODING       => "",       	// handle all encodings
+		CURLOPT_USERAGENT      => basename(__FILE__, '.php'), // who am i
+		CURLOPT_AUTOREFERER    => true,     	// set referer on redirect
+		CURLOPT_CONNECTTIMEOUT => 120,      	// timeout on connect
+		CURLOPT_TIMEOUT        => 120,      	// timeout on response
+		CURLOPT_MAXREDIRS      => 10,      		// stop after 10 redirects
+		CURLOPT_SSL_VERIFYHOST => $ssl_check,	// SSL Cert checks
+		CURLOPT_SSL_VERIFYPEER => $ssl_check,	// SSL Cert checks
+		CURLOPT_HTTPPROXYTUNNEL => $proxy_tunnel,
+		CURLOPT_PROXY => $proxy_server,
+		CURLOPT_PROXYPORT => $proxy_port,
+	);
+
+	$ch = curl_init($url);
+	curl_setopt_array($ch, $options);
+	$content = curl_exec($ch);
+	$err = curl_errno($ch);
+	$errmsg = curl_error($ch);
+	$header = curl_getinfo($ch);
+	curl_close($ch);
+
+	$header['errno'] = $err;
+	$header['errmsg'] = $errmsg;
+	$header['content'] = $content;
+	return $header;
+}
 
 // Messages
 $msg001 = "Missing required parameter: coors";
@@ -56,9 +100,9 @@ $msg008 = "Out of range";
 // License and metadata variables
 $year = date("Y");
 $provider = "b5m - Gipuzkoa Spatial Data Infrastructure - Gipuzkoa Provincial Council - " .$year;
-$url_license = "https://" . $server_name . "/web5000/en/legal-information";
-$url_base = "https://" . $server_name . "/web5000";
-$image_url = "https://" . $server_name . "/web5000/assets/img/logo-b5m.svg";
+$url_license = "https://" . $_SERVER['SERVER_NAME'] . "/web5000/en/legal-information";
+$url_base = "https://" . $_SERVER['SERVER_NAME'] . "/web5000";
+$image_url = "https://" . $_SERVER['SERVER_NAME'] . "/web5000/assets/img/logo-b5m.svg";
 $response_time_units = "seconds";
 $messages = "";
 
@@ -148,12 +192,7 @@ if ($srs == "" && $statuscode == 0) {
 if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 	// Collecting featuretype data from getcapabilites request
 	$url_capab = $wfs_server . $wfs_capab;
-	$ch1 = curl_init();
-	curl_setopt($ch1, CURLOPT_SSL_VERIFYPEER, false);
-	curl_setopt($ch1, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($ch1, CURLOPT_URL, $url_capab);
-	$wfs_capab_response = curl_exec($ch1);
-	curl_close ($ch1);
+	$wfs_capab_response = (get_url_info($url_capab)['content']);
 	$wfs_capab_xml = new SimpleXMLElement($wfs_capab_response);
 	$i = 0;
 
@@ -293,11 +332,7 @@ if ($statuscode == 0 || $statuscode == 7) {
 			// Request
 			if (count($featuretypes_a) > 0) {
 				//$wfs_response = json_decode(file_get_contents($url_request), true);
-				$ch = curl_init();
-				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-				curl_setopt($ch, CURLOPT_URL, $url_request);
-				$wfs_response = json_decode(curl_exec($ch), true);
+				$wfs_response = json_decode((get_url_info($url_request)['content']), true);
 				$wfs_response_feat = $wfs_response["features"];
 				$wfs_response_count = count($wfs_response_feat);
 			} else {
