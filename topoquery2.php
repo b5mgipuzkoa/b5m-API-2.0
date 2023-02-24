@@ -197,16 +197,6 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 	$i = 0;
 
 	// Typenames
-	if ($z != "") {
-		$data_json = file_get_contents($file_json);
-		$zoom_array = json_decode($data_json);
-		foreach($zoom_array as $obj) {
-				if($obj->zoom == $z)
-					$featuretypenames_a = $obj->featuretypenames;
-		}
-	}
-	if ($featuretypenames != "")
-		$featuretypenames_a = explode(",", $featuretypenames);
 	foreach ($wfs_capab_xml->FeatureTypeList->FeatureType as $featuretype) {
 		$except_flag = 0;
 		$featuretype_name = str_replace("ms:", "", $featuretype->Name);
@@ -230,22 +220,36 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 		}
 
 		if ($except_flag == 0 && $statuscode != 7) {
-			$include_flag = 1;
-			if ($featuretypenames != "" || "$z" != "") {
-				$include_flag = 0;
-				foreach ($featuretypenames_a as $featuretypenames_n) {
-					if ($featuretypenames_n == $featuretype_name)
-						$include_flag = 1;
-				}
-			}
-			if ($include_flag == 1) {
-				$featuretypes_a[$i]["name"] = $featuretype_name;
-				$featuretypes_a[$i]["title"] = $featuretype_title;
-				$featuretypes_a[$i]["abstract"] = $featuretype_abstract;
-			}
+			$featuretypes_a[$i]["name"] = $featuretype_name;
+			$featuretypes_a[$i]["title"] = $featuretype_title;
+			$featuretypes_a[$i]["abstract"] = $featuretype_abstract;
 		}
 		$i++;
 	}
+}
+
+// Zoom restriction
+if ($z != "") {
+	$data_json = file_get_contents($file_json);
+	$zoom_array = json_decode($data_json);
+	foreach($zoom_array as $obj) {
+		if($obj->zoom == $z)
+			$featuretypenames_a = $obj->featuretypenames;
+	}
+	if ($featuretypenames != "")
+		$featuretypenames_a = explode(",", $featuretypenames);
+	$i=0;
+	foreach ($featuretypenames_a as $featuretypenames_n) {
+		$j=0;
+		foreach ($featuretypes_a as $featuretypes_n) {
+			if ($featuretypenames_n == $featuretypes_n["name"]) {
+				$featuretypes_a2[$i] = $featuretypes_a[$j];
+				$i++;
+			}
+			$j++;
+		}
+	}
+	$featuretypes_a = $featuretypes_a2;
 }
 
 // Featuretypes count
