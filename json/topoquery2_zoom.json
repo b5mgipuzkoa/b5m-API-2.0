@@ -1,44 +1,44 @@
 [{
   "zoom": 9,
-  "featuretypenames": ["s_regions", "m_municipalities"]
+  "featuretypenames": ["m_municipalities", "s_regions"]
 },
 {
   "zoom": 10,
-  "featuretypenames": ["s_regions", "m_municipalities"]
+  "featuretypenames": ["m_municipalities", "s_regions"]
 },
 {
   "zoom": 11,
-  "featuretypenames": ["s_regions", "m_municipalities", "c_basins"]
+  "featuretypenames": ["m_municipalities", "c_basins", "s_regions"]
 },
 {
   "zoom": 12,
-  "featuretypenames": ["s_regions", "m_municipalities", "c_basins"]
+  "featuretypenames": ["m_municipalities", "c_basins", "s_regions"]
 },
 {
   "zoom": 13,
-  "featuretypenames": ["s_regions", "m_municipalities", "c_basins", "i_hydrography"]
+  "featuretypenames": ["i_hydrography", "m_municipalities", "c_basins", "s_regions"]
 },
 {
   "zoom": 14,
-  "featuretypenames": ["s_regions", "m_municipalities", "c_basins", "i_hydrography"]
+  "featuretypenames": ["i_hydrography", "m_municipalities", "c_basins", "s_regions"]
 },
 {
   "zoom": 15,
-  "featuretypenames": ["s_regions", "m_municipalities", "c_basins", "i_hydrography", "e_buildings"]
+  "featuretypenames": ["e_buildings", "i_hydrography", "m_municipalities", "c_basins", "s_regions"]
 },
 {
   "zoom": 16,
-  "featuretypenames": ["s_regions", "m_municipalities", "c_basins", "i_hydrography", "e_buildings"]
+  "featuretypenames": ["e_buildings", "i_hydrography", "m_municipalities", "c_basins", "s_regions"]
 },
 {
   "zoom": 17,
-  "featuretypenames": ["s_regions", "m_municipalities", "c_basins", "i_hydrography", "e_buildings"]
+  "featuretypenames": ["e_buildings", "i_hydrography", "m_municipalities", "c_basins", "s_regions"]
 },
 {
   "zoom": 18,
-  "featuretypenames": ["s_regions", "m_municipalities", "c_basins", "i_hydrography", "e_buildings", "sg_geodeticbenchmarks"]
+  "featuretypenames": ["e_buildings", "sg_geodeticbenchmarks", "i_hydrography", "m_municipalities", "c_basins", "s_regions"]
 },
 {
   "zoom": 19,
-  "featuretypenames": ["s_regions", "m_municipalities", "c_basins", "i_hydrography", "e_buildings", "sg_geodeticbenchmarks"]
+  "featuretypenames": ["e_buildings", "sg_geodeticbenchmarks", "i_hydrography", "m_municipalities", "c_basins", "s_regions"]
 }]
