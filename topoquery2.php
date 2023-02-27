@@ -32,8 +32,10 @@ if ($lang == "eu") $lang2 = 0; else if ($lang == "es") $lang2 = 1; else $lang2 =
 // Variables
 $wfs_server = "https://" . $_SERVER['SERVER_NAME'] . "/ogc/wfs2/gipuzkoa_wfs";
 $wfs_service = "?service=wfs";
+$wfs_valueref = "b5mcode";
 $wfs_capab = $wfs_service . "&request=getcapabilities";
-$wfs_request = $wfs_service . "&version=2.0.0&request=getFeature&typeNames=";
+$wfs_request1 = $wfs_service . "&version=2.0.0&request=getFeature&typeNames=";
+$wfs_request2 = $wfs_service . "&version=2.0.0&request=getPropertyValue&valueReference=" . $wfs_valueref . "&typeNames=";
 $wfs_output = "&outputFormat=application/json;%20subtype=geojson";
 $offset_default = 1;
 $offset_units = "metres";
@@ -322,6 +324,7 @@ if ($statuscode == 0 || $statuscode == 7) {
 		if ($statuscode != 7)
 			$statuscode = 5;
 		$i = 0;
+		$j = 0;
 		foreach ($featuretypes_a as $val) {
 			$wfs_typename = $val["name"];
 			if ($statuscode != 7) {
@@ -331,24 +334,45 @@ if ($statuscode == 0 || $statuscode == 7) {
 				$wfs_bbox = "";
 				$wfs_filter = "&filter=<Filter><PropertyIsEqualTo><PropertyName>" . $b5mcode . "</PropertyName><Literal>" . $b5m_id . "</Literal></PropertyIsEqualTo></Filter>";
 			}
-			$url_request = $wfs_server . $wfs_request . $wfs_typename . $wfs_bbox . $wfs_srsname . $wfs_filter . $wfs_output;
+			if ($i == 0)
+				$url_request = $wfs_server . $wfs_request1 . $wfs_typename . $wfs_bbox . $wfs_srsname . $wfs_filter . $wfs_output;
+			else
+				$url_request = $wfs_server . $wfs_request2 . $wfs_typename . $wfs_bbox . $wfs_srsname . $wfs_filter;
 
 			// Request
 			if (count($featuretypes_a) > 0) {
-				//$wfs_response = json_decode(file_get_contents($url_request), true);
-				$wfs_response = json_decode((get_url_info($url_request)['content']), true);
-				$wfs_response_feat = $wfs_response["features"];
-				$wfs_response_count = count($wfs_response_feat);
+				if ($i == 0) {
+					$wfs_response = json_decode((get_url_info($url_request)['content']), true);
+					$wfs_response_feat = $wfs_response["features"];
+					$wfs_response_count = count($wfs_response_feat);
+				} else {
+					$wfs_response = (get_url_info($url_request)['content']);
+					$p = xml_parser_create();
+					xml_parse_into_struct($p, $wfs_response, $vals, $index);
+					xml_parser_free($p);
+					$wfs_response_count =  $vals[0]["attributes"]["NUMBERRETURNED"];
+				}
 			} else {
 				$wfs_response_count = 0;
 			}
 			if ($wfs_response_count > 0) {
 				if ($statuscode != 7)
 					$statuscode = 0;
-				$doc2["items"][$i]["item_name"] = $val["name"];
-				$doc2["items"][$i]["item_title"] = $val["title"][$lang2];
-				$doc2["items"][$i]["item_abstract"] = $val["abstract"];
-				$doc2["items"][$i]["item"] = $wfs_response;
+				if ($i == 0) {
+					$doc2["items"][$i]["item_name"] = $val["name"];
+					$doc2["items"][$i]["item_title"] = $val["title"][$lang2];
+					$doc2["items"][$i]["item_abstract"] = $val["abstract"];
+					$doc2["items"][$i]["item"] = $wfs_response;
+				} else {
+					if ($wfs_response_count > 0) {
+						$wfs_response_vals = $vals[2]["value"];
+						$doc2["items"][0]["item"]["features"][0]["properties"]["more_info"][$j]["type"] = $wfs_typename;
+						$doc2["items"][0]["item"]["features"][0]["properties"]["more_info"][$j]["typecode"] = strtoupper(substr($wfs_typename, 0, 1));
+						$doc2["items"][0]["item"]["features"][0]["properties"]["more_info"][$j]["description"] = $val["title"][$lang2];
+						$doc2["items"][0]["item"]["features"][0]["properties"]["more_info"][$j]["b5mcode"] = $wfs_response_vals;
+						$j++;
+					}
+				}
 				$i++;
 			}
 		}
