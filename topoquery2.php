@@ -14,7 +14,7 @@ $file_json = "./json/topoquery2_zoom.json";
 
 // Requests
 if (isset($_REQUEST['lang'])) $lang = $_REQUEST['lang']; else $lang = "";
-if (isset($_REQUEST['b5m_id'])) $b5m_id = strtoupper($_REQUEST['b5m_id']); else $b5m_id = "";
+if (isset($_REQUEST['b5mcode'])) $b5m_code = strtoupper($_REQUEST['b5mcode']); else $b5m_code = "";
 if (isset($_REQUEST['coors'])) $coors = $_REQUEST['coors']; else $coors = "";
 if (isset($_REQUEST['z'])) $z = $_REQUEST['z']; else $z = "";
 if (isset($_REQUEST['scale'])) $scale = $_REQUEST['scale']; else $scale = "";
@@ -30,7 +30,8 @@ if ($lang != "eu" && $lang != "es" && $lang != "en") $lang = "en";
 if ($lang == "eu") $lang2 = 0; else if ($lang == "es") $lang2 = 1; else $lang2 = 2;
 
 // Variables
-$wfs_server = "https://" . $_SERVER['SERVER_NAME'] . "/ogc/wfs2/gipuzkoa_wfs";
+$b5m_server = "https://" . $_SERVER['SERVER_NAME'];
+$wfs_server = $b5m_server . "/ogc/wfs2/gipuzkoa_wfs";
 $wfs_service = "?service=wfs";
 $wfs_valueref = "b5mcode";
 $wfs_capab = $wfs_service . "&request=getcapabilities";
@@ -44,6 +45,11 @@ $bbox = "";
 $featuretypes_a = array();
 $doc1 = array();
 $doc2 = array();
+
+// Variable Links
+$b5map_link["eu"] = $b5m_server . "/b5map/r1/eu/mapa/lekutu/";
+$b5map_link["es"] = $b5m_server . "/b5map/r1/es/mapa/localizar/";
+$b5map_link["en"] = $b5m_server . "/b5map/r1/en/map/locate/";
 
 // Functions
 function get_url_info($url) {
@@ -113,9 +119,8 @@ $statuscode = 0;
 $init_time = microtime(true);
 
 // Id Request
-if ($b5m_id != "") {
+if ($b5m_code != "") {
 	$statuscode = 7;
-	$b5m_code = strtolower(explode("_", $b5m_id)[0]);
 }
 
 // Types Request
@@ -206,7 +211,7 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 		$featuretype_abstract = $featuretype->Abstract->__toString();
 		if ($statuscode == 7) {
 			// Id Request
-			if (strtolower(explode("_", $b5m_id)[0]) == strtolower(explode("_", explode(":", $featuretype->Name->__toString())[1])[0])) {
+			if (strtolower(explode("_", $b5m_code)[0]) == strtolower(explode("_", explode(":", $featuretype->Name->__toString())[1])[0])) {
 				$featuretypes_a[0]["name"] = $featuretype_name;
 				$featuretypes_a[0]["title"] = $featuretype_title;
 				$featuretypes_a[0]["abstract"] = $featuretype_abstract;
@@ -332,7 +337,7 @@ if ($statuscode == 0 || $statuscode == 7) {
 				$wfs_filter = "";
 			} else {
 				$wfs_bbox = "";
-				$wfs_filter = "&filter=<Filter><PropertyIsEqualTo><PropertyName>" . $b5mcode . "</PropertyName><Literal>" . $b5m_id . "</Literal></PropertyIsEqualTo></Filter>";
+				$wfs_filter = "&filter=<Filter><PropertyIsEqualTo><PropertyName>" . $b5mcode . "</PropertyName><Literal>" . $b5m_code . "</Literal></PropertyIsEqualTo></Filter>";
 			}
 			if ($i == 0)
 				$url_request = $wfs_server . $wfs_request1 . $wfs_typename . $wfs_bbox . $wfs_srsname . $wfs_filter . $wfs_output;
@@ -359,17 +364,40 @@ if ($statuscode == 0 || $statuscode == 7) {
 				if ($statuscode != 7)
 					$statuscode = 0;
 				if ($i == 0) {
-					$doc2["items"][$i]["item_name"] = $val["name"];
-					$doc2["items"][$i]["item_title"] = $val["title"][$lang2];
-					$doc2["items"][$i]["item_abstract"] = $val["abstract"];
-					$doc2["items"][$i]["item"] = $wfs_response;
+					$doc2["items"][$i]["type"] = $val["name"];
+					$doc2["items"][$i]["description"] = $val["title"][$lang2];
+					$doc2["items"][$i]["abstract"] = $val["abstract"];
+					if ($val["name"] == "e_buildings") {
+						// e_buildings case, postal addresses nested
+						$b5m_code_e = $wfs_response["features"][0]["properties"]["b5mcode"];
+						$doc2["items"][$i]["features"][0]["properties"]["b5mcode"] = $b5m_code_e;
+						$doc2["items"][$i]["features"][0]["properties"]["b5maplink"] = $b5map_link[$lang] . $b5m_code_e;
+						$z=0;
+						foreach($wfs_response["features"] as $x1 => $y1) {
+							foreach($y1["properties"] as $x2 => $y2) {
+								if ($x2 != "idname" && $x2 != "b5mcode")
+									$doc2["items"][$i]["features"][0]["properties"]["info"][$z][$x2] = $y2;
+							}
+							$z++;
+						}
+						$doc2["items"][$i]["features"][0]["geometry"] = $wfs_response["features"][0]["geometry"];
+					} else {
+						foreach($wfs_response["features"] as $x1 => $y1) {
+							foreach($y1["properties"] as $x2 => $y2) {
+								$doc2["items"][$i]["features"][$x1]["properties"][$x2] = $wfs_response["features"][$x1]["properties"][$x2];
+								if ($x2 == "b5mcode")
+									$doc2["items"][$i]["features"][$x1]["properties"]["b5maplink"] = $b5map_link[$lang] . $wfs_response["features"][$x1]["properties"][$x2];
+							}
+							$doc2["items"][$i]["features"][$x1]["geometry"] = $wfs_response["features"][$x1]["geometry"];
+						}
+					}
 				} else {
 					if ($wfs_response_count > 0) {
 						$wfs_response_vals = $vals[2]["value"];
-						$doc2["items"][0]["item"]["features"][0]["properties"]["more_info"][$j]["type"] = $wfs_typename;
-						$doc2["items"][0]["item"]["features"][0]["properties"]["more_info"][$j]["typecode"] = strtoupper(substr($wfs_typename, 0, 1));
-						$doc2["items"][0]["item"]["features"][0]["properties"]["more_info"][$j]["description"] = $val["title"][$lang2];
-						$doc2["items"][0]["item"]["features"][0]["properties"]["more_info"][$j]["b5mcode"] = $wfs_response_vals;
+						$doc2["items"][0]["features"][0]["properties"]["more_info"][$j]["type"] = $val["name"];
+						$doc2["items"][0]["features"][0]["properties"]["more_info"][$j]["description"] = $val["title"][$lang2];
+						$doc2["items"][0]["features"][0]["properties"]["more_info"][$j]["abstract"] = $val["abstract"];
+						$doc2["items"][0]["features"][0]["properties"]["more_info"][$j]["b5mcode"] = $wfs_response_vals;
 						$j++;
 					}
 				}
