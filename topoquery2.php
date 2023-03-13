@@ -369,6 +369,7 @@ if ($statuscode == 0 || $statuscode == 7) {
 					$doc2["items"][$i]["abstract"] = $val["abstract"];
 					if ($val["name"] == "e_buildings") {
 						// e_buildings case, postal addresses nested
+						$doc2["items"][$i]["features"][0]["type"] = $wfs_response["features"][0]["type"];
 						$b5m_code_e = $wfs_response["features"][0]["properties"]["b5mcode"];
 						$doc2["items"][$i]["features"][0]["properties"]["b5mcode"] = $b5m_code_e;
 						$doc2["items"][$i]["features"][0]["properties"]["b5maplink"] = $b5map_link[$lang] . $b5m_code_e;
@@ -383,6 +384,7 @@ if ($statuscode == 0 || $statuscode == 7) {
 						$doc2["items"][$i]["features"][0]["geometry"] = $wfs_response["features"][0]["geometry"];
 					} else {
 						foreach($wfs_response["features"] as $x1 => $y1) {
+							$doc2["items"][$i]["features"][$x1]["type"] = $wfs_response["features"][$x1]["type"];
 							foreach($y1["properties"] as $x2 => $y2) {
 								$doc2["items"][$i]["features"][$x1]["properties"][$x2] = $wfs_response["features"][$x1]["properties"][$x2];
 								if ($x2 == "b5mcode")
