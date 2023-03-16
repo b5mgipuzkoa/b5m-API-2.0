@@ -483,6 +483,8 @@ if (strtolower($format) == "php" || strtolower($format) == "phps") {
 	print_r($doc);
 } else {
 	$jsonres = json_encode($doc, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_NUMERIC_CHECK | JSON_PRESERVE_ZERO_FRACTION);
+	// Minify
+	$jsonres = json_encode(json_decode($jsonres));
 	if (strtolower($format) == "xml") {
 		header("Content-type: application/xml;charset=utf-8");
 		print_r(json2xml($jsonres));
