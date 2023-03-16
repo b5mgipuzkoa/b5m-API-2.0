@@ -379,7 +379,7 @@ if ($statuscode == 0 || $statuscode == 7) {
 						foreach($wfs_response["features"] as $x1 => $y1) {
 							foreach($y1["properties"] as $x2 => $y2) {
 								if ($x2 != "idname" && $x2 != "b5mcode")
-									$doc2["items"][$i]["features"][0]["properties"]["info"][$z][$x2] = $y2;
+									$doc2["features"][0]["properties"]["info"][$z][$x2] = $y2;
 							}
 							$z++;
 						}
