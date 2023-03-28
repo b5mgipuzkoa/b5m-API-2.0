@@ -35,6 +35,7 @@ $wfs_server = $b5m_server . "/ogc/wfs2/gipuzkoa_wfs";
 $wfs_service = "?service=wfs";
 $wfs_valueref = "b5mcode";
 $wfs_capab = $wfs_service . "&request=getcapabilities";
+$wfs_feature = $wfs_service . "&version=1.1.0&request=describefeaturetype&typename=";
 $wfs_request1 = $wfs_service . "&version=2.0.0&request=getFeature&typeNames=";
 $wfs_request2 = $wfs_service . "&version=2.0.0&request=getPropertyValue&valueReference=" . $wfs_valueref . "&typeNames=";
 $wfs_output = "&outputFormat=application/json;%20subtype=geojson";
@@ -207,13 +208,13 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 	foreach ($wfs_capab_xml->FeatureTypeList->FeatureType as $featuretype) {
 		$except_flag = 0;
 		$featuretype_name = str_replace("ms:", "", $featuretype->Name);
-		$featuretype_title =	explode(" / ", $featuretype->Title);
+		$featuretype_desc =	explode(" / ", $featuretype->Title);
 		$featuretype_abstract = $featuretype->Abstract->__toString();
 		if ($statuscode == 7) {
 			// Id Request
 			if (strtolower(explode("_", $b5m_code)[0]) == strtolower(explode("_", explode(":", $featuretype->Name->__toString())[1])[0])) {
-				$featuretypes_a[0]["name"] = $featuretype_name;
-				$featuretypes_a[0]["title"] = $featuretype_title;
+				$featuretypes_a[0]["featuretypename"] = $featuretype_name;
+				$featuretypes_a[0]["description"] = $featuretype_desc;
 				$featuretypes_a[0]["abstract"] = $featuretype_abstract;
 			}
 		} else {
@@ -227,9 +228,22 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 		}
 
 		if ($except_flag == 0 && $statuscode != 7) {
-			$featuretypes_a[$i]["name"] = $featuretype_name;
-			$featuretypes_a[$i]["title"] = $featuretype_title;
+			$featuretypes_a[$i]["featuretypename"] = $featuretype_name;
+			$featuretypes_a[$i]["description"] = $featuretype_desc;
 			$featuretypes_a[$i]["abstract"] = $featuretype_abstract;
+
+			// Collecting field list data from getcapabilites request
+			$url_field = $wfs_server . $wfs_feature . $featuretype_name;
+			$wfs_field_response = (get_url_info($url_field)['content']);
+			$wfs_field_xml = new SimpleXMLElement($wfs_field_response);
+			$j = 0;
+			foreach ($wfs_field_xml->complexType->complexContent->extension->sequence->element as $featuretypefield) {
+				$fieldname = strval($featuretypefield["name"]);
+				if ($fieldname != "msGeometry") {
+					$featuretypes_a[$i]["properties"][$j] = $fieldname;
+					$j++;
+				}
+			}
 		}
 		$i++;
 	}
@@ -249,7 +263,7 @@ if ($z != "" || $featuretypenames != "") {
 	foreach ($featuretypenames_a as $featuretypenames_n) {
 		$j=0;
 		foreach ($featuretypes_a as $featuretypes_n) {
-			if ($featuretypenames_n == $featuretypes_n["name"]) {
+			if ($featuretypenames_n == $featuretypes_n["featuretypename"]) {
 				$featuretypes_a2[$i] = $featuretypes_a[$j];
 				$i++;
 			}
@@ -267,9 +281,10 @@ if ($statuscode == 4) {
 	// Show gathered featuretypes
 	$i = 0;
 	foreach ($featuretypes_a as $val) {
-		$doc2["featuretypes"][$i]["name"] = str_replace("ms:", "", $val["name"]);
-		$doc2["featuretypes"][$i]["title"] = $val["title"][$lang2];
+		$doc2["featuretypes"][$i]["featuretypename"] = str_replace("ms:", "", $val["featuretypename"]);
+		$doc2["featuretypes"][$i]["description"] = $val["description"][$lang2];
 		$doc2["featuretypes"][$i]["abstract"] = $val["abstract"];
+		$doc2["featuretypes"][$i]["properties"] = $val["properties"];
 		$i++;
 	}
 }
@@ -333,7 +348,7 @@ if ($statuscode == 0 || $statuscode == 7) {
 		$i = 0;
 		$j = 0;
 		foreach ($featuretypes_a as $val) {
-			$wfs_typename = $val["name"];
+			$wfs_typename = $val["featuretypename"];
 			if ($statuscode != 7) {
 				$wfs_bbox = "&bbox=" . $bbox2;
 				$wfs_filter = "";
@@ -369,8 +384,8 @@ if ($statuscode == 0 || $statuscode == 7) {
 					if ($val["name"] == "e_buildings") {
 						// e_buildings case, postal addresses nested
 						$doc2["features"][0]["type"] = $wfs_response["features"][0]["type"];
-						$doc2["features"][0]["featuretypename"] = $val["name"];
-						$doc2["features"][0]["description"] = $val["title"][$lang2];
+						$doc2["features"][0]["featuretypename"] = $val["featuretypename"];
+						$doc2["features"][0]["description"] = $val["description"][$lang2];
 						$doc2["features"][0]["abstract"] = $val["abstract"];
 						$b5m_code_e = $wfs_response["features"][0]["properties"]["b5mcode"];
 						$doc2["features"][0]["properties"]["b5mcode"] = $b5m_code_e;
@@ -387,8 +402,8 @@ if ($statuscode == 0 || $statuscode == 7) {
 					} else {
 						foreach($wfs_response["features"] as $x1 => $y1) {
 							$doc2["features"][$x1]["type"] = $wfs_response["features"][$x1]["type"];
-							$doc2["features"][$x1]["featuretypename"] = $val["name"];
-							$doc2["features"][$x1]["description"] = $val["title"][$lang2];
+							$doc2["features"][$x1]["featuretypename"] = $val["featuretypename"];
+							$doc2["features"][$x1]["description"] = $val["description"][$lang2];
 							$doc2["features"][$x1]["abstract"] = $val["abstract"];
 							foreach($y1["properties"] as $x2 => $y2) {
 								$doc2["features"][$x1]["properties"][$x2] = $wfs_response["features"][$x1]["properties"][$x2];
@@ -401,8 +416,8 @@ if ($statuscode == 0 || $statuscode == 7) {
 				} else {
 					if ($wfs_response_count > 0) {
 						$wfs_response_vals = $vals[2]["value"];
-						$doc2["features"][0]["properties"]["more_info"][$j]["featuretypename"] = $val["name"];
-						$doc2["features"][0]["properties"]["more_info"][$j]["description"] = $val["title"][$lang2];
+						$doc2["features"][0]["properties"]["more_info"][$j]["featuretypename"] = $val["featuretypename"];
+						$doc2["features"][0]["properties"]["more_info"][$j]["description"] = $val["description"][$lang2];
 						$doc2["features"][0]["properties"]["more_info"][$j]["abstract"] = $val["abstract"];
 						$doc2["features"][0]["properties"]["more_info"][$j]["b5mcode"] = $wfs_response_vals;
 						$j++;
@@ -455,7 +470,7 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6
 			foreach ($featuretypes_a as $valfeaturetype) {
 				if ($featuretypenames2 != "")
 					$featuretypenames2 = $featuretypenames2 . ",";
-				$featuretypenames2 = $featuretypenames2 . $valfeaturetype["name"];
+				$featuretypenames2 = $featuretypenames2 . $valfeaturetype["featuretypename"];
 			}
 			$doc1["featuretypenames"] = $featuretypenames2;
 			$doc1["type"] = "FeatureCollection";
