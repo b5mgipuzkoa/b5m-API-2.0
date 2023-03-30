@@ -248,7 +248,7 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 			$featuretypes_a[$i]["description"] = $featuretype_desc;
 			$featuretypes_a[$i]["abstract"] = $featuretype_abstract;
 
-			if ($featuretypenames == "")
+			if ($featuretypenames == "" && $statuscode == 4)
 				$featuretypes_a[$i]["properties"] = get_feat_info($featuretype_name);
 		}
 		$i++;
@@ -271,7 +271,8 @@ if ($z != "" || $featuretypenames != "") {
 		foreach ($featuretypes_a as $featuretypes_n) {
 			if ($featuretypenames_n == $featuretypes_n["featuretypename"]) {
 				$featuretypes_a2[$i] = $featuretypes_a[$j];
-				$featuretypes_a2[$i]["properties"] = get_feat_info($featuretypenames_n);
+				if ($statuscode == 4)
+					$featuretypes_a2[$i]["properties"] = get_feat_info($featuretypenames_n);
 				$i++;
 			}
 			$j++;
