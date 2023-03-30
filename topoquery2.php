@@ -97,6 +97,22 @@ function get_url_info($url) {
 	return $header;
 }
 
+function get_feat_info($featuretype_name) {
+	// Collecting field list data from getfeature request
+	$url_field = $GLOBALS['wfs_server'] . $GLOBALS['wfs_feature'] . $featuretype_name;
+	$wfs_field_response = (get_url_info($url_field)['content']);
+	$wfs_field_xml = new SimpleXMLElement($wfs_field_response);
+	$j = 0;
+	foreach ($wfs_field_xml->complexType->complexContent->extension->sequence->element as $featuretypefield) {
+		$fieldname = strval($featuretypefield["name"]);
+		if ($fieldname != "msGeometry") {
+			$featuretypes_info_a[$j] = $fieldname;
+			$j++;
+		}
+	}
+	return $featuretypes_info_a;
+}
+
 // Messages
 $msg001 = "Missing required parameter: coors";
 $msg002 = "SRS not supported. It should be EPSG:25830, EPSG:4326 or EPSG:3857 (https://epsg.io)";
@@ -232,18 +248,8 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 			$featuretypes_a[$i]["description"] = $featuretype_desc;
 			$featuretypes_a[$i]["abstract"] = $featuretype_abstract;
 
-			// Collecting field list data from getcapabilites request
-			$url_field = $wfs_server . $wfs_feature . $featuretype_name;
-			$wfs_field_response = (get_url_info($url_field)['content']);
-			$wfs_field_xml = new SimpleXMLElement($wfs_field_response);
-			$j = 0;
-			foreach ($wfs_field_xml->complexType->complexContent->extension->sequence->element as $featuretypefield) {
-				$fieldname = strval($featuretypefield["name"]);
-				if ($fieldname != "msGeometry") {
-					$featuretypes_a[$i]["properties"][$j] = $fieldname;
-					$j++;
-				}
-			}
+			if ($featuretypenames == "")
+				$featuretypes_a[$i]["properties"] = get_feat_info($featuretype_name);
 		}
 		$i++;
 	}
@@ -265,6 +271,7 @@ if ($z != "" || $featuretypenames != "") {
 		foreach ($featuretypes_a as $featuretypes_n) {
 			if ($featuretypenames_n == $featuretypes_n["featuretypename"]) {
 				$featuretypes_a2[$i] = $featuretypes_a[$j];
+				$featuretypes_a2[$i]["properties"] = get_feat_info($featuretypenames_n);
 				$i++;
 			}
 			$j++;
@@ -381,7 +388,7 @@ if ($statuscode == 0 || $statuscode == 7) {
 				if ($statuscode != 7)
 					$statuscode = 0;
 				if ($i == 0) {
-					if ($val["name"] == "e_buildings") {
+					if ($val["featuretypename"] == "e_buildings") {
 						// e_buildings case, postal addresses nested
 						$doc2["features"][0]["type"] = $wfs_response["features"][0]["type"];
 						$doc2["features"][0]["featuretypename"] = $val["featuretypename"];
