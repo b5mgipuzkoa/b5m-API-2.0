@@ -450,13 +450,16 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6
 	$doc1["info"]["responseTime"]["time"] = $response_time;
 	$doc1["info"]["responseTime"]["units"] = $response_time_units;
 	$doc1["info"]["statuscode"] = $statuscode;
-	if ($statuscode == 4)
+	if ($statuscode == 0)
+		$doc1["info"]["messages"]["warning"] = "";
+	else if ($statuscode == 4) {
 		$doc1["info"]["messages"]["request"] = $msg004;
-	if ($statuscode == 5)
+		$doc1["info"]["messages"]["warning"] = "";
+	} else if ($statuscode == 5)
 		$doc1["info"]["messages"]["warning"] = $msg005;
-	if ($statuscode == 6)
+	else if ($statuscode == 6)
 		$doc1["info"]["messages"]["warning"] = $msg006;
-	if ($statuscode == 8)
+	else if ($statuscode == 8)
 		$doc1["info"]["messages"]["warning"] = $msg008;
 	if ($statuscode != 4) {
 		if ($statuscode != 6 && $statuscode != 7) {
