@@ -414,9 +414,13 @@ if ($statuscode == 0 || $statuscode == 7) {
 							$doc2["features"][$x1]["description"] = $val["description"][$lang2];
 							$doc2["features"][$x1]["abstract"] = $val["abstract"];
 							foreach($y1["properties"] as $x2 => $y2) {
-								$doc2["features"][$x1]["properties"][$x2] = $wfs_response["features"][$x1]["properties"][$x2];
-								if ($x2 == "b5mcode")
+								if ($x2 == "b5mcode") {
+									$doc2["features"][$x1]["properties"][$x2] = $wfs_response["features"][$x1]["properties"][$x2];
 									$doc2["features"][$x1]["properties"]["b5maplink"] = $b5map_link[$lang] . $wfs_response["features"][$x1]["properties"][$x2];
+									$doc2["features"][$x1]["properties"]["info"][0][$x2 . "2"] = $wfs_response["features"][$x1]["properties"][$x2];
+								} else {
+									$doc2["features"][$x1]["properties"]["info"][0][$x2] = $wfs_response["features"][$x1]["properties"][$x2];
+								}
 							}
 							$doc2["features"][$x1]["geometry"] = $wfs_response["features"][$x1]["geometry"];
 						}
