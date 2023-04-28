@@ -43,7 +43,7 @@ if (isset($_REQUEST['y'])) $y = $_REQUEST['y']; else $y = "";
 
 // Variables
 $home = "/home9/tiles";
-$home_dev = "/home9/mapcache2/b5m";
+$home_dev = "/home9/mapcache1/b5m";
 $api1 = "api";
 $api2 = "2.0";
 $type = substr($tileset, 0, 3);
