@@ -20,6 +20,7 @@ if (isset($_REQUEST['z'])) $z = $_REQUEST['z']; else $z = "";
 if (isset($_REQUEST['scale'])) $scale = $_REQUEST['scale']; else $scale = "";
 if (isset($_REQUEST['offset'])) $offset = $_REQUEST['offset']; else $offset = "";
 if (isset($_REQUEST['srs'])) $srs = $_REQUEST['srs']; else $srs = "";
+if (isset($_REQUEST['geom'])) $geom = $_REQUEST['geom']; else $geom = "";
 if (isset($_REQUEST['featuretypes'])) $featuretypes = $_REQUEST['featuretypes']; else $featuretypes = "";
 if (isset($_REQUEST['featuretypenames'])) $featuretypenames = $_REQUEST['featuretypenames']; else $featuretypenames = "";
 if (isset($_REQUEST['format'])) $format = $_REQUEST['format']; else $format = "";
@@ -38,6 +39,7 @@ $wfs_capab = $wfs_service . "&request=getcapabilities";
 $wfs_feature = $wfs_service . "&version=1.1.0&request=describefeaturetype&typename=";
 $wfs_request1 = $wfs_service . "&version=2.0.0&request=getFeature&typeNames=";
 $wfs_request2 = $wfs_service . "&version=2.0.0&request=getPropertyValue&valueReference=" . $wfs_valueref . "&typeNames=";
+$wfs_request3 = "?request=GetMetadata&layer=";
 $wfs_output = "&outputFormat=application/json;%20subtype=geojson";
 $offset_default = 1;
 $offset_units = "metres";
@@ -83,6 +85,7 @@ function get_url_info($url) {
 		CURLOPT_PROXYPORT => $proxy_port,
 	);
 
+	$url = str_replace("b5mdev1", "b5mdev", $url);
 	$ch = curl_init($url);
 	curl_setopt_array($ch, $options);
 	$content = curl_exec($ch);
@@ -111,6 +114,43 @@ function get_feat_info($featuretype_name) {
 		}
 	}
 	return $featuretypes_info_a;
+}
+
+function get_bbox($x, $y, $srs, $offset, $statuscode, $srs_extra) {
+	// BBOX
+	if (strtolower($srs) == "epsg:4326") {
+		$coors_25830 = shell_exec('echo "' . $x . ' ' . $y . '" | /usr/local/bin/cs2cs -f "%.2f" +init=epsg:4326 +to +init=epsg:25830 2> /dev/null');
+		$coors_25830_a1 = explode("	", $coors_25830);
+		$coors_25830_a2 = explode(" ", $coors_25830_a1[1]);
+		$x1 = $coors_25830_a1[0];
+		$y1 = $coors_25830_a2[0];
+		if (is_numeric($x) && is_numeric($y))
+			$statuscode = $statuscode;
+		else
+			$statuscode = 8;
+		if ($x1 == "*" || $statuscode == 8) {
+			// Out of range
+			$statuscode = 8;
+		} else {
+			$coors_4326_1 = shell_exec('echo "' . $x1 - $offset . ' ' . $y1 - $offset . '" | /usr/local/bin/cs2cs -f "%.6f" +init=epsg:25830 +to +init=epsg:4326 2> /dev/null');
+			$coors_4326_2 = shell_exec('echo "' . $x1 + $offset . ' ' . $y1 + $offset . '" | /usr/local/bin/cs2cs -f "%.6f" +init=epsg:25830 +to +init=epsg:4326 2> /dev/null');
+			$coors_4326_a11 = explode("	", $coors_4326_1);
+			$coors_4326_a12 = explode(" ", $coors_4326_a11[1]);
+			$coors_4326_a21 = explode("	", $coors_4326_2);
+			$coors_4326_a22 = explode(" ", $coors_4326_a21[1]);
+			$bbox = $coors_4326_a12[0] . "," . $coors_4326_a11[0] . "," . $coors_4326_a22[0] . "," . $coors_4326_a21[0];
+		}
+	} else {
+		$bbox = $x - ($offset / 2) . "," . $y - ($offset / 2) . "," . $x + ($offset / 2) . "," . $y + ($offset / 2);
+	}
+	if ($srs_extra != "") {
+		$bbox2 = $bbox. "," . $srs_extra;
+		$wfs_srsname = "&srsname=" . $srs;
+	} else {
+		$bbox2 = $bbox;
+		$wfs_srsname = "";
+	}
+	return $bbox2 . "|" . $wfs_srsname . "|" . $statuscode;
 }
 
 // Messages
@@ -198,6 +238,7 @@ if ($statuscode == 0) {
 }
 
 // Offset
+$offset_ori = $offset;
 if ($offset == "") $offset = $offset_default;
 if ($statuscode == 7) $offset = "";
 
@@ -256,12 +297,14 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 }
 
 // Zoom restriction
-if ($z != "" || $featuretypenames != "") {
+if (($z != "" || $featuretypenames != "") && ($statuscode != 3)) {
 	$data_json = file_get_contents($file_json);
 	$zoom_array = json_decode($data_json);
 	foreach($zoom_array as $obj) {
-		if($obj->zoom == $z)
+		if($obj->zoom == $z) {
 			$featuretypenames_a = $obj->featuretypenames;
+			$offset_v = $obj->offset;
+		}
 	}
 	if ($featuretypenames != "")
 		$featuretypenames_a = explode(",", $featuretypenames);
@@ -310,38 +353,12 @@ if ($statuscode == 0 || $statuscode == 7) {
 
 	if ($statuscode != 7) {
 		// BBOX
-		if (strtolower($srs) == "epsg:4326") {
-			$coors_25830 = shell_exec('echo "' . $x . ' ' . $y . '" | /usr/local/bin/cs2cs -f "%.2f" +init=epsg:4326 +to +init=epsg:25830 2> /dev/null');
-			$coors_25830_a1 = explode("	", $coors_25830);
-			$coors_25830_a2 = explode(" ", $coors_25830_a1[1]);
-			$x1 = $coors_25830_a1[0];
-			$y1 = $coors_25830_a2[0];
-			if (is_numeric($x) && is_numeric($y))
-				$statuscode = $statuscode;
-			else
-				$statuscode = 8;
-			if ($x1 == "*" || $statuscode == 8) {
-				// Out of range
-				$statuscode = 8;
-			} else {
-				$coors_4326_1 = shell_exec('echo "' . $x1 - $offset . ' ' . $y1 - $offset . '" | /usr/local/bin/cs2cs -f "%.6f" +init=epsg:25830 +to +init=epsg:4326 2> /dev/null');
-				$coors_4326_2 = shell_exec('echo "' . $x1 + $offset . ' ' . $y1 + $offset . '" | /usr/local/bin/cs2cs -f "%.6f" +init=epsg:25830 +to +init=epsg:4326 2> /dev/null');
-				$coors_4326_a11 = explode("	", $coors_4326_1);
-				$coors_4326_a12 = explode(" ", $coors_4326_a11[1]);
-				$coors_4326_a21 = explode("	", $coors_4326_2);
-				$coors_4326_a22 = explode(" ", $coors_4326_a21[1]);
-				$bbox = $coors_4326_a12[0] . "," . $coors_4326_a11[0] . "," . $coors_4326_a22[0] . "," . $coors_4326_a21[0];
-			}
-		} else {
-			$bbox = $x - ($offset / 2) . "," . $y - ($offset / 2) . "," . $x + ($offset / 2) . "," . $y + ($offset / 2);
-		}
-		if ($srs_extra != "") {
-			$bbox2 = $bbox. "," . $srs_extra;
-			$wfs_srsname = "&srsname=" . $srs;
-		} else {
-			$bbox2 = $bbox;
-			$wfs_srsname = "";
-		}
+		$bbox_s = get_bbox($x, $y, $srs, $offset, $statuscode, $srs_extra);
+		$bbox_a = explode("|", $bbox_s);
+		$bbox_default = $bbox_a[0];
+		$bbox2 = $bbox_default;
+		$wfs_srsname = $bbox_a[1];
+		$statuscode = $bbox_a[2];
 	} else {
 		if ($srs != "")
 			$wfs_srsname = "&srsname=" . $srs;
@@ -357,6 +374,21 @@ if ($statuscode == 0 || $statuscode == 7) {
 		$j = 0;
 		foreach ($featuretypes_a as $val) {
 			$wfs_typename = $val["featuretypename"];
+			if ($offset_ori == "") {
+				// New offset if feature's geometry is curve or point
+				$url_request_md = $wfs_server . $wfs_request3 . $val["featuretypename"];
+				$wfs_response_md = (get_url_info($url_request_md)['content']);
+				$wfs_md_xml = new SimpleXMLElement($wfs_response_md);
+				$md_ns = $wfs_md_xml->getNamespaces(true);
+				$md_child = $wfs_md_xml->children($md_ns["gmd"]);
+				if ($md_child->spatialRepresentationInfo->MD_VectorSpatialRepresentation->geometricObjects->MD_GeometricObjects->geometricObjectType->MD_GeometricObjectTypeCode != "surface") {
+					$bbox_s = get_bbox($x, $y, $srs, $offset_v, $statuscode, $srs_extra);
+					$bbox_a = explode("|", $bbox_s);
+					$bbox2 = $bbox_a[0];
+				} else {
+					$bbox2 = $bbox_default;
+				}
+			}
 			if ($statuscode != 7) {
 				$wfs_bbox = "&bbox=" . $bbox2;
 				$wfs_filter = "";
@@ -407,7 +439,8 @@ if ($statuscode == 0 || $statuscode == 7) {
 							$z++;
 						}
 						$doc2["features"][0]["properties"]["downloads"] = [];
-						$doc2["features"][0]["geometry"] = $wfs_response["features"][0]["geometry"];
+						if ($geom != "false")
+							$doc2["features"][0]["geometry"] = $wfs_response["features"][0]["geometry"];
 					} else {
 						foreach($wfs_response["features"] as $x1 => $y1) {
 							$doc2["features"][$x1]["type"] = $wfs_response["features"][$x1]["type"];
@@ -425,7 +458,8 @@ if ($statuscode == 0 || $statuscode == 7) {
 								}
 							}
 							$doc2["features"][$x1]["properties"]["downloads"] = [];
-							$doc2["features"][$x1]["geometry"] = $wfs_response["features"][$x1]["geometry"];
+							if ($geom != "false")
+								$doc2["features"][$x1]["geometry"] = $wfs_response["features"][$x1]["geometry"];
 						}
 					}
 				} else {
