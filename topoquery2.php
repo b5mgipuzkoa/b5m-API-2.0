@@ -14,7 +14,7 @@ $file_json = "./json/topoquery2_zoom.json";
 
 // Requests
 if (isset($_REQUEST['lang'])) $lang = $_REQUEST['lang']; else $lang = "";
-if (isset($_REQUEST['b5mcode'])) $b5m_code = strtoupper($_REQUEST['b5mcode']); else $b5m_code = "";
+if (isset($_REQUEST['b5mcode'])) $b5m_code = $_REQUEST['b5mcode']; else $b5m_code = "";
 if (isset($_REQUEST['coors'])) $coors = $_REQUEST['coors']; else $coors = "";
 if (isset($_REQUEST['z'])) $z = $_REQUEST['z']; else $z = "";
 if (isset($_REQUEST['scale'])) $scale = $_REQUEST['scale']; else $scale = "";
@@ -488,6 +488,7 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6
 	$doc1["info"]["license"]["urlLicense"] = $url_license;
 	$doc1["info"]["license"]["urlBase"] = $url_base;
 	$doc1["info"]["license"]["imageUrl"] = $image_url;
+	$doc1["info"]["license"]["urlWFS"] = $url_request;
 	$doc1["info"]["responseTime"]["time"] = $response_time;
 	$doc1["info"]["responseTime"]["units"] = $response_time_units;
 	$doc1["info"]["statuscode"] = $statuscode;
