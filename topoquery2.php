@@ -45,6 +45,7 @@ $offset_default = 1;
 $offset_units = "metres";
 $b5mcode = "b5mcode";
 $bbox = "";
+$bbox_default = "";
 $featuretypes_a = array();
 $doc1 = array();
 $doc2 = array();
@@ -178,6 +179,7 @@ $init_time = microtime(true);
 // Id Request
 if ($b5m_code != "") {
 	$statuscode = 7;
+	$b5m_code_type = strtolower(explode("_", $b5m_code)[0]);
 }
 
 // Types Request
@@ -269,7 +271,7 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 		$featuretype_abstract = $featuretype->Abstract->__toString();
 		if ($statuscode == 7) {
 			// Id Request
-			if (strtolower(explode("_", $b5m_code)[0]) == strtolower(explode("_", explode(":", $featuretype->Name->__toString())[1])[0])) {
+			if ($b5m_code_type == strtolower(explode("_", explode(":", $featuretype->Name->__toString())[1])[0])) {
 				$featuretypes_a[0]["featuretypename"] = $featuretype_name;
 				$featuretypes_a[0]["description"] = $featuretype_desc;
 				$featuretypes_a[0]["abstract"] = $featuretype_abstract;
@@ -457,7 +459,21 @@ if ($statuscode == 0 || $statuscode == 7) {
 										$doc2["features"][$x1]["properties"]["info"][0][$x2] = $wfs_response["features"][$x1]["properties"][$x2];
 								}
 							}
-							$doc2["features"][$x1]["properties"]["downloads"] = [];
+
+							// Downloads
+							if ($statuscode != "7") {
+								$wfs_typename_dw = "dw_download";
+								$url_request_dw = $wfs_server . $wfs_request1 . $wfs_typename_dw . $wfs_bbox . $wfs_srsname . $wfs_filter . $wfs_output;
+								$wfs_response_dw = json_decode((get_url_info($url_request_dw)['content']), true);
+								$wfs_response_feat_dw = $wfs_response_dw["features"];
+								$wfs_response_count_dw = count($wfs_response_feat_dw);
+								foreach($wfs_response_dw["features"] as $x1_dw => $y1_dw) {
+									$doc2["features"][$x1]["properties"]["downloads"][$x1_dw] = [$y1_dw][0]["properties"];
+									unset($doc2["features"][$x1]["properties"]["downloads"][$x1_dw]["b5mcode"]);
+								}
+								//$doc2["features"][$x1]["properties"]["downloads2"] = [$wfs_response_feat_dw];
+							}
+
 							if ($geom != "false")
 								$doc2["features"][$x1]["geometry"] = $wfs_response["features"][$x1]["geometry"];
 						}
