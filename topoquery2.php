@@ -117,6 +117,15 @@ function get_feat_info($featuretype_name) {
 	return $featuretypes_info_a;
 }
 
+function get_dw_list() {
+	// Get download list
+	$wfs_typename_dw = "dw_download";
+	global $wfs_server, $wfs_request1, $wfs_bbox, $wfs_srsname, $wfs_filter, $wfs_output;
+	$url_request_dw = $wfs_server . $wfs_request1 . $wfs_typename_dw . $wfs_bbox . $wfs_srsname . $wfs_filter . $wfs_output;
+	$wfs_response_dw = json_decode((get_url_info($url_request_dw)['content']), true);
+	return $wfs_response_dw;
+}
+
 function get_bbox($x, $y, $srs, $offset, $statuscode, $srs_extra) {
 	// BBOX
 	if (strtolower($srs) == "epsg:4326") {
@@ -440,7 +449,16 @@ if ($statuscode == 0 || $statuscode == 7) {
 							}
 							$z++;
 						}
-						$doc2["features"][0]["properties"]["downloads"] = [];
+
+						// Downloads
+						if ($statuscode != "7") {
+							$wfs_response_dw = get_dw_list();
+							foreach($wfs_response_dw["features"] as $x1_dw => $y1_dw) {
+								$doc2["features"][0]["properties"]["downloads"][$x1_dw] = [$y1_dw][0]["properties"];
+								unset($doc2["features"][0]["properties"]["downloads"][$x1_dw]["b5mcode"]);
+							}
+						}
+
 						if ($geom != "false")
 							$doc2["features"][0]["geometry"] = $wfs_response["features"][0]["geometry"];
 					} else {
@@ -462,16 +480,11 @@ if ($statuscode == 0 || $statuscode == 7) {
 
 							// Downloads
 							if ($statuscode != "7") {
-								$wfs_typename_dw = "dw_download";
-								$url_request_dw = $wfs_server . $wfs_request1 . $wfs_typename_dw . $wfs_bbox . $wfs_srsname . $wfs_filter . $wfs_output;
-								$wfs_response_dw = json_decode((get_url_info($url_request_dw)['content']), true);
-								$wfs_response_feat_dw = $wfs_response_dw["features"];
-								$wfs_response_count_dw = count($wfs_response_feat_dw);
+								$wfs_response_dw = get_dw_list();
 								foreach($wfs_response_dw["features"] as $x1_dw => $y1_dw) {
 									$doc2["features"][$x1]["properties"]["downloads"][$x1_dw] = [$y1_dw][0]["properties"];
 									unset($doc2["features"][$x1]["properties"]["downloads"][$x1_dw]["b5mcode"]);
 								}
-								//$doc2["features"][$x1]["properties"]["downloads2"] = [$wfs_response_feat_dw];
 							}
 
 							if ($geom != "false")
