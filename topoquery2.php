@@ -126,6 +126,13 @@ function get_dw_list() {
 	return $wfs_response_dw;
 }
 
+function rep_key_a($rep_a, $key1, $key2) {
+	// Replace a key in an array
+	$rep_a = str_replace($key1, $key2, json_encode($rep_a));
+	$rep_a = json_decode($rep_a, true);
+	return $rep_a;
+}
+
 function get_bbox($x, $y, $srs, $offset, $statuscode, $srs_extra) {
 	// BBOX
 	if (strtolower($srs) == "epsg:4326") {
@@ -455,7 +462,13 @@ if ($statuscode == 0 || $statuscode == 7) {
 							$wfs_response_dw = get_dw_list();
 							foreach($wfs_response_dw["features"] as $x1_dw => $y1_dw) {
 								$doc2["features"][0]["properties"]["downloads"][$x1_dw] = [$y1_dw][0]["properties"];
+								$doc2 = rep_key_a($doc2, "name_grid_eu", "name_grid");
+								$doc2 = rep_key_a($doc2, "type_grid_" . $lang, "type_grid");
 								unset($doc2["features"][0]["properties"]["downloads"][$x1_dw]["b5mcode"]);
+								unset($doc2["features"][0]["properties"]["downloads"][$x1_dw]["name_grid_es"]);
+								unset($doc2["features"][0]["properties"]["downloads"][$x1_dw]["type_grid_eu"]);
+								unset($doc2["features"][0]["properties"]["downloads"][$x1_dw]["type_grid_es"]);
+								unset($doc2["features"][0]["properties"]["downloads"][$x1_dw]["type_grid_en"]);
 							}
 						}
 
