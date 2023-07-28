@@ -34,16 +34,18 @@ if ($lang == "eu") $lang2 = 0; else if ($lang == "es") $lang2 = 1; else $lang2 =
 $b5m_server = "https://" . $_SERVER['SERVER_NAME'];
 $wfs_server = $b5m_server . "/ogc/wfs2/gipuzkoa_wfs";
 $wfs_service = "?service=wfs";
-$wfs_valueref = "b5mcode";
+$wfs_valueref_arr = array("name_eu", "name_es");
+$wfs_valueref = "WFSVALUEREFVALUE";
 $wfs_capab = $wfs_service . "&request=getcapabilities";
 $wfs_feature = $wfs_service . "&version=1.1.0&request=describefeaturetype&typename=";
 $wfs_request1 = $wfs_service . "&version=2.0.0&request=getFeature&typeNames=";
 $wfs_request2 = $wfs_service . "&version=2.0.0&request=getPropertyValue&valueReference=" . $wfs_valueref . "&typeNames=";
 $wfs_request3 = "?request=GetMetadata&layer=";
 $wfs_output = "&outputFormat=application/json;%20subtype=geojson";
+$b5m_code_filter="B5MCODEFILTER";
+$wfs_filter_base = "&filter=<Filter><PropertyIsEqualTo><PropertyName>b5mcode</PropertyName><Literal>" . $b5m_code_filter . "</Literal></PropertyIsEqualTo></Filter>";
 $offset_default = 1;
 $offset_units = "metres";
-$b5mcode = "b5mcode";
 $bbox = "";
 $bbox_default = "";
 $featuretypes_a = array();
@@ -131,6 +133,18 @@ function rep_key_a($rep_a, $key1, $key2) {
 	$rep_a = str_replace($key1, $key2, json_encode($rep_a));
 	$rep_a = json_decode($rep_a, true);
 	return $rep_a;
+}
+
+function tidy_dw($tidy_a, $tidy_l, $tidy_i) {
+	// Tidy download keys
+	$tidy_a = rep_key_a($tidy_a, "name_grid_eu", "name_grid");
+	$tidy_a = rep_key_a($tidy_a, "type_grid_" . $tidy_l, "type_grid");
+	unset($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["b5mcode"]);
+	unset($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["name_grid_es"]);
+	unset($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["type_grid_eu"]);
+	unset($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["type_grid_es"]);
+	unset($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["type_grid_en"]);
+	return $tidy_a;
 }
 
 function get_bbox($x, $y, $srs, $offset, $statuscode, $srs_extra) {
@@ -318,8 +332,8 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 if (($z != "" || $featuretypenames != "") && ($statuscode != 3)) {
 	$data_json = file_get_contents($file_json);
 	$zoom_array = json_decode($data_json);
-	foreach($zoom_array as $obj) {
-		if($obj->zoom == $z) {
+	foreach ($zoom_array as $obj) {
+		if ($obj->zoom == $z) {
 			$featuretypenames_a = $obj->featuretypenames;
 			$offset_v = $obj->offset;
 		}
@@ -412,7 +426,7 @@ if ($statuscode == 0 || $statuscode == 7) {
 				$wfs_filter = "";
 			} else {
 				$wfs_bbox = "";
-				$wfs_filter = "&filter=<Filter><PropertyIsEqualTo><PropertyName>" . $b5mcode . "</PropertyName><Literal>" . $b5m_code . "</Literal></PropertyIsEqualTo></Filter>";
+				$wfs_filter = str_replace($b5m_code_filter, $b5m_code, $wfs_filter_base);
 			}
 			if ($i == 0)
 				$url_request = $wfs_server . $wfs_request1 . $wfs_typename . $wfs_bbox . $wfs_srsname . $wfs_filter . $wfs_output;
@@ -426,11 +440,12 @@ if ($statuscode == 0 || $statuscode == 7) {
 					$wfs_response_feat = $wfs_response["features"];
 					$wfs_response_count = count($wfs_response_feat);
 				} else {
-					$wfs_response = (get_url_info($url_request)['content']);
-					$p = xml_parser_create();
-					xml_parse_into_struct($p, $wfs_response, $vals, $index);
-					xml_parser_free($p);
-					$wfs_response_count =  $vals[0]["attributes"]["NUMBERRETURNED"];
+						$url_request = str_replace($wfs_valueref, "b5mcode", $url_request);
+						$wfs_response = (get_url_info($url_request)['content']);
+						$p = xml_parser_create();
+						xml_parse_into_struct($p, $wfs_response, $vals, $index);
+						xml_parser_free($p);
+						$wfs_response_count =  $vals[0]["attributes"]["NUMBERRETURNED"];
 				}
 			} else {
 				$wfs_response_count = 0;
@@ -449,8 +464,8 @@ if ($statuscode == 0 || $statuscode == 7) {
 						$doc2["features"][0]["properties"]["b5mcode"] = $b5m_code_e;
 						$doc2["features"][0]["properties"]["b5maplink"] = $b5map_link[$lang] . $b5m_code_e;
 						$z=0;
-						foreach($wfs_response["features"] as $x1 => $y1) {
-							foreach($y1["properties"] as $x2 => $y2) {
+						foreach ($wfs_response["features"] as $x1 => $y1) {
+							foreach ($y1["properties"] as $x2 => $y2) {
 								if ($x2 != "idname" && $x2 != "b5mcode")
 									$doc2["features"][0]["properties"]["info"][$z][$x2] = $y2;
 							}
@@ -460,27 +475,21 @@ if ($statuscode == 0 || $statuscode == 7) {
 						// Downloads
 						if ($statuscode != "7") {
 							$wfs_response_dw = get_dw_list();
-							foreach($wfs_response_dw["features"] as $x1_dw => $y1_dw) {
+							foreach ($wfs_response_dw["features"] as $x1_dw => $y1_dw) {
 								$doc2["features"][0]["properties"]["downloads"][$x1_dw] = [$y1_dw][0]["properties"];
-								$doc2 = rep_key_a($doc2, "name_grid_eu", "name_grid");
-								$doc2 = rep_key_a($doc2, "type_grid_" . $lang, "type_grid");
-								unset($doc2["features"][0]["properties"]["downloads"][$x1_dw]["b5mcode"]);
-								unset($doc2["features"][0]["properties"]["downloads"][$x1_dw]["name_grid_es"]);
-								unset($doc2["features"][0]["properties"]["downloads"][$x1_dw]["type_grid_eu"]);
-								unset($doc2["features"][0]["properties"]["downloads"][$x1_dw]["type_grid_es"]);
-								unset($doc2["features"][0]["properties"]["downloads"][$x1_dw]["type_grid_en"]);
+								$doc2 = tidy_dw($doc2, $lang, $x1_dw);
 							}
 						}
 
 						if ($geom != "false")
 							$doc2["features"][0]["geometry"] = $wfs_response["features"][0]["geometry"];
 					} else {
-						foreach($wfs_response["features"] as $x1 => $y1) {
+						foreach ($wfs_response["features"] as $x1 => $y1) {
 							$doc2["features"][$x1]["type"] = $wfs_response["features"][$x1]["type"];
 							$doc2["features"][$x1]["featuretypename"] = $val["featuretypename"];
 							$doc2["features"][$x1]["description"] = $val["description"][$lang2];
 							$doc2["features"][$x1]["abstract"] = $val["abstract"];
-							foreach($y1["properties"] as $x2 => $y2) {
+							foreach ($y1["properties"] as $x2 => $y2) {
 								if ($x2 == "b5mcode") {
 									$doc2["features"][$x1]["properties"][$x2] = $wfs_response["features"][$x1]["properties"][$x2];
 									$doc2["features"][$x1]["properties"]["b5maplink"] = $b5map_link[$lang] . $wfs_response["features"][$x1]["properties"][$x2];
@@ -494,9 +503,9 @@ if ($statuscode == 0 || $statuscode == 7) {
 							// Downloads
 							if ($statuscode != "7") {
 								$wfs_response_dw = get_dw_list();
-								foreach($wfs_response_dw["features"] as $x1_dw => $y1_dw) {
+								foreach ($wfs_response_dw["features"] as $x1_dw => $y1_dw) {
 									$doc2["features"][$x1]["properties"]["downloads"][$x1_dw] = [$y1_dw][0]["properties"];
-									unset($doc2["features"][$x1]["properties"]["downloads"][$x1_dw]["b5mcode"]);
+									$doc2 = tidy_dw($doc2, $lang, $x1_dw);
 								}
 							}
 
@@ -506,11 +515,23 @@ if ($statuscode == 0 || $statuscode == 7) {
 					}
 				} else {
 					if ($wfs_response_count > 0) {
+						// more_info
 						$wfs_response_vals = $vals[2]["value"];
 						$doc2["features"][0]["properties"]["more_info"][$j]["featuretypename"] = $val["featuretypename"];
 						$doc2["features"][0]["properties"]["more_info"][$j]["description"] = $val["description"][$lang2];
 						$doc2["features"][0]["properties"]["more_info"][$j]["abstract"] = $val["abstract"];
 						$doc2["features"][0]["properties"]["more_info"][$j]["b5mcode"] = $wfs_response_vals;
+						foreach ($wfs_valueref_arr as $valref) {
+							$wfs_filter2 = str_replace($b5m_code_filter, $wfs_response_vals, $wfs_filter_base);
+							$url_request2 = $wfs_server . $wfs_request2 . $wfs_typename . $wfs_filter2;
+							$url_request2 = str_replace($wfs_valueref, $valref, $url_request2);
+							$wfs_response2 = (get_url_info($url_request2)['content']);
+							$p2 = xml_parser_create();
+							xml_parse_into_struct($p2, $wfs_response2, $vals2, $index2);
+							xml_parser_free($p2);
+							$wfs_response_vals2 = $vals2[2]["value"];
+							$doc2["features"][0]["properties"]["more_info"][$j][$valref] = $wfs_response_vals2;
+						}
 						$j++;
 					}
 				}
