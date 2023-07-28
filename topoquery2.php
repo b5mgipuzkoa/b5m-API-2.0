@@ -24,6 +24,7 @@ if (isset($_REQUEST['geom'])) $geom = $_REQUEST['geom']; else $geom = "";
 if (isset($_REQUEST['featuretypes'])) $featuretypes = $_REQUEST['featuretypes']; else $featuretypes = "";
 if (isset($_REQUEST['featuretypenames'])) $featuretypenames = $_REQUEST['featuretypenames']; else $featuretypenames = "";
 if (isset($_REQUEST['format'])) $format = $_REQUEST['format']; else $format = "";
+if (isset($_REQUEST['debug'])) $debug = $_REQUEST['debug']; else $debug = 0;
 
 // Language Coding
 if (empty($lang)) $lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
@@ -51,6 +52,7 @@ $bbox_default = "";
 $featuretypes_a = array();
 $doc1 = array();
 $doc2 = array();
+$time1 = 0;
 
 // Variable Links
 $b5map_link["eu"] = $b5m_server . "/b5map/r1/eu/mapa/lekutu/";
@@ -122,9 +124,11 @@ function get_feat_info($featuretype_name) {
 function get_dw_list() {
 	// Get download list
 	$wfs_typename_dw = "dw_download";
-	global $wfs_server, $wfs_request1, $wfs_bbox, $wfs_srsname, $wfs_filter, $wfs_output;
+	global $wfs_server, $wfs_request1, $wfs_bbox, $wfs_srsname, $wfs_filter, $wfs_output, $time1, $time3;
 	$url_request_dw = $wfs_server . $wfs_request1 . $wfs_typename_dw . $wfs_bbox . $wfs_srsname . $wfs_filter . $wfs_output;
+	$time2 = microtime(true);
 	$wfs_response_dw = json_decode((get_url_info($url_request_dw)['content']), true);
+	$time3[$time1]["url"] = $url_request_dw; $time3[$time1]["time"] = sprintf("%.2f", microtime(true) - $time2); $time1++;
 	return $wfs_response_dw;
 }
 
@@ -409,7 +413,9 @@ if ($statuscode == 0 || $statuscode == 7) {
 			if ($offset_ori == "") {
 				// New offset if feature's geometry is curve or point
 				$url_request_md = $wfs_server . $wfs_request3 . $val["featuretypename"];
+				$time2 = microtime(true);
 				$wfs_response_md = (get_url_info($url_request_md)['content']);
+				$time3[$time1]["url"] = $url_request_md; $time3[$time1]["time"] = sprintf("%.2f", microtime(true) - $time2); $time1++;
 				$wfs_md_xml = new SimpleXMLElement($wfs_response_md);
 				$md_ns = $wfs_md_xml->getNamespaces(true);
 				$md_child = $wfs_md_xml->children($md_ns["gmd"]);
@@ -436,12 +442,17 @@ if ($statuscode == 0 || $statuscode == 7) {
 			// Request
 			if (count($featuretypes_a) > 0) {
 				if ($i == 0) {
-					$wfs_response = json_decode((get_url_info($url_request)['content']), true);
+					$url_request1 = $url_request;
+					$time2 = microtime(true);
+					$wfs_response = json_decode((get_url_info($url_request1)['content']), true);
+					$time3[$time1]["url"] = $url_request1; $time3[$time1]["time"] = sprintf("%.2f", microtime(true) - $time2); $time1++;
 					$wfs_response_feat = $wfs_response["features"];
 					$wfs_response_count = count($wfs_response_feat);
 				} else {
 						$url_request = str_replace($wfs_valueref, "b5mcode", $url_request);
+						$time2 = microtime(true);
 						$wfs_response = (get_url_info($url_request)['content']);
+						$time3[$time1]["url"] = $url_request; $time3[$time1]["time"] = sprintf("%.2f", microtime(true) - $time2); $time1++;
 						$p = xml_parser_create();
 						xml_parse_into_struct($p, $wfs_response, $vals, $index);
 						xml_parser_free($p);
@@ -525,7 +536,9 @@ if ($statuscode == 0 || $statuscode == 7) {
 							$wfs_filter2 = str_replace($b5m_code_filter, $wfs_response_vals, $wfs_filter_base);
 							$url_request2 = $wfs_server . $wfs_request2 . $wfs_typename . $wfs_filter2;
 							$url_request2 = str_replace($wfs_valueref, $valref, $url_request2);
+							$time2 = microtime(true);
 							$wfs_response2 = (get_url_info($url_request2)['content']);
+							$time3[$time1]["url"] = $url_request2; $time3[$time1]["time"] = sprintf("%.2f", microtime(true) - $time2); $time1++;
 							$p2 = xml_parser_create();
 							xml_parse_into_struct($p2, $wfs_response2, $vals2, $index2);
 							xml_parser_free($p2);
@@ -547,11 +560,12 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6
 	// Data license
 	$final_time = microtime(true);
 	$response_time = sprintf("%.2f", $final_time - $init_time);
+	if ($debug == 1) $doc1["debug"] = $time3;
 	$doc1["info"]["license"]["provider"] = $provider;
 	$doc1["info"]["license"]["urlLicense"] = $url_license;
 	$doc1["info"]["license"]["urlBase"] = $url_base;
 	$doc1["info"]["license"]["imageUrl"] = $image_url;
-	$doc1["info"]["license"]["urlWFS"] = $url_request;
+	$doc1["info"]["license"]["urlWFS"] = $url_request1;
 	$doc1["info"]["responseTime"]["time"] = $response_time;
 	$doc1["info"]["responseTime"]["units"] = $response_time_units;
 	$doc1["info"]["statuscode"] = $statuscode;
