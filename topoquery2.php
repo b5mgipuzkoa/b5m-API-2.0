@@ -52,7 +52,9 @@ $bbox_default = "";
 $featuretypes_a = array();
 $doc1 = array();
 $doc2 = array();
-$time1 = 0;
+$time_deb = array();
+$time_n = 0;
+$time_t = 0;
 
 // Variable Links
 $b5map_link["eu"] = $b5m_server . "/b5map/r1/eu/mapa/lekutu/";
@@ -60,6 +62,15 @@ $b5map_link["es"] = $b5m_server . "/b5map/r1/es/mapa/localizar/";
 $b5map_link["en"] = $b5m_server . "/b5map/r1/en/map/locate/";
 
 // Functions
+function get_time($time_i, $url_r) {
+	// Get time of a process
+	global $time_n, $time_t, $time_deb;
+	$time_deb[$time_n]["url"] = $url_r;
+	$time_p = sprintf("%.2f", microtime(true) - $time_i);
+	$time_deb[$time_n]["time"] = sprintf("%.2f", $time_p);
+	$time_t = sprintf("%.2f", $time_t + $time_p);
+	$time_n++;
+}
 function get_url_info($url) {
 	// Get information from an URL
 	if ($_SERVER['SERVER_NAME'] == "b5m.gipuzkoa.eus") {
@@ -413,9 +424,9 @@ if ($statuscode == 0 || $statuscode == 7) {
 			if ($offset_ori == "") {
 				// New offset if feature's geometry is curve or point
 				$url_request_md = $wfs_server . $wfs_request3 . $val["featuretypename"];
-				$time2 = microtime(true);
+				$time_i = microtime(true);
 				$wfs_response_md = (get_url_info($url_request_md)['content']);
-				$time3[$time1]["url"] = $url_request_md; $time3[$time1]["time"] = sprintf("%.2f", microtime(true) - $time2); $time1++;
+				get_time($time_i, $url_request_md);
 				$wfs_md_xml = new SimpleXMLElement($wfs_response_md);
 				$md_ns = $wfs_md_xml->getNamespaces(true);
 				$md_child = $wfs_md_xml->children($md_ns["gmd"]);
@@ -434,29 +445,36 @@ if ($statuscode == 0 || $statuscode == 7) {
 				$wfs_bbox = "";
 				$wfs_filter = str_replace($b5m_code_filter, $b5m_code, $wfs_filter_base);
 			}
-			if ($i == 0)
+			//if ($i == 0)
 				$url_request = $wfs_server . $wfs_request1 . $wfs_typename . $wfs_bbox . $wfs_srsname . $wfs_filter . $wfs_output;
-			else
-				$url_request = $wfs_server . $wfs_request2 . $wfs_typename . $wfs_bbox . $wfs_srsname . $wfs_filter;
+			//else
+				//$url_request = $wfs_server . $wfs_request2 . $wfs_typename . $wfs_bbox . $wfs_srsname . $wfs_filter;
 
 			// Request
 			if (count($featuretypes_a) > 0) {
 				if ($i == 0) {
 					$url_request1 = $url_request;
-					$time2 = microtime(true);
+					$time_i = microtime(true);
 					$wfs_response = json_decode((get_url_info($url_request1)['content']), true);
-					$time3[$time1]["url"] = $url_request1; $time3[$time1]["time"] = sprintf("%.2f", microtime(true) - $time2); $time1++;
+					get_time($time_i, $url_request1);
 					$wfs_response_feat = $wfs_response["features"];
 					$wfs_response_count = count($wfs_response_feat);
 				} else {
-						$url_request = str_replace($wfs_valueref, "b5mcode", $url_request);
-						$time2 = microtime(true);
-						$wfs_response = (get_url_info($url_request)['content']);
-						$time3[$time1]["url"] = $url_request; $time3[$time1]["time"] = sprintf("%.2f", microtime(true) - $time2); $time1++;
-						$p = xml_parser_create();
-						xml_parse_into_struct($p, $wfs_response, $vals, $index);
-						xml_parser_free($p);
-						$wfs_response_count =  $vals[0]["attributes"]["NUMBERRETURNED"];
+					$time_i = microtime(true);
+					$wfs_response = json_decode((get_url_info($url_request)['content']), true);
+					get_time($time_i, $url_request);
+					$wfs_response_feat2 = $wfs_response["features"];
+					$wfs_response_count = count($wfs_response_feat2);
+					/*
+					$url_request = str_replace($wfs_valueref, "b5mcode", $url_request);
+					$time_i = microtime(true);
+					$wfs_response = (get_url_info($url_request)['content']);
+					get_time($time_i, $url_request);
+					$p = xml_parser_create();
+					xml_parse_into_struct($p, $wfs_response, $vals, $index);
+					xml_parser_free($p);
+					$wfs_response_count =  $vals[0]["attributes"]["NUMBERRETURNED"];
+					*/
 				}
 			} else {
 				$wfs_response_count = 0;
@@ -527,24 +545,34 @@ if ($statuscode == 0 || $statuscode == 7) {
 				} else {
 					if ($wfs_response_count > 0) {
 						// more_info
-						$wfs_response_vals = $vals[2]["value"];
+						//$wfs_response_vals = $vals[2]["value"];
 						$doc2["features"][0]["properties"]["more_info"][$j]["featuretypename"] = $val["featuretypename"];
 						$doc2["features"][0]["properties"]["more_info"][$j]["description"] = $val["description"][$lang2];
 						$doc2["features"][0]["properties"]["more_info"][$j]["abstract"] = $val["abstract"];
+						$k = 0;
+						foreach ($wfs_response_feat2 as $valfeat2) {
+							$doc2["features"][0]["properties"]["more_info"][$j]["features"][$k]["b5mcode"] = $valfeat2["properties"]["b5mcode"];
+							$doc2["features"][0]["properties"]["more_info"][$j]["features"][$k]["name_eu"] = $valfeat2["properties"]["name_eu"];
+							$doc2["features"][0]["properties"]["more_info"][$j]["features"][$k]["name_es"] = $valfeat2["properties"]["name_es"];
+							$k++;
+						}
+						//$doc2["features"][0]["properties"]["more_info"][$j]["count"] = $wfs_response_count;
+						/*
 						$doc2["features"][0]["properties"]["more_info"][$j]["b5mcode"] = $wfs_response_vals;
 						foreach ($wfs_valueref_arr as $valref) {
 							$wfs_filter2 = str_replace($b5m_code_filter, $wfs_response_vals, $wfs_filter_base);
 							$url_request2 = $wfs_server . $wfs_request2 . $wfs_typename . $wfs_filter2;
 							$url_request2 = str_replace($wfs_valueref, $valref, $url_request2);
-							$time2 = microtime(true);
+							$time_i = microtime(true);
 							$wfs_response2 = (get_url_info($url_request2)['content']);
-							$time3[$time1]["url"] = $url_request2; $time3[$time1]["time"] = sprintf("%.2f", microtime(true) - $time2); $time1++;
+							get_time($time_i, $url_request);
 							$p2 = xml_parser_create();
 							xml_parse_into_struct($p2, $wfs_response2, $vals2, $index2);
 							xml_parser_free($p2);
 							$wfs_response_vals2 = $vals2[2]["value"];
 							$doc2["features"][0]["properties"]["more_info"][$j][$valref] = $wfs_response_vals2;
 						}
+						*/
 						$j++;
 					}
 				}
@@ -560,7 +588,10 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6
 	// Data license
 	$final_time = microtime(true);
 	$response_time = sprintf("%.2f", $final_time - $init_time);
-	if ($debug == 1) $doc1["debug"] = $time3;
+	if ($debug == 1) {
+		$doc1["debug"]["total_time"] = $time_t;
+		$doc1["debug"]["partial_times"] = $time_deb;
+	}
 	$doc1["info"]["license"]["provider"] = $provider;
 	$doc1["info"]["license"]["urlLicense"] = $url_license;
 	$doc1["info"]["license"]["urlBase"] = $url_base;
