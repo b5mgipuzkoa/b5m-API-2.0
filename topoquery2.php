@@ -35,12 +35,12 @@ if ($lang == "eu") $lang2 = 0; else if ($lang == "es") $lang2 = 1; else $lang2 =
 $b5m_server = "https://" . $_SERVER['SERVER_NAME'];
 $wfs_server = $b5m_server . "/ogc/wfs2/gipuzkoa_wfs";
 $wfs_service = "?service=wfs";
-$wfs_valueref_arr = array("name_eu", "name_es");
-$wfs_valueref = "WFSVALUEREFVALUE";
+//$wfs_valueref_arr = array("name_eu", "name_es");
+//$wfs_valueref = "WFSVALUEREFVALUE";
 $wfs_capab = $wfs_service . "&request=getcapabilities";
 $wfs_feature = $wfs_service . "&version=1.1.0&request=describefeaturetype&typename=";
 $wfs_request1 = $wfs_service . "&version=2.0.0&request=getFeature&typeNames=";
-$wfs_request2 = $wfs_service . "&version=2.0.0&request=getPropertyValue&valueReference=" . $wfs_valueref . "&typeNames=";
+//$wfs_request2 = $wfs_service . "&version=2.0.0&request=getPropertyValue&valueReference=" . $wfs_valueref . "&typeNames=";
 $wfs_request3 = "?request=GetMetadata&layer=";
 $wfs_output = "&outputFormat=application/json;%20subtype=geojson";
 $b5m_code_filter="B5MCODEFILTER";
@@ -137,9 +137,9 @@ function get_dw_list() {
 	$wfs_typename_dw = "dw_download";
 	global $wfs_server, $wfs_request1, $wfs_bbox, $wfs_srsname, $wfs_filter, $wfs_output, $time1, $time3;
 	$url_request_dw = $wfs_server . $wfs_request1 . $wfs_typename_dw . $wfs_bbox . $wfs_srsname . $wfs_filter . $wfs_output;
-	$time2 = microtime(true);
+	$time_i = microtime(true);
 	$wfs_response_dw = json_decode((get_url_info($url_request_dw)['content']), true);
-	$time3[$time1]["url"] = $url_request_dw; $time3[$time1]["time"] = sprintf("%.2f", microtime(true) - $time2); $time1++;
+	get_time($time_i, $url_request_dw);
 	return $wfs_response_dw;
 }
 
@@ -154,11 +154,19 @@ function tidy_dw($tidy_a, $tidy_l, $tidy_i) {
 	// Tidy download keys
 	$tidy_a = rep_key_a($tidy_a, "name_grid_eu", "name_grid");
 	$tidy_a = rep_key_a($tidy_a, "type_grid_" . $tidy_l, "type_grid");
+	$tidy_a = rep_key_a($tidy_a, "name_" . $tidy_l, "name");
 	unset($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["b5mcode"]);
 	unset($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["name_grid_es"]);
 	unset($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["type_grid_eu"]);
 	unset($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["type_grid_es"]);
 	unset($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["type_grid_en"]);
+	$i_dw = 0;
+	foreach ($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["types_dw"] as $types_dw) {
+		unset($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["types_dw"][$i_dw]["name_eu"]);
+		unset($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["types_dw"][$i_dw]["name_es"]);
+		unset($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["types_dw"][$i_dw]["name_en"]);
+		$i_dw++;
+	}
 	return $tidy_a;
 }
 
