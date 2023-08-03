@@ -156,16 +156,16 @@ function tidy_dw($tidy_a, $tidy_l, $tidy_i) {
 	$tidy_a = rep_key_a($tidy_a, "name_grid_eu", "name_grid");
 	$tidy_a = rep_key_a($tidy_a, "type_grid_" . $tidy_l, "type_grid");
 	$tidy_a = rep_key_a($tidy_a, "name_" . $tidy_l, "name");
-	unset($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["b5mcode"]);
-	unset($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["name_grid_es"]);
-	unset($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["type_grid_eu"]);
-	unset($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["type_grid_es"]);
-	unset($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["type_grid_en"]);
+	unset($tidy_a["properties"]["b5mcode"]);
+	unset($tidy_a["properties"]["name_grid_es"]);
+	unset($tidy_a["properties"]["type_grid_eu"]);
+	unset($tidy_a["properties"]["type_grid_es"]);
+	unset($tidy_a["properties"]["type_grid_en"]);
 	$i_dw = 0;
-	foreach ($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["types_dw"] as $types_dw) {
-		unset($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["types_dw"][$i_dw]["name_eu"]);
-		unset($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["types_dw"][$i_dw]["name_es"]);
-		unset($tidy_a["features"][0]["properties"]["downloads"][$tidy_i]["types_dw"][$i_dw]["name_en"]);
+	foreach ($tidy_a["properties"]["types_dw"] as $types_dw) {
+		unset($tidy_a["properties"]["types_dw"][$i_dw]["name_eu"]);
+		unset($tidy_a["properties"]["types_dw"][$i_dw]["name_es"]);
+		unset($tidy_a["properties"]["types_dw"][$i_dw]["name_en"]);
 		$i_dw++;
 	}
 	return $tidy_a;
@@ -526,8 +526,8 @@ if ($statuscode == 0 || $statuscode == 7) {
 						if ($statuscode != "7") {
 							$wfs_response_dw = get_dw_list();
 							foreach ($wfs_response_dw["features"] as $x1_dw => $y1_dw) {
+								$y1_dw = tidy_dw($y1_dw, $lang, $x1_dw);
 								$doc2["features"][0]["properties"]["downloads"][$x1_dw] = [$y1_dw][0]["properties"];
-								$doc2 = tidy_dw($doc2, $lang, $x1_dw);
 							}
 						}
 
@@ -554,8 +554,8 @@ if ($statuscode == 0 || $statuscode == 7) {
 							if ($statuscode != "7") {
 								$wfs_response_dw = get_dw_list();
 								foreach ($wfs_response_dw["features"] as $x1_dw => $y1_dw) {
+									$y1_dw = tidy_dw($y1_dw, $lang, $x1_dw);
 									$doc2["features"][$x1]["properties"]["downloads"][$x1_dw] = [$y1_dw][0]["properties"];
-									$doc2 = tidy_dw($doc2, $lang, $x1_dw);
 								}
 							}
 
