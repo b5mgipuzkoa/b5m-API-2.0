@@ -50,6 +50,7 @@ $offset_units = "metres";
 $bbox = "";
 $bbox_default = "";
 $featuretypes_a = array();
+$d_addr = "d_postaladdresses";
 $doc1 = array();
 $doc2 = array();
 $time_deb = array();
@@ -312,7 +313,9 @@ if ($srs == "" && $statuscode == 0) {
 if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 	// Collecting featuretype data from getcapabilites request
 	$url_capab = $wfs_server . $wfs_capab;
+	$time_i = microtime(true);
 	$wfs_capab_response = (get_url_info($url_capab)['content']);
+	get_time($time_i, $url_capab);
 	$wfs_capab_xml = new SimpleXMLElement($wfs_capab_response);
 	$i = 0;
 
@@ -322,6 +325,10 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 		$featuretype_name = str_replace("ms:", "", $featuretype->Name);
 		$featuretype_desc =	explode(" / ", $featuretype->Title);
 		$featuretype_abstract = $featuretype->Abstract->__toString();
+		if ($featuretype_name == $d_addr) {
+			$d_addr_des = $featuretype_desc;
+			$d_addr_abs = $featuretype_abstract;
+		}
 		if ($statuscode == 7) {
 			// Id Request
 			if ($b5m_code_type == strtolower(explode("_", explode(":", $featuretype->Name->__toString())[1])[0])) {
@@ -503,8 +510,14 @@ if ($statuscode == 0 || $statuscode == 7) {
 						$z=0;
 						foreach ($wfs_response["features"] as $x1 => $y1) {
 							foreach ($y1["properties"] as $x2 => $y2) {
-								if ($x2 != "idname" && $x2 != "b5mcode")
-									$doc2["features"][0]["properties"]["info"][$z][$x2] = $y2;
+									$doc2["features"][0]["properties"]["info"][$z]["featuretypename"] = $d_addr;
+									$doc2["features"][0]["properties"]["info"][$z]["description"] = $d_addr_des[$lang2];
+									$doc2["features"][0]["properties"]["info"][$z]["abstract"] = $d_addr_abs;
+								if ($x2 != "idname" && $x2 != "b5mcode") {
+									if ($x2 == "b5mcode2")
+										$x2 = "b5mcode";
+									$doc2["features"][0]["properties"]["info"][$z]["properties"][$x2] = $y2;
+								}
 							}
 							$z++;
 						}
