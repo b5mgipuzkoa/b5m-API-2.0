@@ -56,6 +56,8 @@ $doc2 = array();
 $time_deb = array();
 $time_n = 0;
 $time_t = 0;
+$more_info_a = array();
+$url_request1 = null;
 
 // Variable Links
 $b5map_link["eu"] = $b5m_server . "/b5map/r1/eu/mapa/lekutu/";
@@ -206,6 +208,15 @@ function get_bbox($x, $y, $srs, $offset, $statuscode, $srs_extra) {
 		$wfs_srsname = "";
 	}
 	return $bbox2 . "|" . $wfs_srsname . "|" . $statuscode;
+}
+
+function get_25830($coors, $srs) {
+	// Get epsg:25830 coordinates
+	$coors_2 = explode(",", $coors);
+	$coors_25830_1 = shell_exec('echo "' . $coors_2[0] . ' ' . $coors_2[1] . '" | /usr/local/bin/cs2cs -f "%.2f" +init="' . $srs . '" +to +init=epsg:25830 2> /dev/null');
+	$coors_25830_2 = explode("	", $coors_25830_1);
+	$coors_25830_3 = explode(" ", $coors_25830_2[1]);
+	return $coors_25830_2[0] . ",". $coors_25830_3[0];
 }
 
 // Messages
@@ -474,12 +485,18 @@ if ($statuscode == 0 || $statuscode == 7) {
 					get_time($time_i, $url_request1);
 					$wfs_response_feat = $wfs_response["features"];
 					$wfs_response_count = count($wfs_response_feat);
+					if ($wfs_response_count == 0)
+						$i = -1;
 				} else {
-					$time_i = microtime(true);
-					$wfs_response = json_decode((get_url_info($url_request)['content']), true);
-					get_time($time_i, $url_request);
-					$wfs_response_feat2 = $wfs_response["features"];
-					$wfs_response_count = count($wfs_response_feat2);
+					//$time_i = microtime(true);
+					//$wfs_response = json_decode((get_url_info($url_request)['content']), true);
+					//get_time($time_i, $url_request);
+					//$wfs_response_feat2 = $wfs_response["features"];
+					//$wfs_response_count = count($wfs_response_feat2);
+					$wfs_response_count = 0;
+					$more_info_a[$i-1]["featuretypename"] = $val["featuretypename"];
+					$more_info_a[$i-1]["description"] = $val["description"][$lang2];
+					$more_info_a[$i-1]["abstract"] = $val["abstract"];
 					/*
 					$url_request = str_replace($wfs_valueref, "b5mcode", $url_request);
 					$time_i = microtime(true);
@@ -597,10 +614,49 @@ if ($statuscode == 0 || $statuscode == 7) {
 						$j++;
 					}
 				}
-				$i++;
+				//$i++;
 			}
+			$i++;
 		}
 	}
+
+	if ($statuscode == 0) {
+		// More info
+		$wfs_typename_list = "";
+		foreach ($more_info_a as $more_info_val) {
+			$wfs_typename_list = $wfs_typename_list . $more_info_val["featuretypename"] . ",";
+		}
+		$wfs_typename_list = substr($wfs_typename_list, 0, strlen($wfs_typename_list) - 1);
+		$coors_25830 = get_25830($coors, $srs);
+		$coors_wms_a = explode(",", $coors_25830);
+		$coors_wms = $coors_wms_a[0] - 0.5 . "," . $coors_wms_a[1] - 0.5 . "," . $coors_wms_a[0] + 0.5 . "," . $coors_wms_a[1] + 0.5;
+		$url_request_wms = $wfs_server . "?service=wms&version=1.3.0&request=getfeatureinfo&layers=". $wfs_typename_list . "&query_layers=" . $wfs_typename_list . "&bbox=" . $coors_wms . "&crs=epsg:25830&width=2&height=2&i=1&j=1&info_format=application/vnd.ogc.gml&feature_count=10";
+		$time_i = microtime(true);
+		$wms_response_more_info = get_url_info($url_request_wms)['content'];
+		get_time($time_i, $url_request_wms);
+		$wms_response_xml = new SimpleXMLElement($wms_response_more_info);
+		$i_wms = 0;
+		foreach ($more_info_a as $more_info_val) {
+			$wfs_typename_item = $more_info_val["featuretypename"];
+			$wms_layer = $wfs_typename_item . "_layer";
+			$wms_feature = $wfs_typename_item . "_feature";
+			if ($wms_response_xml->$wms_layer->$wms_feature != null) {
+				$doc2["features"][0]["properties"]["more_info"][$i_wms]["featuretypename"] = $wfs_typename_item;
+				$doc2["features"][0]["properties"]["more_info"][$i_wms]["description"] = $more_info_val["description"];
+				$doc2["features"][0]["properties"]["more_info"][$i_wms]["abstract"] = $more_info_val["abstract"];
+				$i2_wms = 0;
+				foreach ($wms_response_xml->$wms_layer->$wms_feature as $wms_feature_val) {
+					$doc2["features"][0]["properties"]["more_info"][$i_wms]["features"][$i2_wms]["b5mcode"] = "" . $wms_feature_val->b5mcode . "";
+					$doc2["features"][0]["properties"]["more_info"][$i_wms]["features"][$i2_wms]["name_eu"] = "" . $wms_feature_val->name_eu . "";
+					$doc2["features"][0]["properties"]["more_info"][$i_wms]["features"][$i2_wms]["name_es"] = "" . $wms_feature_val->name_es . "";
+					$i2_wms++;
+				}
+				$i_wms++;
+			}
+		}
+		// End more info
+	}
+
 	if (count($doc2) == 0 && $statuscode != 8)
 		$statuscode = 5;
 }
