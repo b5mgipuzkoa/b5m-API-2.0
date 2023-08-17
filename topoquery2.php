@@ -584,19 +584,19 @@ if ($statuscode == 0 || $statuscode == 7) {
 					if ($wfs_response_count > 0) {
 						// more_info
 						//$wfs_response_vals = $vals[2]["value"];
-						$doc2["features"][0]["properties"]["more_info"][$j]["featuretypename"] = $val["featuretypename"];
-						$doc2["features"][0]["properties"]["more_info"][$j]["description"] = $val["description"][$lang2];
-						$doc2["features"][0]["properties"]["more_info"][$j]["abstract"] = $val["abstract"];
+						$doc2["more_info"][$j]["featuretypename"] = $val["featuretypename"];
+						$doc2["more_info"][$j]["description"] = $val["description"][$lang2];
+						$doc2["more_info"][$j]["abstract"] = $val["abstract"];
 						$k = 0;
 						foreach ($wfs_response_feat2 as $valfeat2) {
-							$doc2["features"][0]["properties"]["more_info"][$j]["features"][$k]["b5mcode"] = $valfeat2["properties"]["b5mcode"];
-							$doc2["features"][0]["properties"]["more_info"][$j]["features"][$k]["name_eu"] = $valfeat2["properties"]["name_eu"];
-							$doc2["features"][0]["properties"]["more_info"][$j]["features"][$k]["name_es"] = $valfeat2["properties"]["name_es"];
+							$doc2["more_info"][$j]["features"][$k]["b5mcode"] = $valfeat2["properties"]["b5mcode"];
+							$doc2["more_info"][$j]["features"][$k]["name_eu"] = $valfeat2["properties"]["name_eu"];
+							$doc2["more_info"][$j]["features"][$k]["name_es"] = $valfeat2["properties"]["name_es"];
 							$k++;
 						}
-						//$doc2["features"][0]["properties"]["more_info"][$j]["count"] = $wfs_response_count;
+						//$doc2["more_info"][$j]["count"] = $wfs_response_count;
 						/*
-						$doc2["features"][0]["properties"]["more_info"][$j]["b5mcode"] = $wfs_response_vals;
+						$doc2["more_info"][$j]["b5mcode"] = $wfs_response_vals;
 						foreach ($wfs_valueref_arr as $valref) {
 							$wfs_filter2 = str_replace($b5m_code_filter, $wfs_response_vals, $wfs_filter_base);
 							$url_request2 = $wfs_server . $wfs_request2 . $wfs_typename . $wfs_filter2;
@@ -608,7 +608,7 @@ if ($statuscode == 0 || $statuscode == 7) {
 							xml_parse_into_struct($p2, $wfs_response2, $vals2, $index2);
 							xml_parser_free($p2);
 							$wfs_response_vals2 = $vals2[2]["value"];
-							$doc2["features"][0]["properties"]["more_info"][$j][$valref] = $wfs_response_vals2;
+							$doc2["more_info"][$j][$valref] = $wfs_response_vals2;
 						}
 						*/
 						$j++;
@@ -641,14 +641,14 @@ if ($statuscode == 0 || $statuscode == 7) {
 			$wms_layer = $wfs_typename_item . "_layer";
 			$wms_feature = $wfs_typename_item . "_feature";
 			if ($wms_response_xml->$wms_layer->$wms_feature != null) {
-				$doc2["features"][0]["properties"]["more_info"][$i_wms]["featuretypename"] = $wfs_typename_item;
-				$doc2["features"][0]["properties"]["more_info"][$i_wms]["description"] = $more_info_val["description"];
-				$doc2["features"][0]["properties"]["more_info"][$i_wms]["abstract"] = $more_info_val["abstract"];
+				$doc2["more_info"][$i_wms]["featuretypename"] = $wfs_typename_item;
+				$doc2["more_info"][$i_wms]["description"] = $more_info_val["description"];
+				$doc2["more_info"][$i_wms]["abstract"] = $more_info_val["abstract"];
 				$i2_wms = 0;
 				foreach ($wms_response_xml->$wms_layer->$wms_feature as $wms_feature_val) {
-					$doc2["features"][0]["properties"]["more_info"][$i_wms]["features"][$i2_wms]["b5mcode"] = "" . $wms_feature_val->b5mcode . "";
-					$doc2["features"][0]["properties"]["more_info"][$i_wms]["features"][$i2_wms]["name_eu"] = "" . $wms_feature_val->name_eu . "";
-					$doc2["features"][0]["properties"]["more_info"][$i_wms]["features"][$i2_wms]["name_es"] = "" . $wms_feature_val->name_es . "";
+					$doc2["more_info"][$i_wms]["features"][$i2_wms]["b5mcode"] = "" . $wms_feature_val->b5mcode . "";
+					$doc2["more_info"][$i_wms]["features"][$i2_wms]["name_eu"] = "" . $wms_feature_val->name_eu . "";
+					$doc2["more_info"][$i_wms]["features"][$i2_wms]["name_es"] = "" . $wms_feature_val->name_es . "";
 					$i2_wms++;
 				}
 				$i_wms++;
