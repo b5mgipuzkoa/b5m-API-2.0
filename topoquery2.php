@@ -544,7 +544,7 @@ if ($statuscode == 0 || $statuscode == 7) {
 							$wfs_response_dw = get_dw_list();
 							foreach ($wfs_response_dw["features"] as $x1_dw => $y1_dw) {
 								$y1_dw = tidy_dw($y1_dw, $lang, $x1_dw);
-								$doc2["features"][0]["properties"]["downloads"][$x1_dw] = [$y1_dw][0]["properties"];
+								$doc2["downloads"][$x1_dw] = [$y1_dw][0]["properties"];
 							}
 						}
 
@@ -572,7 +572,7 @@ if ($statuscode == 0 || $statuscode == 7) {
 								$wfs_response_dw = get_dw_list();
 								foreach ($wfs_response_dw["features"] as $x1_dw => $y1_dw) {
 									$y1_dw = tidy_dw($y1_dw, $lang, $x1_dw);
-									$doc2["features"][$x1]["properties"]["downloads"][$x1_dw] = [$y1_dw][0]["properties"];
+									$doc2["downloads"][$x1_dw] = [$y1_dw][0]["properties"];
 								}
 							}
 
