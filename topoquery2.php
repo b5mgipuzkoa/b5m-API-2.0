@@ -7,6 +7,9 @@
 // cs2cs from PROJ: https://proj.org/apps/cs2cs.html
 //
 
+// Memory
+ini_set("memory_limit", "200M");
+
 // Includes
 include_once("./includes/gipuzkoa_wfs_featuretypes_except.php");
 include_once("./includes/json2xml.php");
