@@ -16,6 +16,7 @@ $file_json = "./json/topoquery2_zoom.json";
 if (isset($_REQUEST['lang'])) $lang = $_REQUEST['lang']; else $lang = "";
 if (isset($_REQUEST['b5mcode'])) $b5m_code = $_REQUEST['b5mcode']; else $b5m_code = "";
 if (isset($_REQUEST['coors'])) $coors = $_REQUEST['coors']; else $coors = "";
+if (isset($_REQUEST['bbox'])) $coors = $_REQUEST['bbox'];
 if (isset($_REQUEST['z'])) $z = $_REQUEST['z']; else $z = "";
 if (isset($_REQUEST['scale'])) $scale = $_REQUEST['scale']; else $scale = "";
 if (isset($_REQUEST['offset'])) $offset = $_REQUEST['offset']; else $offset = "";
@@ -173,39 +174,47 @@ function tidy_dw($tidy_a, $tidy_l, $tidy_i) {
 	return $tidy_a;
 }
 
-function get_bbox($x, $y, $srs, $offset, $statuscode, $srs_extra) {
+function get_bbox($x1, $y1, $x2, $y2, $srs, $offset, $statuscode, $srs_extra) {
 	// BBOX
-	if (strtolower($srs) == "epsg:4326") {
-		$coors_25830 = shell_exec('echo "' . $x . ' ' . $y . '" | /usr/local/bin/cs2cs -f "%.2f" +init=epsg:4326 +to +init=epsg:25830 2> /dev/null');
-		$coors_25830_a1 = explode("	", $coors_25830);
-		$coors_25830_a2 = explode(" ", $coors_25830_a1[1]);
-		$x1 = $coors_25830_a1[0];
-		$y1 = $coors_25830_a2[0];
-		if (is_numeric($x) && is_numeric($y))
-			$statuscode = $statuscode;
-		else
-			$statuscode = 8;
-		if ($x1 == "*" || $statuscode == 8) {
-			// Out of range
-			$statuscode = 8;
+	$wfs_srsname = "&srsname=" . $srs;
+	if ($x2 == "") {
+		if (strtolower($srs) == "epsg:4326") {
+			$coors_25830 = shell_exec('echo "' . $x1 . ' ' . $y1 . '" | /usr/local/bin/cs2cs -f "%.2f" +init=epsg:4326 +to +init=epsg:25830 2> /dev/null');
+			$coors_25830_a1 = explode("	", $coors_25830);
+			$coors_25830_a2 = explode(" ", $coors_25830_a1[1]);
+			$x11 = $coors_25830_a1[0];
+			$y11 = $coors_25830_a2[0];
+			if (is_numeric($x1) && is_numeric($y1))
+				$statuscode = $statuscode;
+			else
+				$statuscode = 8;
+			if ($x11 == "*" || $statuscode == 8) {
+				// Out of range
+				$statuscode = 8;
+			} else {
+				$coors_4326_1 = shell_exec('echo "' . $x11 - $offset . ' ' . $y11 - $offset . '" | /usr/local/bin/cs2cs -f "%.6f" +init=epsg:25830 +to +init=epsg:4326 2> /dev/null');
+				$coors_4326_2 = shell_exec('echo "' . $x11 + $offset . ' ' . $y11 + $offset . '" | /usr/local/bin/cs2cs -f "%.6f" +init=epsg:25830 +to +init=epsg:4326 2> /dev/null');
+				$coors_4326_a11 = explode("	", $coors_4326_1);
+				$coors_4326_a12 = explode(" ", $coors_4326_a11[1]);
+				$coors_4326_a21 = explode("	", $coors_4326_2);
+				$coors_4326_a22 = explode(" ", $coors_4326_a21[1]);
+				$bbox = $coors_4326_a12[0] . "," . $coors_4326_a11[0] . "," . $coors_4326_a22[0] . "," . $coors_4326_a21[0];
+			}
 		} else {
-			$coors_4326_1 = shell_exec('echo "' . $x1 - $offset . ' ' . $y1 - $offset . '" | /usr/local/bin/cs2cs -f "%.6f" +init=epsg:25830 +to +init=epsg:4326 2> /dev/null');
-			$coors_4326_2 = shell_exec('echo "' . $x1 + $offset . ' ' . $y1 + $offset . '" | /usr/local/bin/cs2cs -f "%.6f" +init=epsg:25830 +to +init=epsg:4326 2> /dev/null');
-			$coors_4326_a11 = explode("	", $coors_4326_1);
-			$coors_4326_a12 = explode(" ", $coors_4326_a11[1]);
-			$coors_4326_a21 = explode("	", $coors_4326_2);
-			$coors_4326_a22 = explode(" ", $coors_4326_a21[1]);
-			$bbox = $coors_4326_a12[0] . "," . $coors_4326_a11[0] . "," . $coors_4326_a22[0] . "," . $coors_4326_a21[0];
+			$bbox = $x1 - ($offset / 2) . "," . $y1 - ($offset / 2) . "," . $x1 + ($offset / 2) . "," . $y1 + ($offset / 2);
+		}
+		if ($srs_extra != "") {
+			$bbox2 = $bbox. "," . $srs_extra;
+		} else {
+			$bbox2 = $bbox;
+			$wfs_srsname = "";
 		}
 	} else {
-		$bbox = $x - ($offset / 2) . "," . $y - ($offset / 2) . "," . $x + ($offset / 2) . "," . $y + ($offset / 2);
-	}
-	if ($srs_extra != "") {
+		if (strtolower($srs) == "epsg:4326")
+			$bbox = $y1 . "," . $x1 . "," . $y2 . "," . $x2;
+		else
+			$bbox = $x1 . "," . $y1 . "," . $x2 . "," . $y2;
 		$bbox2 = $bbox. "," . $srs_extra;
-		$wfs_srsname = "&srsname=" . $srs;
-	} else {
-		$bbox2 = $bbox;
-		$wfs_srsname = "";
 	}
 	return $bbox2 . "|" . $wfs_srsname . "|" . $statuscode;
 }
@@ -260,8 +269,15 @@ if ($coors == "" && $statuscode == 0) {
 // Coors array
 if ($statuscode == 0) {
 	$coors_a = explode(",", $coors);
-	$x = $coors_a[0];
-	$y = $coors_a[1];
+	$x1 = $coors_a[0];
+	$y1 = $coors_a[1];
+	if (count($coors_a) > 2) {
+		$x2 = $coors_a[2];
+		$y2 = $coors_a[3];
+	} else {
+		$x2 = "";
+		$y2 = "";
+	}
 }
 
 // Zoom and scale
@@ -311,9 +327,9 @@ if ($statuscode == 7) $offset = "";
 
 // Trying to guess the SRS
 if ($srs == "" && $statuscode == 0) {
-	if ($x >= -180 && $x <= 180)
+	if ($x1 >= -180 && $x1 <= 180)
 		$srs = "epsg:4326";
-	else if ($x > 180)
+	else if ($x1 > 180)
 		$srs = "epsg:25830";
 	else
 		$srs = "epsg:3857";
@@ -426,7 +442,7 @@ if ($statuscode == 0 || $statuscode == 7) {
 
 	if ($statuscode != 7) {
 		// BBOX
-		$bbox_s = get_bbox($x, $y, $srs, $offset, $statuscode, $srs_extra);
+		$bbox_s = get_bbox($x1, $y1, $x2, $y2, $srs, $offset, $statuscode, $srs_extra);
 		$bbox_a = explode("|", $bbox_s);
 		$bbox_default = $bbox_a[0];
 		$bbox2 = $bbox_default;
@@ -457,7 +473,7 @@ if ($statuscode == 0 || $statuscode == 7) {
 				$md_ns = $wfs_md_xml->getNamespaces(true);
 				$md_child = $wfs_md_xml->children($md_ns["gmd"]);
 				if ($md_child->spatialRepresentationInfo->MD_VectorSpatialRepresentation->geometricObjects->MD_GeometricObjects->geometricObjectType->MD_GeometricObjectTypeCode != "surface") {
-					$bbox_s = get_bbox($x, $y, $srs, $offset_v, $statuscode, $srs_extra);
+					$bbox_s = get_bbox($x1, $y1, $x2, $y2, $srs, $offset_v, $statuscode, $srs_extra);
 					$bbox_a = explode("|", $bbox_s);
 					$bbox2 = $bbox_a[0];
 				} else {
@@ -525,15 +541,15 @@ if ($statuscode == 0 || $statuscode == 7) {
 						$doc2["features"][0]["properties"]["b5mcode"] = $b5m_code_e;
 						$doc2["features"][0]["properties"]["b5maplink"] = $b5map_link[$lang] . $b5m_code_e;
 						$z=0;
-						foreach ($wfs_response["features"] as $x1 => $y1) {
-							foreach ($y1["properties"] as $x2 => $y2) {
+						foreach ($wfs_response["features"] as $q1 => $r1) {
+							foreach ($r1["properties"] as $q2 => $r2) {
 									$doc2["features"][0]["properties"]["info"][$z]["featuretypename"] = $d_addr;
 									$doc2["features"][0]["properties"]["info"][$z]["description"] = $d_addr_des[$lang2];
 									$doc2["features"][0]["properties"]["info"][$z]["abstract"] = $d_addr_abs;
-								if ($x2 != "idname" && $x2 != "b5mcode") {
-									if ($x2 == "b5mcode2")
-										$x2 = "b5mcode";
-									$doc2["features"][0]["properties"]["info"][$z]["properties"][$x2] = $y2;
+								if ($q2 != "idname" && $q2 != "b5mcode") {
+									if ($q2 == "b5mcode2")
+										$q2 = "b5mcode";
+									$doc2["features"][0]["properties"]["info"][$z]["properties"][$q2] = $r2;
 								}
 							}
 							$z++;
@@ -542,42 +558,42 @@ if ($statuscode == 0 || $statuscode == 7) {
 						// Downloads
 						if ($statuscode != "7") {
 							$wfs_response_dw = get_dw_list();
-							foreach ($wfs_response_dw["features"] as $x1_dw => $y1_dw) {
-								$y1_dw = tidy_dw($y1_dw, $lang, $x1_dw);
-								$doc2["downloads"][$x1_dw] = [$y1_dw][0]["properties"];
+							foreach ($wfs_response_dw["features"] as $q1_dw => $r1_dw) {
+								$r1_dw = tidy_dw($r1_dw, $lang, $q1_dw);
+								$doc2["downloads"][$q1_dw] = [$r1_dw][0]["properties"];
 							}
 						}
 
 						if ($geom != "false")
 							$doc2["features"][0]["geometry"] = $wfs_response["features"][0]["geometry"];
 					} else {
-						foreach ($wfs_response["features"] as $x1 => $y1) {
-							$doc2["features"][$x1]["type"] = $wfs_response["features"][$x1]["type"];
-							$doc2["features"][$x1]["featuretypename"] = $val["featuretypename"];
-							$doc2["features"][$x1]["description"] = $val["description"][$lang2];
-							$doc2["features"][$x1]["abstract"] = $val["abstract"];
-							foreach ($y1["properties"] as $x2 => $y2) {
-								if ($x2 == "b5mcode") {
-									$doc2["features"][$x1]["properties"][$x2] = $wfs_response["features"][$x1]["properties"][$x2];
-									$doc2["features"][$x1]["properties"]["b5maplink"] = $b5map_link[$lang] . $wfs_response["features"][$x1]["properties"][$x2];
-									$doc2["features"][$x1]["properties"]["info"][0][$x2 . "2"] = $wfs_response["features"][$x1]["properties"][$x2];
+						foreach ($wfs_response["features"] as $q1 => $r1) {
+							$doc2["features"][$q1]["type"] = $wfs_response["features"][$q1]["type"];
+							$doc2["features"][$q1]["featuretypename"] = $val["featuretypename"];
+							$doc2["features"][$q1]["description"] = $val["description"][$lang2];
+							$doc2["features"][$q1]["abstract"] = $val["abstract"];
+							foreach ($r1["properties"] as $q2 => $r2) {
+								if ($q2 == "b5mcode") {
+									$doc2["features"][$q1]["properties"][$q2] = $wfs_response["features"][$q1]["properties"][$q2];
+									$doc2["features"][$q1]["properties"]["b5maplink"] = $b5map_link[$lang] . $wfs_response["features"][$q1]["properties"][$q2];
+									$doc2["features"][$q1]["properties"]["info"][0][$q2 . "2"] = $wfs_response["features"][$q1]["properties"][$q2];
 								} else {
-									if ($x2 != "idname")
-										$doc2["features"][$x1]["properties"]["info"][0][$x2] = $wfs_response["features"][$x1]["properties"][$x2];
+									if ($q2 != "idname")
+										$doc2["features"][$q1]["properties"]["info"][0][$q2] = $wfs_response["features"][$q1]["properties"][$q2];
 								}
 							}
 
 							// Downloads
 							if ($statuscode != "7" && $featuretypenames != "dw_download") {
 								$wfs_response_dw = get_dw_list();
-								foreach ($wfs_response_dw["features"] as $x1_dw => $y1_dw) {
-									$y1_dw = tidy_dw($y1_dw, $lang, $x1_dw);
-									$doc2["downloads"][$x1_dw] = [$y1_dw][0]["properties"];
+								foreach ($wfs_response_dw["features"] as $q1_dw => $r1_dw) {
+									$r1_dw = tidy_dw($r1_dw, $lang, $r1_dw);
+									$doc2["downloads"][$q1_dw] = [$r1_dw][0]["properties"];
 								}
 							}
 
 							if ($geom != "false")
-								$doc2["features"][$x1]["geometry"] = $wfs_response["features"][$x1]["geometry"];
+								$doc2["features"][$q1]["geometry"] = $wfs_response["features"][$q1]["geometry"];
 						}
 					}
 				} else {
