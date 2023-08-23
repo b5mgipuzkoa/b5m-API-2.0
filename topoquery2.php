@@ -58,6 +58,7 @@ $time_n = 0;
 $time_t = 0;
 $more_info_a = array();
 $url_request1 = null;
+$wfs_typename_dw = "dw_download";
 
 // Variable Links
 $b5map_link["eu"] = $b5m_server . "/b5map/r1/eu/mapa/lekutu/";
@@ -137,8 +138,7 @@ function get_feat_info($featuretype_name) {
 
 function get_dw_list() {
 	// Get download list
-	$wfs_typename_dw = "dw_download";
-	global $wfs_server, $wfs_request1, $wfs_bbox, $wfs_srsname, $wfs_filter, $wfs_output, $time1, $time3;
+	global $wfs_server, $wfs_request1, $wfs_bbox, $wfs_srsname, $wfs_filter, $wfs_output, $wfs_typename_dw, $time1, $time3;
 	$url_request_dw = $wfs_server . $wfs_request1 . $wfs_typename_dw . $wfs_bbox . $wfs_srsname . $wfs_filter . $wfs_output;
 	$time_i = microtime(true);
 	$wfs_response_dw = json_decode((get_url_info($url_request_dw)['content']), true);
@@ -568,7 +568,7 @@ if ($statuscode == 0 || $statuscode == 7) {
 							}
 
 							// Downloads
-							if ($statuscode != "7") {
+							if ($statuscode != "7" && $featuretypenames != "dw_download") {
 								$wfs_response_dw = get_dw_list();
 								foreach ($wfs_response_dw["features"] as $x1_dw => $y1_dw) {
 									$y1_dw = tidy_dw($y1_dw, $lang, $x1_dw);
@@ -698,6 +698,7 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6
 			if ($scale != "") $doc1["scale"] = $scale;
 		}
 		if ($statuscode != 6) {
+			$doc1["type"] = "FeatureCollection";
 			$doc1["crs"]["type"] = "name";
 			$doc1["crs"]["properties"]["name"] = $srs_extra;
 		}
