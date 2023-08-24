@@ -177,16 +177,21 @@ function tidy_dw($tidy_a, $tidy_l, $tidy_i) {
 	return $tidy_a;
 }
 
+function cs2cs($c1, $c2, $fl, $srs1, $srs2) {
+	$coors_c_01 = shell_exec('echo "' . $c1 . ' ' . $c2 . '" | /usr/local/bin/cs2cs -f "%.' . $fl . 'f" +init="' . $srs1 . '" +to +init="' .$srs2 . '" 2> /dev/null');
+	$coors_c_02 = explode("	", $coors_c_01);
+	$coors_c_03 = explode(" ", $coors_c_02[1]);
+	return array($coors_c_02[0], $coors_c_03[0]);
+}
+
 function get_bbox($x1, $y1, $x2, $y2, $srs, $offset, $statuscode, $srs_extra) {
 	// BBOX
 	$wfs_srsname = "&srsname=" . $srs;
 	if ($x2 == "") {
 		if (strtolower($srs) == "epsg:4326") {
-			$coors_25830 = shell_exec('echo "' . $x1 . ' ' . $y1 . '" | /usr/local/bin/cs2cs -f "%.2f" +init=epsg:4326 +to +init=epsg:25830 2> /dev/null');
-			$coors_25830_a1 = explode("	", $coors_25830);
-			$coors_25830_a2 = explode(" ", $coors_25830_a1[1]);
-			$x11 = $coors_25830_a1[0];
-			$y11 = $coors_25830_a2[0];
+			$coors_25830 = cs2cs($x1, $y1, 2, $srs, "epsg:25830");
+			$x11 = $coors_25830[0];
+			$y11 = $coors_25830[1];
 			if (is_numeric($x1) && is_numeric($y1))
 				$statuscode = $statuscode;
 			else
@@ -195,13 +200,9 @@ function get_bbox($x1, $y1, $x2, $y2, $srs, $offset, $statuscode, $srs_extra) {
 				// Out of range
 				$statuscode = 8;
 			} else {
-				$coors_4326_1 = shell_exec('echo "' . $x11 - $offset . ' ' . $y11 - $offset . '" | /usr/local/bin/cs2cs -f "%.6f" +init=epsg:25830 +to +init=epsg:4326 2> /dev/null');
-				$coors_4326_2 = shell_exec('echo "' . $x11 + $offset . ' ' . $y11 + $offset . '" | /usr/local/bin/cs2cs -f "%.6f" +init=epsg:25830 +to +init=epsg:4326 2> /dev/null');
-				$coors_4326_a11 = explode("	", $coors_4326_1);
-				$coors_4326_a12 = explode(" ", $coors_4326_a11[1]);
-				$coors_4326_a21 = explode("	", $coors_4326_2);
-				$coors_4326_a22 = explode(" ", $coors_4326_a21[1]);
-				$bbox = $coors_4326_a12[0] . "," . $coors_4326_a11[0] . "," . $coors_4326_a22[0] . "," . $coors_4326_a21[0];
+				$coors_4326_1 = cs2cs($x11 - $offset, $y11 - $offset, 6, "epsg:25830", $srs);
+				$coors_4326_2 = cs2cs($x11 + $offset, $y11 + $offset, 6, "epsg:25830", $srs);
+				$bbox = $coors_4326_1[1] . "," . $coors_4326_1[0] . "," . $coors_4326_2[1] . "," . $coors_4326_2[0];
 			}
 		} else {
 			$bbox = $x1 - ($offset / 2) . "," . $y1 - ($offset / 2) . "," . $x1 + ($offset / 2) . "," . $y1 + ($offset / 2);
@@ -224,11 +225,18 @@ function get_bbox($x1, $y1, $x2, $y2, $srs, $offset, $statuscode, $srs_extra) {
 
 function get_25830($coors, $srs) {
 	// Get epsg:25830 coordinates
-	$coors_2 = explode(",", $coors);
-	$coors_25830_1 = shell_exec('echo "' . $coors_2[0] . ' ' . $coors_2[1] . '" | /usr/local/bin/cs2cs -f "%.2f" +init="' . $srs . '" +to +init=epsg:25830 2> /dev/null');
-	$coors_25830_2 = explode("	", $coors_25830_1);
-	$coors_25830_3 = explode(" ", $coors_25830_2[1]);
-	return $coors_25830_2[0] . ",". $coors_25830_3[0];
+	if (strtolower($srs) != "epsg:25830") {
+		$coors_2 = explode(",", $coors);
+		$coors_25830_1 = cs2cs($coors_2[0], $coors_2[1], 2, $srs, "epsg:25830");
+		if ($coors_2[2] != "") {
+			$coors_25830_2 = cs2cs($coors_2[2], $coors_2[3], 2, $srs, "epsg:25830");
+			return $coors_25830_1[0] . "," . $coors_25830_1[1] . "," . $coors_25830_2[0] . "," . $coors_25830_2[1];
+		} else {
+			return $coors_25830_1[0] . "," . $coors_25830_1[1];
+		}
+	} else {
+		return $coors;
+	}
 }
 
 // Messages
