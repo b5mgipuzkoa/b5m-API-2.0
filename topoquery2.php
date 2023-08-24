@@ -498,10 +498,7 @@ if ($statuscode == 0 || $statuscode == 7) {
 				$wfs_bbox = "";
 				$wfs_filter = str_replace($b5m_code_filter, $b5m_code, $wfs_filter_base);
 			}
-			//if ($i == 0)
-				$url_request = $wfs_server . $wfs_request1 . $wfs_typename . $wfs_bbox . $wfs_srsname . $wfs_filter . $wfs_output;
-			//else
-				//$url_request = $wfs_server . $wfs_request2 . $wfs_typename . $wfs_bbox . $wfs_srsname . $wfs_filter;
+			$url_request = $wfs_server . $wfs_request1 . $wfs_typename . $wfs_bbox . $wfs_srsname . $wfs_filter . $wfs_output;
 
 			// Request
 			if (count($featuretypes_a) > 0) {
@@ -515,25 +512,10 @@ if ($statuscode == 0 || $statuscode == 7) {
 					if ($wfs_response_count == 0)
 						$i = -1;
 				} else {
-					//$time_i = microtime(true);
-					//$wfs_response = json_decode((get_url_info($url_request)['content']), true);
-					//get_time($time_i, $url_request);
-					//$wfs_response_feat2 = $wfs_response["features"];
-					//$wfs_response_count = count($wfs_response_feat2);
 					$wfs_response_count = 0;
 					$more_info_a[$i-1]["featuretypename"] = $val["featuretypename"];
 					$more_info_a[$i-1]["description"] = $val["description"][$lang2];
 					$more_info_a[$i-1]["abstract"] = $val["abstract"];
-					/*
-					$url_request = str_replace($wfs_valueref, "b5mcode", $url_request);
-					$time_i = microtime(true);
-					$wfs_response = (get_url_info($url_request)['content']);
-					get_time($time_i, $url_request);
-					$p = xml_parser_create();
-					xml_parse_into_struct($p, $wfs_response, $vals, $index);
-					xml_parser_free($p);
-					$wfs_response_count =  $vals[0]["attributes"]["NUMBERRETURNED"];
-					*/
 				}
 			} else {
 				$wfs_response_count = 0;
@@ -610,7 +592,6 @@ if ($statuscode == 0 || $statuscode == 7) {
 				} else {
 					if ($wfs_response_count > 0) {
 						// more_info
-						//$wfs_response_vals = $vals[2]["value"];
 						$doc2["more_info"][$j]["featuretypename"] = $val["featuretypename"];
 						$doc2["more_info"][$j]["description"] = $val["description"][$lang2];
 						$doc2["more_info"][$j]["abstract"] = $val["abstract"];
@@ -621,27 +602,9 @@ if ($statuscode == 0 || $statuscode == 7) {
 							$doc2["more_info"][$j]["features"][$k]["name_es"] = $valfeat2["properties"]["name_es"];
 							$k++;
 						}
-						//$doc2["more_info"][$j]["count"] = $wfs_response_count;
-						/*
-						$doc2["more_info"][$j]["b5mcode"] = $wfs_response_vals;
-						foreach ($wfs_valueref_arr as $valref) {
-							$wfs_filter2 = str_replace($b5m_code_filter, $wfs_response_vals, $wfs_filter_base);
-							$url_request2 = $wfs_server . $wfs_request2 . $wfs_typename . $wfs_filter2;
-							$url_request2 = str_replace($wfs_valueref, $valref, $url_request2);
-							$time_i = microtime(true);
-							$wfs_response2 = (get_url_info($url_request2)['content']);
-							get_time($time_i, $url_request);
-							$p2 = xml_parser_create();
-							xml_parse_into_struct($p2, $wfs_response2, $vals2, $index2);
-							xml_parser_free($p2);
-							$wfs_response_vals2 = $vals2[2]["value"];
-							$doc2["more_info"][$j][$valref] = $wfs_response_vals2;
-						}
-						*/
 						$j++;
 					}
 				}
-				//$i++;
 			}
 			$i++;
 		}
