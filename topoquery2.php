@@ -720,7 +720,8 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6
 		if ($statuscode != 6) {
 			if ($statuscode != 9)
 				$doc1["type"] = "FeatureCollection";
-			$doc1["crs"]["name"] = $srs_extra;
+			$doc1["crs"]["type"] = "name";
+			$doc1["crs"]["properties"]["name"] = $srs_extra;
 		}
 		if ($featuretypenames != "" && $statuscode != 9) {
 			$doc1["featuretypenames"] = $featuretypenames;
