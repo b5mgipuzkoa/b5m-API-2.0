@@ -63,6 +63,7 @@ $time_t = 0;
 $more_info_a = array();
 $url_request1 = null;
 $wfs_typename_dw = "dw_download";
+$max_area = 100;
 
 // Variable Links
 $b5map_link["eu"] = $b5m_server . "/b5map/r1/eu/mapa/lekutu/";
@@ -239,6 +240,22 @@ function get_25830($coors, $srs) {
 	}
 }
 
+function area_calc($x1, $y1, $x2, $y2, $srs) {
+	// Area calculation
+	if (strtolower($srs) == "epsg:4326" || strtolower($srs) == "epsg:3857") {
+		$coors_1 = cs2cs($x1, $y1, 0, $srs, "epsg:25830");
+		$coors_2 = cs2cs($x2, $y2, 0, $srs, "epsg:25830");
+		$x1 = $coors_1[0];
+		$y1 = $coors_1[1];
+		$x2 = $coors_2[0];
+		$y2 = $coors_2[1];
+	}
+	$area_c = (($x2 - $x1) * ($y2 - $y1)) / 1000000;
+	if ($area_c <= 0 || $area_c >= 9999)
+	 	$area_c = 9999;
+	return $area_c;
+}
+
 // Messages
 $msg001 = "Missing required parameter: coors";
 $msg002 = "SRS not supported. It should be EPSG:25830, EPSG:4326 or EPSG:3857 (https://epsg.io)";
@@ -247,6 +264,7 @@ $msg004 = "Request type: Featuretypes list";
 $msg005 = "No data found";
 $msg006 = "Invalid featuretypenames";
 $msg008 = "Out of range";
+$msg009 = "Out of area range";
 
 // License and metadata variables
 $year = date("Y");
@@ -348,6 +366,15 @@ if ($srs == "" && $statuscode == 0) {
 		$srs = "epsg:25830";
 }
 
+// Area if it is a bounding box
+if ($x2 != "" && $featuretypenames != "dw_download") {
+	$bbox_area = area_calc($x1, $y1, $x2, $y2, $srs);
+	if ($bbox_area > $max_area) {
+		$statuscode = 9;
+		$msg009 = $msg009 . ". Current area range = " . number_format($bbox_area, 2) . " km2. Maximum area range = " . $max_area . " km2.";
+	}
+}
+
 if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 	// Collecting featuretype data from getcapabilites request
 	$url_capab = $wfs_server . $wfs_capab;
@@ -397,7 +424,7 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 }
 
 // Zoom restriction
-if (($z != "" || $featuretypenames != "") && ($statuscode != 3)) {
+if (($z != "" || $featuretypenames != "") && ($statuscode != 3) && ($statuscode != 9)) {
 	$data_json = file_get_contents($file_json);
 	$zoom_array = json_decode($data_json);
 	foreach ($zoom_array as $obj) {
@@ -425,7 +452,7 @@ if (($z != "" || $featuretypenames != "") && ($statuscode != 3)) {
 }
 
 // Featuretypes count
-if (count($featuretypes_a) == 0 && $statuscode != 3 && $statuscode != 7)
+if (count($featuretypes_a) == 0 && $statuscode != 3 && $statuscode != 7 && $statuscode != 9)
 	$statuscode = 6;
 
 if ($statuscode == 4) {
@@ -440,16 +467,16 @@ if ($statuscode == 4) {
 	}
 }
 
-if ($statuscode == 0 || $statuscode == 7) {
+if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 	// SRS related extra parameters
 	if (strtolower($srs) == "epsg:25830")
-	 $srs_extra="urn:ogc:def:crs:EPSG::25830";
+	 $srs_extra = "urn:ogc:def:crs:EPSG::25830";
 	else if (strtolower($srs) == "epsg:4326")
-	 $srs_extra="urn:ogc:def:crs:EPSG::4326";
+	 $srs_extra = "urn:ogc:def:crs:EPSG::4326";
 	else if (strtolower($srs) == "epsg:3857")
-	 $srs_extra="urn:ogc:def:crs:EPSG::3857";
+	 $srs_extra = "urn:ogc:def:crs:EPSG::3857";
 	else
-	 $srs_extra="";
+	 $srs_extra = "";
 
 	if ($statuscode != 7) {
 		// BBOX
@@ -467,7 +494,7 @@ if ($statuscode == 0 || $statuscode == 7) {
 	}
 
 	// Data request
-	if ($statuscode != 8) {
+	if ($statuscode != 8 && $statuscode != 9) {
 		if ($statuscode != 7)
 			$statuscode = 5;
 		$i = 0;
@@ -646,12 +673,11 @@ if ($statuscode == 0 || $statuscode == 7) {
 		}
 		// End more info
 	}
-
-	if (count($doc2) == 0 && $statuscode != 8)
+	if (count($doc2) == 0 && $statuscode != 8 && $statuscode != 9)
 		$statuscode = 5;
 }
 
-if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6 || $statuscode == 7 || $statuscode == 8) {
+if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6 || $statuscode == 7 || $statuscode == 8 || $statuscode == 9) {
 	// Data license
 	$final_time = microtime(true);
 	$response_time = sprintf("%.2f", $final_time - $init_time);
@@ -678,21 +704,25 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6
 		$doc1["info"]["messages"]["warning"] = $msg006;
 	else if ($statuscode == 8)
 		$doc1["info"]["messages"]["warning"] = $msg008;
+	else if ($statuscode == 9)
+		$doc1["info"]["messages"]["warning"] = $msg009;
 	if ($statuscode != 4) {
 		if ($statuscode != 6 && $statuscode != 7) {
-			if ($coors != "") $doc1["coors"] = $coors;
-			if ($offset != "") $doc1["offset"]["value"] = $offset;
-			if ($offset != "") $doc1["offset"]["units"] = $offset_units;
-			if ($bbox != "") $doc1["bbox"] = $bbox;
-			if ($z != "") $doc1["z"] = $z;
-			if ($scale != "") $doc1["scale"] = $scale;
+				if ($coors != "") $doc1["coors"] = $coors;
+				if ($statuscode != 9) {
+				if ($offset != "") $doc1["offset"]["value"] = $offset;
+				if ($offset != "") $doc1["offset"]["units"] = $offset_units;
+				if ($bbox != "") $doc1["bbox"] = $bbox;
+				if ($z != "") $doc1["z"] = $z;
+				if ($scale != "") $doc1["scale"] = $scale;
+			}
 		}
 		if ($statuscode != 6) {
-			$doc1["type"] = "FeatureCollection";
-			$doc1["crs"]["type"] = "name";
-			$doc1["crs"]["properties"]["name"] = $srs_extra;
+			if ($statuscode != 9)
+				$doc1["type"] = "FeatureCollection";
+			$doc1["crs"]["name"] = $srs_extra;
 		}
-		if ($featuretypenames != "") {
+		if ($featuretypenames != "" && $statuscode != 9) {
 			$doc1["featuretypenames"] = $featuretypenames;
 		} else {
 			$featuretypenames2 = "";
