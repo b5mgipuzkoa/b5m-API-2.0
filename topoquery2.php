@@ -233,7 +233,7 @@ function get_25830($coors, $srs) {
 	if (strtolower($srs) != "epsg:25830") {
 		$coors_2 = explode(",", $coors);
 		$coors_25830_1 = cs2cs($coors_2[0], $coors_2[1], 2, $srs, "epsg:25830");
-		if ($coors_2[2] != "") {
+		if (count($coors_2) == 4) {
 			$coors_25830_2 = cs2cs($coors_2[2], $coors_2[3], 2, $srs, "epsg:25830");
 			return $coors_25830_1[0] . "," . $coors_25830_1[1] . "," . $coors_25830_2[0] . "," . $coors_25830_2[1];
 		} else {
