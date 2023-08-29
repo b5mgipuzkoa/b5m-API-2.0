@@ -64,6 +64,10 @@ $more_info_a = array();
 $url_request1 = null;
 $wfs_typename_dw = "dw_download";
 $max_area = 100;
+$x1 = "";
+$y1 = "";
+$x2 = "";
+$y2 = "";
 
 // Variable Links
 $b5map_link["eu"] = $b5m_server . "/b5map/r1/eu/mapa/lekutu/";
@@ -553,26 +557,44 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 				if ($i == 0) {
 					if ($val["featuretypename"] == "e_buildings") {
 						// e_buildings case, postal addresses nested
-						$doc2["features"][0]["type"] = $wfs_response["features"][0]["type"];
-						$doc2["features"][0]["featuretypename"] = $val["featuretypename"];
-						$doc2["features"][0]["description"] = $val["description"][$lang2];
-						$doc2["features"][0]["abstract"] = $val["abstract"];
-						$b5m_code_e = $wfs_response["features"][0]["properties"]["b5mcode"];
-						$doc2["features"][0]["properties"]["b5mcode"] = $b5m_code_e;
-						$doc2["features"][0]["properties"]["b5maplink"] = $b5map_link[$lang] . $b5m_code_e;
-						$z=0;
+
+						// Listing building areas
 						foreach ($wfs_response["features"] as $q1 => $r1) {
-							foreach ($r1["properties"] as $q2 => $r2) {
-									$doc2["features"][0]["properties"]["info"][$z]["featuretypename"] = $d_addr;
-									$doc2["features"][0]["properties"]["info"][$z]["description"] = $d_addr_des[$lang2];
-									$doc2["features"][0]["properties"]["info"][$z]["abstract"] = $d_addr_abs;
-								if ($q2 != "idname" && $q2 != "b5mcode") {
-									if ($q2 == "b5mcode2")
-										$q2 = "b5mcode";
-									$doc2["features"][0]["properties"]["info"][$z]["properties"][$q2] = $r2;
+							$type_e_a[$q1] = $r1["properties"]["b5mcode"];
+						}
+						$type_e_a = array_unique($type_e_a);
+						$t = 0;
+						foreach ($type_e_a as $q0 => $r0) {
+							$doc2["features"][$t]["type"] = $wfs_response["features"][$q0]["type"];
+							$doc2["features"][$t]["featuretypename"] = $val["featuretypename"];
+							$doc2["features"][$t]["description"] = $val["description"][$lang2];
+							$doc2["features"][$t]["abstract"] = $val["abstract"];
+							$b5m_code_e = $wfs_response["features"][$q0]["properties"]["b5mcode"];
+							$doc2["features"][$t]["properties"]["b5mcode"] = $b5m_code_e;
+							$doc2["features"][$t]["properties"]["b5maplink"] = $b5map_link[$lang] . $b5m_code_e;
+							$u = 0;
+							$w = 0;
+							foreach ($wfs_response["features"] as $q1 => $r1) {
+								if ($r0 == $r1["properties"]["b5mcode"]) {
+									if ($w == 0)
+										$u = 0;
+									$w++;
+									foreach ($r1["properties"] as $q2 => $r2) {
+										$doc2["features"][$t]["properties"]["info"][$u]["featuretypename"] = $d_addr;
+										$doc2["features"][$t]["properties"]["info"][$u]["description"] = $d_addr_des[$lang2];
+										$doc2["features"][$t]["properties"]["info"][$u]["abstract"] = $d_addr_abs;
+										if ($q2 != "idname" && $q2 != "b5mcode") {
+											if ($q2 == "b5mcode2")
+												$q2 = "b5mcode";
+											$doc2["features"][$t]["properties"]["info"][$u]["properties"][$q2] = $r2;
+										}
+									}
 								}
+								$u++;
 							}
-							$z++;
+							if ($geom != "false")
+								$doc2["features"][$t]["geometry"] = $wfs_response["features"][$q0]["geometry"];
+							$t++;
 						}
 
 						// Downloads
@@ -583,9 +605,6 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 								$doc2["downloads"][$q1_dw] = [$r1_dw][0]["properties"];
 							}
 						}
-
-						if ($geom != "false")
-							$doc2["features"][0]["geometry"] = $wfs_response["features"][0]["geometry"];
 					} else {
 						foreach ($wfs_response["features"] as $q1 => $r1) {
 							$doc2["features"][$q1]["type"] = $wfs_response["features"][$q1]["type"];
