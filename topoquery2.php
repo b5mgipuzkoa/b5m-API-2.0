@@ -20,7 +20,7 @@ if (isset($_REQUEST['lang'])) $lang = $_REQUEST['lang']; else $lang = "";
 if (isset($_REQUEST['b5mcode'])) $b5m_code = $_REQUEST['b5mcode']; else $b5m_code = "";
 if (isset($_REQUEST['coors'])) $coors = $_REQUEST['coors']; else $coors = "";
 if (isset($_REQUEST['bbox'])) $coors = $_REQUEST['bbox'];
-if (isset($_REQUEST['z'])) $z = $_REQUEST['z']; else $z = "";
+if (isset($_REQUEST['z'])) $z = $_REQUEST['z']; else $z = 10;
 if (isset($_REQUEST['scale'])) $scale = $_REQUEST['scale']; else $scale = "";
 if (isset($_REQUEST['offset'])) $offset = $_REQUEST['offset']; else $offset = "";
 if (isset($_REQUEST['srs'])) $srs = $_REQUEST['srs']; else $srs = "";
@@ -57,6 +57,7 @@ $featuretypes_a = array();
 $d_addr = "d_postaladdresses";
 $doc1 = array();
 $doc2 = array();
+$doc3 = array();
 $time_deb = array();
 $time_n = 0;
 $time_t = 0;
@@ -261,6 +262,7 @@ function area_calc($x1, $y1, $x2, $y2, $srs) {
 }
 
 // Messages
+$msg000 = "None";
 $msg001 = "Missing required parameter: coors";
 $msg002 = "SRS not supported. It should be EPSG:25830, EPSG:4326 or EPSG:3857 (https://epsg.io)";
 $msg003 = "SRS epsg:4326, but invalid latitude or longitude (https://epsg.io)";
@@ -375,7 +377,7 @@ if ($x2 != "" && $featuretypenames != "dw_download") {
 	$bbox_area = area_calc($x1, $y1, $x2, $y2, $srs);
 	if ($bbox_area > $max_area) {
 		$statuscode = 9;
-		$msg009 = $msg009 . ". Current area range = " . number_format($bbox_area, 2) . " km2. Maximum area range = " . $max_area . " km2.";
+		$msg009 = $msg009 . ". Current area range is " . number_format($bbox_area, 2) . " km2. Maximum area range is " . number_format($max_area, 2) . " km2.";
 	}
 }
 
@@ -641,6 +643,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 						$doc2["more_info"][$j]["featuretypename"] = $val["featuretypename"];
 						$doc2["more_info"][$j]["description"] = $val["description"][$lang2];
 						$doc2["more_info"][$j]["abstract"] = $val["abstract"];
+						$doc2["more_info"][$j]["numberMatched"] = count($wfs_response_feat2);
 						$k = 0;
 						foreach ($wfs_response_feat2 as $valfeat2) {
 							$doc2["more_info"][$j]["features"][$k]["b5mcode"] = $valfeat2["properties"]["b5mcode"];
@@ -654,6 +657,8 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 			}
 			$i++;
 		}
+		// Number matched
+		$doc3["numberMatched"] = count($doc2["features"]);
 	}
 
 	if ($statuscode == 0) {
@@ -680,6 +685,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 				$doc2["more_info"][$i_wms]["featuretypename"] = $wfs_typename_item;
 				$doc2["more_info"][$i_wms]["description"] = $more_info_val["description"];
 				$doc2["more_info"][$i_wms]["abstract"] = $more_info_val["abstract"];
+				$doc2["more_info"][$i_wms]["numberMatched"] = count($wms_response_xml->$wms_layer->$wms_feature);
 				$i2_wms = 0;
 				foreach ($wms_response_xml->$wms_layer->$wms_feature as $wms_feature_val) {
 					$doc2["more_info"][$i_wms]["features"][$i2_wms]["b5mcode"] = "" . $wms_feature_val->b5mcode . "";
@@ -713,10 +719,10 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6
 	$doc1["info"]["responseTime"]["units"] = $response_time_units;
 	$doc1["info"]["statuscode"] = $statuscode;
 	if ($statuscode == 0)
-		$doc1["info"]["messages"]["warning"] = "";
+		$doc1["info"]["messages"]["warning"] = $msg000;
 	else if ($statuscode == 4) {
 		$doc1["info"]["messages"]["request"] = $msg004;
-		$doc1["info"]["messages"]["warning"] = "";
+		$doc1["info"]["messages"]["warning"] = $msg000;
 	} else if ($statuscode == 5)
 		$doc1["info"]["messages"]["warning"] = $msg005;
 	else if ($statuscode == 6)
@@ -760,7 +766,7 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6
 	if ($statuscode == 5 || $statuscode == 6) {
 		$doc = $doc1;
 	} else {
-		$doc = array_merge($doc1, $doc2);
+		$doc = array_merge($doc1, $doc3, $doc2);
 	}
 } else {
 	if (empty($lang)) $lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
