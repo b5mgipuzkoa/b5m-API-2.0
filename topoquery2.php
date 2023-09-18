@@ -288,6 +288,7 @@ $init_time = microtime(true);
 // Id Request
 if ($b5m_code != "") {
 	$statuscode = 7;
+	$z = "";
 	$b5m_code_type = strtolower(explode("_", $b5m_code)[0]);
 }
 
@@ -663,37 +664,40 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 
 	if ($statuscode == 0) {
 		// More info
-		$wfs_typename_list = "";
-		foreach ($more_info_a as $more_info_val) {
-			$wfs_typename_list = $wfs_typename_list . $more_info_val["featuretypename"] . ",";
-		}
-		$wfs_typename_list = substr($wfs_typename_list, 0, strlen($wfs_typename_list) - 1);
-		$coors_25830 = get_25830($coors, $srs);
-		$coors_wms_a = explode(",", $coors_25830);
-		$coors_wms = $coors_wms_a[0] - 0.5 . "," . $coors_wms_a[1] - 0.5 . "," . $coors_wms_a[0] + 0.5 . "," . $coors_wms_a[1] + 0.5;
-		$url_request_wms = $wfs_server . "?service=wms&version=1.3.0&request=getfeatureinfo&layers=". $wfs_typename_list . "&query_layers=" . $wfs_typename_list . "&bbox=" . $coors_wms . "&crs=epsg:25830&width=2&height=2&i=1&j=1&info_format=application/vnd.ogc.gml&feature_count=10";
-		$time_i = microtime(true);
-		$wms_response_more_info = get_url_info($url_request_wms)['content'];
-		get_time($time_i, $url_request_wms);
-		$wms_response_xml = new SimpleXMLElement($wms_response_more_info);
-		$i_wms = 0;
-		foreach ($more_info_a as $more_info_val) {
-			$wfs_typename_item = $more_info_val["featuretypename"];
-			$wms_layer = $wfs_typename_item . "_layer";
-			$wms_feature = $wfs_typename_item . "_feature";
-			if ($wms_response_xml->$wms_layer->$wms_feature != null) {
-				$doc2["more_info"][$i_wms]["featuretypename"] = $wfs_typename_item;
-				$doc2["more_info"][$i_wms]["description"] = $more_info_val["description"];
-				$doc2["more_info"][$i_wms]["abstract"] = $more_info_val["abstract"];
-				$doc2["more_info"][$i_wms]["numberMatched"] = count($wms_response_xml->$wms_layer->$wms_feature);
-				$i2_wms = 0;
-				foreach ($wms_response_xml->$wms_layer->$wms_feature as $wms_feature_val) {
-					$doc2["more_info"][$i_wms]["features"][$i2_wms]["b5mcode"] = "" . $wms_feature_val->b5mcode . "";
-					$doc2["more_info"][$i_wms]["features"][$i2_wms]["name_eu"] = "" . $wms_feature_val->name_eu . "";
-					$doc2["more_info"][$i_wms]["features"][$i2_wms]["name_es"] = "" . $wms_feature_val->name_es . "";
-					$i2_wms++;
+		$coors_number_a = explode(",", $coors);
+		if (count($coors_number_a) == "2") {
+			$wfs_typename_list = "";
+			foreach ($more_info_a as $more_info_val) {
+				$wfs_typename_list = $wfs_typename_list . $more_info_val["featuretypename"] . ",";
+			}
+			$wfs_typename_list = substr($wfs_typename_list, 0, strlen($wfs_typename_list) - 1);
+			$coors_25830 = get_25830($coors, $srs);
+			$coors_wms_a = explode(",", $coors_25830);
+			$coors_wms = $coors_wms_a[0] - 0.5 . "," . $coors_wms_a[1] - 0.5 . "," . $coors_wms_a[0] + 0.5 . "," . $coors_wms_a[1] + 0.5;
+			$url_request_wms = $wfs_server . "?service=wms&version=1.3.0&request=getfeatureinfo&layers=". $wfs_typename_list . "&query_layers=" . $wfs_typename_list . "&bbox=" . $coors_wms . "&crs=epsg:25830&width=2&height=2&i=1&j=1&info_format=application/vnd.ogc.gml&feature_count=10";
+			$time_i = microtime(true);
+			$wms_response_more_info = get_url_info($url_request_wms)['content'];
+			get_time($time_i, $url_request_wms);
+			$wms_response_xml = new SimpleXMLElement($wms_response_more_info);
+			$i_wms = 0;
+			foreach ($more_info_a as $more_info_val) {
+				$wfs_typename_item = $more_info_val["featuretypename"];
+				$wms_layer = $wfs_typename_item . "_layer";
+				$wms_feature = $wfs_typename_item . "_feature";
+				if ($wms_response_xml->$wms_layer->$wms_feature != null) {
+					$doc2["more_info"][$i_wms]["featuretypename"] = $wfs_typename_item;
+					$doc2["more_info"][$i_wms]["description"] = $more_info_val["description"];
+					$doc2["more_info"][$i_wms]["abstract"] = $more_info_val["abstract"];
+					$doc2["more_info"][$i_wms]["numberMatched"] = count($wms_response_xml->$wms_layer->$wms_feature);
+					$i2_wms = 0;
+					foreach ($wms_response_xml->$wms_layer->$wms_feature as $wms_feature_val) {
+						$doc2["more_info"][$i_wms]["features"][$i2_wms]["b5mcode"] = "" . $wms_feature_val->b5mcode . "";
+						$doc2["more_info"][$i_wms]["features"][$i2_wms]["name_eu"] = "" . $wms_feature_val->name_eu . "";
+						$doc2["more_info"][$i_wms]["features"][$i2_wms]["name_es"] = "" . $wms_feature_val->name_es . "";
+						$i2_wms++;
+					}
+					$i_wms++;
 				}
-				$i_wms++;
 			}
 		}
 		// End more info
