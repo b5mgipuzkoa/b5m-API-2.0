@@ -432,7 +432,7 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 }
 
 // Zoom restriction
-if (($z != "" || $featuretypenames != "") && ($statuscode != 3) && ($statuscode != 9)) {
+if (($z != "" || $featuretypenames != "") && ($statuscode != 3) && ($statuscode != 4) && ($statuscode != 9)) {
 	$data_json = file_get_contents($file_json);
 	$zoom_array = json_decode($data_json);
 	foreach ($zoom_array as $obj) {
