@@ -51,6 +51,7 @@ $b5m_code_filter="B5MCODEFILTER";
 $wfs_filter_base = "&filter=<Filter><PropertyIsEqualTo><PropertyName>b5mcode</PropertyName><Literal>" . $b5m_code_filter . "</Literal></PropertyIsEqualTo></Filter>";
 $offset_default = 1;
 $offset_units = "metres";
+$offset_v = "";
 $bbox = "";
 $bbox_default = "";
 $featuretypes_a = array();
@@ -508,7 +509,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 		$j = 0;
 		foreach ($featuretypes_a as $val) {
 			$wfs_typename = $val["featuretypename"];
-			if ($offset_ori == "") {
+			if ($offset_ori == "" && $statuscode == 5) {
 				// New offset if feature's geometry is curve or point
 				$url_request_md = $wfs_server . $wfs_request3 . $val["featuretypename"];
 				$time_i = microtime(true);
@@ -517,7 +518,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 				$wfs_md_xml = new SimpleXMLElement($wfs_response_md);
 				$md_ns = $wfs_md_xml->getNamespaces(true);
 				$md_child = $wfs_md_xml->children($md_ns["gmd"]);
-				if ($md_child->spatialRepresentationInfo->MD_VectorSpatialRepresentation->geometricObjects->MD_GeometricObjects->geometricObjectType->MD_GeometricObjectTypeCode != "surface") {
+				if ($md_child->spatialRepresentationInfo->MD_VectorSpatialRepresentation->geometricObjects->MD_GeometricObjects->geometricObjectType->MD_GeometricObjectTypeCode != "surface" && $statuscode == 5) {
 					$bbox_s = get_bbox($x1, $y1, $x2, $y2, $srs, $offset_v, $statuscode, $srs_extra);
 					$bbox_a = explode("|", $bbox_s);
 					$bbox2 = $bbox_a[0];
