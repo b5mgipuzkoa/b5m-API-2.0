@@ -31,10 +31,10 @@ $msg005="The maximum number of coordinate pairs has been exceeded (" . $max_numb
 $msg006="https://kokoalberti.com/articles/creating-elevation-profiles-with-gdal-and-two-point-equidistant-projection";
 
 // License and metadata variables
-$provider = "b5m - Gipuzkoa Spatial Data Infrastructure - Gipuzkoa Provincial Council - 2021";
+$provider = "b5m - Gipuzkoa Spatial Data Infrastructure - Gipuzkoa Provincial Council - " . date('Y');
 $url_license = "https://" . $server_name . "/web5000/en/legal-information";
 $url_base = "https://" . $server_name . "/web5000";
-$image_url = "https://" . $server_name . "/web5000/assets/img/logo-b5m.svg";
+$image_url = "https://" . $server_name . "/web5000/img/logo-b5m.png";
 $altimetry_data = "Digital Terrain Model (DTM) of 1m from the Historical Territory of Gipuzkoa, based on LIDAR data. Year 2008";
 $altimetry_data_url = "https://b5m.gipuzkoa.eus/web5000/en/csw2/GFA.LIDS08";
 $altimetry_units = "meters";
@@ -145,9 +145,9 @@ if ($statuscode == 0 || $statuscode == 1) {
 } else {
 	if (empty($lang)) $lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
 	if ($lang == "es")
-		$base_url = "https://" . $_SERVER['SERVER_NAME'] . "/web5000/es/api-rest/topographic-profiles";
+		$base_url = "https://" . $_SERVER['SERVER_NAME'] . "/web5000/es/api-rest/perfiles-topograficos";
 	else if ($lang == "en")
-		$base_url = "https://" . $_SERVER['SERVER_NAME'] . "/web5000/en/rest-api/perfiles-topograficos";
+		$base_url = "https://" . $_SERVER['SERVER_NAME'] . "/web5000/en/rest-api/topographic-profiles";
 	else
 		$base_url = "https://" . $_SERVER['SERVER_NAME'] . "/web5000/eu/rest-apia/profil-topografikoak";
 	$doc["info"]["help"] = "Documentation";
