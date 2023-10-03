@@ -432,7 +432,7 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 }
 
 // Zoom restriction
-if (($z != "" || $featuretypenames != "") && ($statuscode != 3) && ($statuscode != 4) && ($statuscode != 9)) {
+if (($z != "" || $featuretypenames != "") && ($statuscode != 3) && ($statuscode != 9)) {
 	$data_json = file_get_contents($file_json);
 	$zoom_array = json_decode($data_json);
 	foreach ($zoom_array as $obj) {
@@ -441,22 +441,23 @@ if (($z != "" || $featuretypenames != "") && ($statuscode != 3) && ($statuscode 
 			$offset_v = $obj->offset;
 		}
 	}
-	if ($featuretypenames != "")
+	if ($featuretypenames != "") {
 		$featuretypenames_a = explode(",", $featuretypenames);
-	$i=0;
-	foreach ($featuretypenames_a as $featuretypenames_n) {
-		$j=0;
-		foreach ($featuretypes_a as $featuretypes_n) {
-			if ($featuretypenames_n == $featuretypes_n["featuretypename"]) {
-				$featuretypes_a2[$i] = $featuretypes_a[$j];
-				if ($statuscode == 4)
-					$featuretypes_a2[$i]["properties"] = get_feat_info($featuretypenames_n);
-				$i++;
+		$i=0;
+		foreach ($featuretypenames_a as $featuretypenames_n) {
+			$j=0;
+			foreach ($featuretypes_a as $featuretypes_n) {
+				if ($featuretypenames_n == $featuretypes_n["featuretypename"]) {
+					$featuretypes_a2[$i] = $featuretypes_a[$j];
+					if ($statuscode == 4)
+						$featuretypes_a2[$i]["properties"] = get_feat_info($featuretypenames_n);
+					$i++;
+				}
+				$j++;
 			}
-			$j++;
 		}
+		$featuretypes_a = $featuretypes_a2;
 	}
-	$featuretypes_a = $featuretypes_a2;
 }
 
 // Featuretypes count
