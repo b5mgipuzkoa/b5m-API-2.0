@@ -29,6 +29,7 @@ if (isset($_REQUEST['featuretypes'])) $featuretypes = $_REQUEST['featuretypes'];
 if (isset($_REQUEST['featuretypenames'])) $featuretypenames = $_REQUEST['featuretypenames']; else $featuretypenames = "";
 if (isset($_REQUEST['format'])) $format = $_REQUEST['format']; else $format = "";
 if (isset($_REQUEST['debug'])) $debug = $_REQUEST['debug']; else $debug = 0;
+if ($featuretypes != "") $z = "";
 
 // Language Coding
 if (empty($lang)) $lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
@@ -441,23 +442,22 @@ if (($z != "" || $featuretypenames != "") && ($statuscode != 3) && ($statuscode 
 			$offset_v = $obj->offset;
 		}
 	}
-	if ($featuretypenames != "") {
+	if ($featuretypenames != "")
 		$featuretypenames_a = explode(",", $featuretypenames);
-		$i=0;
-		foreach ($featuretypenames_a as $featuretypenames_n) {
-			$j=0;
-			foreach ($featuretypes_a as $featuretypes_n) {
-				if ($featuretypenames_n == $featuretypes_n["featuretypename"]) {
-					$featuretypes_a2[$i] = $featuretypes_a[$j];
-					if ($statuscode == 4)
-						$featuretypes_a2[$i]["properties"] = get_feat_info($featuretypenames_n);
-					$i++;
-				}
-				$j++;
+	$i=0;
+	foreach ($featuretypenames_a as $featuretypenames_n) {
+		$j=0;
+		foreach ($featuretypes_a as $featuretypes_n) {
+			if ($featuretypenames_n == $featuretypes_n["featuretypename"]) {
+				$featuretypes_a2[$i] = $featuretypes_a[$j];
+				if ($statuscode == 4)
+					$featuretypes_a2[$i]["properties"] = get_feat_info($featuretypenames_n);
+				$i++;
 			}
+			$j++;
 		}
-		$featuretypes_a = $featuretypes_a2;
 	}
+	$featuretypes_a = $featuretypes_a2;
 }
 
 // Featuretypes count
