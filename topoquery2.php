@@ -640,13 +640,13 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 													$featuretype_name = str_replace("ms:", "", $featuretype->Name);
 													$featuretype_desc =	explode(" / ", $featuretype->Title);
 													$featuretype_abstract = $featuretype->Abstract->__toString();
-													$doc2["features"][$q1]["properties"]["more_info"][0]["featuretypename"] = $featuretype_name;
-													$doc2["features"][$q1]["properties"]["more_info"][0]["description"] = $featuretype_desc[$lang2];
-													$doc2["features"][$q1]["properties"]["more_info"][0]["abstract"] = $featuretype_abstract;
-													$doc2["features"][$q1]["properties"]["more_info"][0]["numberMatched"] = 1;
-													$doc2["features"][$q1]["properties"]["more_info"][0]["features"][0]["b5mcode"] = $b5mcode_others;
-													$doc2["features"][$q1]["properties"]["more_info"][0]["features"][0]["name_eu"] = $b5mcode_others_name_eu;
-													$doc2["features"][$q1]["properties"]["more_info"][0]["features"][0]["name_es"] = $b5mcode_others_name_es;
+													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["featuretypename"] = $featuretype_name;
+													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["description"] = $featuretype_desc[$lang2];
+													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["abstract"] = $featuretype_abstract;
+													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["numberMatched"] = 1;
+													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["features"][0]["b5mcode"] = $b5mcode_others;
+													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["features"][0]["name_eu"] = $b5mcode_others_name_eu;
+													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["features"][0]["name_es"] = $b5mcode_others_name_es;
 												}
 											}
 										}
