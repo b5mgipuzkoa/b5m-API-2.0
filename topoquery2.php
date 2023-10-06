@@ -622,8 +622,35 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 									$doc2["features"][$q1]["properties"]["b5maplink"] = $b5map_link[$lang] . $wfs_response["features"][$q1]["properties"][$q2];
 									$doc2["features"][$q1]["properties"]["info"][0][$q2 . "2"] = $wfs_response["features"][$q1]["properties"][$q2];
 								} else {
-									if ($q2 != "idname")
+									if ($q2 != "idname" && $q2 != "type_eu" && $q2 != "type_es" && $q2 != "type_en" && $q2 != "b5mcode_others" && $q2 != "b5mcode_others_name_eu" && $q2 != "b5mcode_others_name_es")
 										$doc2["features"][$q1]["properties"]["info"][0][$q2] = $wfs_response["features"][$q1]["properties"][$q2];
+
+										// Type
+										if ($q2 == "type_" . $lang)
+											$doc2["features"][$q1]["properties"]["info"][0]["type"] = $wfs_response["features"][$q1]["properties"][$q2];
+
+										// More info
+										if ($q2 == "b5mcode_others") {
+											$b5mcode_others = $wfs_response["features"][$q1]["properties"][$q2];
+											$b5mcode_others_name_eu = $wfs_response["features"][$q1]["properties"]["b5mcode_others_name_eu"];
+											$b5mcode_others_name_es = $wfs_response["features"][$q1]["properties"]["b5mcode_others_name_es"];
+											$b5m_code_type2 = strtolower(substr($b5mcode_others, 0, 1));
+											foreach ($wfs_capab_xml->FeatureTypeList->FeatureType as $featuretype) {
+												if ($b5m_code_type2 == strtolower(explode("_", explode(":", $featuretype->Name->__toString())[1])[0])) {
+													$featuretype_name = str_replace("ms:", "", $featuretype->Name);
+													$featuretype_desc =	explode(" / ", $featuretype->Title);
+													$featuretype_abstract = $featuretype->Abstract->__toString();
+													$doc2["features"][$q1]["properties"]["more_info"][0]["featuretypename"] = $featuretype_name;
+													$doc2["features"][$q1]["properties"]["more_info"][0]["description"] = $featuretype_desc[$lang2];
+													$doc2["features"][$q1]["properties"]["more_info"][0]["abstract"] = $featuretype_abstract;
+													$doc2["features"][$q1]["properties"]["more_info"][0]["numberMatched"] = 1;
+													$doc2["features"][$q1]["properties"]["more_info"][0]["features"][0]["b5mcode"] = $b5mcode_others;
+													$doc2["features"][$q1]["properties"]["more_info"][0]["features"][0]["name_eu"] = $b5mcode_others_name_eu;
+													$doc2["features"][$q1]["properties"]["more_info"][0]["features"][0]["name_es"] = $b5mcode_others_name_es;
+												}
+											}
+										}
+										// End more info
 								}
 							}
 
@@ -664,8 +691,8 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 		$doc3["numberMatched"] = count($doc2["features"]);
 	}
 
+	// More info
 	if ($statuscode == 0) {
-		// More info
 		$coors_number_a = explode(",", $coors);
 		if (count($coors_number_a) == "2") {
 			$wfs_typename_list = "";
@@ -702,8 +729,11 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 				}
 			}
 		}
-		// End more info
+	} else if ($statuscode == 7) {
+		$b5mcode_others = $doc2["features"][0]["properties"]["info"][0]["b5mcode_others"];
+		//echo $b5mcode_others;
 	}
+	// End more info
 	if (count($doc2) == 0 && $statuscode != 8 && $statuscode != 9)
 		$statuscode = 5;
 }
