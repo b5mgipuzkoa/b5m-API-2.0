@@ -695,7 +695,10 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 			$i++;
 		}
 		// Number matched
-		$doc3["numberMatched"] = count($doc2["features"]);
+		if (count($doc2) == 0)
+			$doc3["numberMatched"] = 0;
+		else
+			$doc3["numberMatched"] = count($doc2["features"]);
 	}
 
 	// More info
