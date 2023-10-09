@@ -643,10 +643,17 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["featuretypename"] = $featuretype_name;
 													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["description"] = $featuretype_desc[$lang2];
 													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["abstract"] = $featuretype_abstract;
-													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["numberMatched"] = 1;
-													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["features"][0]["b5mcode"] = $b5mcode_others;
-													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["features"][0]["name_eu"] = $b5mcode_others_name_eu;
-													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["features"][0]["name_es"] = $b5mcode_others_name_es;
+													$b5mcode_others_a = explode("|", $b5mcode_others);
+													$b5mcode_others_name_eu_a = explode("|", $b5mcode_others_name_eu);
+													$b5mcode_others_name_es_a = explode("|", $b5mcode_others_name_es);
+													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["numberMatched"] = count($b5mcode_others_a);
+													$ot = 0;
+													foreach ($b5mcode_others_a as $b5mcode_others_i) {
+														$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["features"][$ot]["b5mcode"] = $b5mcode_others_i;
+														$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["features"][$ot]["name_eu"] = $b5mcode_others_name_eu_a[$ot];
+														$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["features"][$ot]["name_es"] = $b5mcode_others_name_es_a[$ot];
+														$ot++;
+													}
 												}
 											}
 										}
@@ -729,9 +736,6 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 				}
 			}
 		}
-	} else if ($statuscode == 7) {
-		$b5mcode_others = $doc2["features"][0]["properties"]["info"][0]["b5mcode_others"];
-		//echo $b5mcode_others;
 	}
 	// End more info
 	if (count($doc2) == 0 && $statuscode != 8 && $statuscode != 9)
