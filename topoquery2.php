@@ -71,6 +71,7 @@ $x1 = "";
 $y1 = "";
 $x2 = "";
 $y2 = "";
+$ot1 = 0;
 
 // Variable Links
 $b5map_link["eu"] = $b5m_server . "/b5map/r1/eu/mapa/lekutu/";
@@ -622,7 +623,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 									$doc2["features"][$q1]["properties"]["b5maplink"] = $b5map_link[$lang] . $wfs_response["features"][$q1]["properties"][$q2];
 									$doc2["features"][$q1]["properties"]["info"][0][$q2 . "2"] = $wfs_response["features"][$q1]["properties"][$q2];
 								} else {
-									if ($q2 != "idname" && $q2 != "type_eu" && $q2 != "type_es" && $q2 != "type_en" && $q2 != "b5mcode_others" && $q2 != "b5mcode_others_name_eu" && $q2 != "b5mcode_others_name_es")
+									if ($q2 != "idname" && $q2 != "type_eu" && $q2 != "type_es" && $q2 != "type_en" && stripos($q2, "b5mcode_others") === false)
 										$doc2["features"][$q1]["properties"]["info"][0][$q2] = $wfs_response["features"][$q1]["properties"][$q2];
 
 										// Type
@@ -630,36 +631,39 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 											$doc2["features"][$q1]["properties"]["info"][0]["type"] = $wfs_response["features"][$q1]["properties"][$q2];
 
 										// More info
-										if ($q2 == "b5mcode_others") {
+										if(stripos($q2, "b5mcode_others") !== false && strlen($q2) < 18) {
+											//echo "KK" . $q2 . " - " . $ot1 . "KK";
 											$b5mcode_others = $wfs_response["features"][$q1]["properties"][$q2];
-											$b5mcode_others_name_eu = $wfs_response["features"][$q1]["properties"]["b5mcode_others_name_eu"];
-											$b5mcode_others_name_es = $wfs_response["features"][$q1]["properties"]["b5mcode_others_name_es"];
+											$b5mcode_others_name_eu = $wfs_response["features"][$q1]["properties"][$q2 . "_name_eu"];
+											$b5mcode_others_name_es = $wfs_response["features"][$q1]["properties"][$q2 . "_name_es"];
 											$b5m_code_type2 = strtolower(substr($b5mcode_others, 0, 1));
 											foreach ($wfs_capab_xml->FeatureTypeList->FeatureType as $featuretype) {
 												if ($b5m_code_type2 == strtolower(explode("_", explode(":", $featuretype->Name->__toString())[1])[0])) {
 													$featuretype_name = str_replace("ms:", "", $featuretype->Name);
 													$featuretype_desc =	explode(" / ", $featuretype->Title);
 													$featuretype_abstract = $featuretype->Abstract->__toString();
-													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["featuretypename"] = $featuretype_name;
-													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["description"] = $featuretype_desc[$lang2];
-													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["abstract"] = $featuretype_abstract;
+													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][$ot1]["featuretypename"] = $featuretype_name;
+													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][$ot1]["description"] = $featuretype_desc[$lang2];
+													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][$ot1]["abstract"] = $featuretype_abstract;
 													$b5mcode_others_a = explode("|", $b5mcode_others);
 													$b5mcode_others_name_eu_a = explode("|", $b5mcode_others_name_eu);
 													$b5mcode_others_name_es_a = explode("|", $b5mcode_others_name_es);
-													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["numberMatched"] = count($b5mcode_others_a);
-													$ot = 0;
+													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][$ot1]["numberMatched"] = count($b5mcode_others_a);
+													$ot2 = 0;
 													foreach ($b5mcode_others_a as $b5mcode_others_i) {
-														$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["features"][$ot]["b5mcode"] = $b5mcode_others_i;
-														$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["features"][$ot]["name_eu"] = $b5mcode_others_name_eu_a[$ot];
-														$doc2["features"][$q1]["properties"]["info"][0]["more_info"][0]["features"][$ot]["name_es"] = $b5mcode_others_name_es_a[$ot];
-														$ot++;
+														$doc2["features"][$q1]["properties"]["info"][0]["more_info"][$ot1]["features"][$ot2]["b5mcode"] = $b5mcode_others_i;
+														$doc2["features"][$q1]["properties"]["info"][0]["more_info"][$ot1]["features"][$ot2]["name_eu"] = $b5mcode_others_name_eu_a[$ot2];
+														$doc2["features"][$q1]["properties"]["info"][0]["more_info"][$ot1]["features"][$ot2]["name_es"] = $b5mcode_others_name_es_a[$ot2];
+														$ot2++;
 													}
 												}
 											}
+											$ot1++;
 										}
 										// End more info
 								}
 							}
+							//exit;
 
 							// Downloads
 							if ($statuscode != "7" && $featuretypenames != "dw_download") {
