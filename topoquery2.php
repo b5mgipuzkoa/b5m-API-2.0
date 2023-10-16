@@ -71,7 +71,6 @@ $x1 = "";
 $y1 = "";
 $x2 = "";
 $y2 = "";
-$ot1 = 0;
 
 // Variable Links
 $b5map_link["eu"] = $b5m_server . "/b5map/r1/eu/mapa/lekutu/";
@@ -585,15 +584,47 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 									if ($w == 0)
 										$u = 0;
 									$w++;
+									$ot1 = 0;
 									foreach ($r1["properties"] as $q2 => $r2) {
 										$doc2["features"][$t]["properties"]["info"][$u]["featuretypename"] = $d_addr;
 										$doc2["features"][$t]["properties"]["info"][$u]["description"] = $d_addr_des[$lang2];
 										$doc2["features"][$t]["properties"]["info"][$u]["abstract"] = $d_addr_abs;
-										if ($q2 != "idname" && $q2 != "b5mcode") {
+										if ($q2 != "idname" && $q2 != "b5mcode" && $q2 != "type_eu" && $q2 != "type_es" && $q2 != "type_en" && stripos($q2, "b5mcode_others") === false) {
 											if ($q2 == "b5mcode2")
 												$q2 = "b5mcode";
 											$doc2["features"][$t]["properties"]["info"][$u]["properties"][$q2] = $r2;
 										}
+
+										// More info
+										if(stripos($q2, "b5mcode_others") !== false && strlen($q2) < 18) {
+											$b5mcode_others = $wfs_response["features"][$q1]["properties"][$q2];
+											$b5mcode_others_name_eu = $wfs_response["features"][$q1]["properties"][$q2 . "_name_eu"];
+											$b5mcode_others_name_es = $wfs_response["features"][$q1]["properties"][$q2 . "_name_es"];
+											$b5m_code_type2 = strtolower(substr($b5mcode_others, 0, 1));
+											foreach ($wfs_capab_xml->FeatureTypeList->FeatureType as $featuretype) {
+												if ($b5m_code_type2 == strtolower(explode("_", explode(":", $featuretype->Name->__toString())[1])[0])) {
+													$featuretype_name = str_replace("ms:", "", $featuretype->Name);
+													$featuretype_desc =	explode(" / ", $featuretype->Title);
+													$featuretype_abstract = $featuretype->Abstract->__toString();
+													$doc2["features"][$q0]["properties"]["info"][$u]["more_info"][$ot1]["featuretypename"] = $featuretype_name;
+													$doc2["features"][$q0]["properties"]["info"][$u]["more_info"][$ot1]["description"] = $featuretype_desc[$lang2];
+													$doc2["features"][$q0]["properties"]["info"][$u]["more_info"][$ot1]["abstract"] = $featuretype_abstract;
+													$b5mcode_others_a = explode("|", $b5mcode_others);
+													$b5mcode_others_name_eu_a = explode("|", $b5mcode_others_name_eu);
+													$b5mcode_others_name_es_a = explode("|", $b5mcode_others_name_es);
+													$doc2["features"][$q0]["properties"]["info"][$u]["more_info"][$ot1]["numberMatched"] = count($b5mcode_others_a);
+													$ot2 = 0;
+													foreach ($b5mcode_others_a as $b5mcode_others_i) {
+														$doc2["features"][$q0]["properties"]["info"][$u]["more_info"][$ot1]["features"][$ot2]["b5mcode"] = $b5mcode_others_i;
+														$doc2["features"][$q0]["properties"]["info"][$u]["more_info"][$ot1]["features"][$ot2]["name_eu"] = $b5mcode_others_name_eu_a[$ot2];
+														$doc2["features"][$q0]["properties"]["info"][$u]["more_info"][$ot1]["features"][$ot2]["name_es"] = $b5mcode_others_name_es_a[$ot2];
+														$ot2++;
+													}
+												}
+											}
+											$ot1++;
+										}
+										// End more info
 									}
 								}
 								$u++;
@@ -617,6 +648,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 							$doc2["features"][$q1]["featuretypename"] = $val["featuretypename"];
 							$doc2["features"][$q1]["description"] = $val["description"][$lang2];
 							$doc2["features"][$q1]["abstract"] = $val["abstract"];
+							$ot1 = 0;
 							foreach ($r1["properties"] as $q2 => $r2) {
 								if ($q2 == "b5mcode") {
 									$doc2["features"][$q1]["properties"][$q2] = $wfs_response["features"][$q1]["properties"][$q2];
@@ -632,7 +664,6 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 
 										// More info
 										if(stripos($q2, "b5mcode_others") !== false && strlen($q2) < 18) {
-											//echo "KK" . $q2 . " - " . $ot1 . "KK";
 											$b5mcode_others = $wfs_response["features"][$q1]["properties"][$q2];
 											$b5mcode_others_name_eu = $wfs_response["features"][$q1]["properties"][$q2 . "_name_eu"];
 											$b5mcode_others_name_es = $wfs_response["features"][$q1]["properties"][$q2 . "_name_es"];
