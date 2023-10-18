@@ -712,15 +712,15 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 				} else {
 					if ($wfs_response_count > 0) {
 						// more_info
-						$doc2["more_info"][$j]["featuretypename"] = $val["featuretypename"];
-						$doc2["more_info"][$j]["description"] = $val["description"][$lang2];
-						$doc2["more_info"][$j]["abstract"] = $val["abstract"];
-						$doc2["more_info"][$j]["numberMatched"] = count($wfs_response_feat2);
+						$doc2["more_info_coors"][$j]["featuretypename"] = $val["featuretypename"];
+						$doc2["more_info_coors"][$j]["description"] = $val["description"][$lang2];
+						$doc2["more_info_coors"][$j]["abstract"] = $val["abstract"];
+						$doc2["more_info_coors"][$j]["numberMatched"] = count($wfs_response_feat2);
 						$k = 0;
 						foreach ($wfs_response_feat2 as $valfeat2) {
-							$doc2["more_info"][$j]["features"][$k]["b5mcode"] = $valfeat2["properties"]["b5mcode"];
-							$doc2["more_info"][$j]["features"][$k]["name_eu"] = $valfeat2["properties"]["name_eu"];
-							$doc2["more_info"][$j]["features"][$k]["name_es"] = $valfeat2["properties"]["name_es"];
+							$doc2["more_info_coors"][$j]["features"][$k]["b5mcode"] = $valfeat2["properties"]["b5mcode"];
+							$doc2["more_info_coors"][$j]["features"][$k]["name_eu"] = $valfeat2["properties"]["name_eu"];
+							$doc2["more_info_coors"][$j]["features"][$k]["name_es"] = $valfeat2["properties"]["name_es"];
 							$k++;
 						}
 						$j++;
@@ -759,15 +759,15 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 				$wms_layer = $wfs_typename_item . "_layer";
 				$wms_feature = $wfs_typename_item . "_feature";
 				if ($wms_response_xml->$wms_layer->$wms_feature != null) {
-					$doc2["more_info"][$i_wms]["featuretypename"] = $wfs_typename_item;
-					$doc2["more_info"][$i_wms]["description"] = $more_info_val["description"];
-					$doc2["more_info"][$i_wms]["abstract"] = $more_info_val["abstract"];
-					$doc2["more_info"][$i_wms]["numberMatched"] = count($wms_response_xml->$wms_layer->$wms_feature);
+					$doc2["more_info_coors"][$i_wms]["featuretypename"] = $wfs_typename_item;
+					$doc2["more_info_coors"][$i_wms]["description"] = $more_info_val["description"];
+					$doc2["more_info_coors"][$i_wms]["abstract"] = $more_info_val["abstract"];
+					$doc2["more_info_coors"][$i_wms]["numberMatched"] = count($wms_response_xml->$wms_layer->$wms_feature);
 					$i2_wms = 0;
 					foreach ($wms_response_xml->$wms_layer->$wms_feature as $wms_feature_val) {
-						$doc2["more_info"][$i_wms]["features"][$i2_wms]["b5mcode"] = "" . $wms_feature_val->b5mcode . "";
-						$doc2["more_info"][$i_wms]["features"][$i2_wms]["name_eu"] = "" . $wms_feature_val->name_eu . "";
-						$doc2["more_info"][$i_wms]["features"][$i2_wms]["name_es"] = "" . $wms_feature_val->name_es . "";
+						$doc2["more_info_coors"][$i_wms]["features"][$i2_wms]["b5mcode"] = "" . $wms_feature_val->b5mcode . "";
+						$doc2["more_info_coors"][$i_wms]["features"][$i2_wms]["name_eu"] = "" . $wms_feature_val->name_eu . "";
+						$doc2["more_info_coors"][$i_wms]["features"][$i2_wms]["name_es"] = "" . $wms_feature_val->name_es . "";
 						$i2_wms++;
 					}
 					$i_wms++;
