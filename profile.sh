@@ -125,10 +125,10 @@ profile_2p () {
 	fi
 
 	# LIDAR file resolution
-	res1="$(gdalinfo "$f_lidar" | gawk '{if($1=="Pixel"){split($4,a,"(");split(a[2],b,",");printf("%.0f\n",b[1])}}')"
+	res1="$(gdalinfo "$f_lidar" 2> /dev/null | gawk '{if($1=="Pixel"){split($4,a,"(");split(a[2],b,",");printf("%.0f\n",b[1])}}')"
 
 	# Warping data into a swath with two-point equidistant projection
-	l2="$(echo "$l1 $res1" | gawk '{printf("%.0f\n",$1/$2)}')"
+	l2="$(echo "$l1 $res1" | gawk '{a=sprintf("%.0f",$1/$2);if(a==0) a=1;print a}')"
 	l3=1
 	xl2="$(echo "$l1" | gawk '{printf("%f\n",$1/2)}')"
 	xl1="-${xl2}"
@@ -155,7 +155,7 @@ profile_2p () {
 	# Obtaining height data
 	rm "$f4" 2> /dev/null
 	gdal_translate -of "XYZ" "$f3" "$f4" > /dev/null 2> /dev/null
-	res2="$(gdalinfo "$f3" | gawk '{if($1=="Pixel"){split($4,a,"(");split(a[2],b,",");printf("%f\n",b[1])}}')"
+	res2="$(gdalinfo "$f3" 2> /dev/null | gawk '{if($1=="Pixel"){split($4,a,"(");split(a[2],b,",");printf("%f\n",b[1])}}')"
 	rm "$f3" 2> /dev/null
 
 	# Height data processing
@@ -163,7 +163,7 @@ profile_2p () {
 	{
 		printf("%s,%.2f\n",res2,$3)
 	}
-	' "$f4"
+	' "$f4" 2> /dev/null
 	rm "$f4" 2> /dev/null
 }
 
