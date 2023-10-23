@@ -197,19 +197,53 @@ lph="$(gdallocationinfo -valonly -l_srs "$srs" "$f_lidar" $x2 $y2)"
 
 # Result
 gawk -v lph="$lph" '
+function abs(v) { v += 0; return v < 0 ? -v : v }
 BEGIN{
 	FS=","
 	l=0
+	l2=0
+	mah=-9999
+	mih=9999
+	avh1=0
+	map=-9999
+	el1=0
+	el2=0
 }
 {
-	if($2=="-9999.00")
-		$2=sprintf("%.0f",$2)
-	printf("%.2f %s\n",l,$2)
+	if($2=="-9999.00") $2=sprintf("%.0f",$2)
+	if(l==0)
+		pt=0
+	else
+		pt=((abs($2-h2))/$1)*100
+	if(mah<$2) mah=$2
+	if(mih>$2 && $2!="-9999") mih=$2
+	if ($2!="-9999") {
+		avh1=avh1+$2
+		l2++
+	}
+	if(map<pt) map=pt
+	if(NR!=1 && $2>h2 && $2!="-9999") el1=el1+$2-h2
+	if(NR!=1 && $2<h2 && $2!="-9999") el2=el2+$2-h2
+	# No slope
+	prf=prf""sprintf("%.2f %s\n",l,$2)
+	h2=$2
 	l=l+$1
 }
 END{
-	if(lph!="-9999")
-		lph=sprintf("%.2f",lph)
+	pt=((abs(lph-h2))/$1)*100
+	if(mah<lph) mah=lph
+	if(mih>lph && lph!="-9999") mih=lph
+	if(map<pt) map=pt
+	if(lph!="-9999"){
+		avh1=avh1+lph
+		l2++
+	 	lph=sprintf("%.2f",lph)
+	}
+	if(lph>h2 && lph!="-9999") el1=el1+lph-h2
+	if(lph<h2 && lph!="-9999") el2=el2+lph-h2
+	# No slope
+	printf("%.2f %.2f %.2f %.2f %.2f\n",mah,mih,avh1/l2,el1,abs(el2))
+	printf("%s",prf)
 	printf("%.2f %s\n",l,lph)
 }
 ' "$f5"
