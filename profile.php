@@ -35,9 +35,9 @@ $provider = "b5m - Gipuzkoa Spatial Data Infrastructure - Gipuzkoa Provincial Co
 $url_license = "https://" . $server_name . "/web5000/en/legal-information";
 $url_base = "https://" . $server_name . "/web5000";
 $image_url = "https://" . $server_name . "/web5000/img/logo-b5m.png";
-$altimetry_data = "Digital Terrain Model (DTM) of 1m from the Historical Territory of Gipuzkoa, based on LIDAR data. Year 2008";
-$altimetry_data_url = "https://b5m.gipuzkoa.eus/web5000/en/csw2/GFA.LIDS08";
-$altimetry_units = "meters";
+$elevation_data = "Digital Terrain Model (DTM) of 1m from the Historical Territory of Gipuzkoa, based on LIDAR data. Year 2008";
+$elevation_data_url = "https://b5m.gipuzkoa.eus/web5000/en/csw2/GFA.LIDS08";
+$elevation_units = "meters";
 $distance_units = "meters";
 $response_time_units = "seconds";
 $messages = "";
@@ -93,12 +93,23 @@ if ($statuscode == 0) {
 	$data = explode("\n", $output);
 	$data_last = array_pop($data);
 
-	$i = 0;
+	$i = -1;
 	$statuscode2 = 2;
 	foreach ($data as $value) {
 		$value_array = explode(" ", $value);
-		$doc2["elevationProfile"][$i]["distance"] = $value_array[0];
-		$doc2["elevationProfile"][$i]["height"] = $value_array[1];
+		if ($i == -1) {
+			if (count($value_array) == 6) {
+				$doc2["summary"]["profile_distance"] = $value_array[0];
+				$doc2["summary"]["elevation_high"] = $value_array[1];
+				$doc2["summary"]["elevation_low"] = $value_array[2];
+				$doc2["summary"]["average_elevation"] = $value_array[3];
+				$doc2["summary"]["total_elevation_gain"] = $value_array[4];
+				$doc2["summary"]["total_elevation_loss"] = $value_array[5];
+			}
+		} else {
+			$doc2["elevationProfile"][$i]["distance"] = $value_array[0];
+			$doc2["elevationProfile"][$i]["height"] = $value_array[1];
+		}
 
 		// Detecting out of range values
 		if ($value_array[1] == "-9999") {
@@ -125,9 +136,9 @@ if ($statuscode == 0 || $statuscode == 1) {
 	$doc1["info"]["license"]["urlLicense"] = $url_license;
 	$doc1["info"]["license"]["urlBase"] = $url_base;
 	$doc1["info"]["license"]["imageUrl"] = $image_url;
-	$doc1["info"]["metadata"]["altimetryData"] = $altimetry_data;
-	$doc1["info"]["metadata"]["altimetryDataUrl"] = $altimetry_data_url;
-	$doc1["info"]["metadata"]["altimetryUnits"] = $altimetry_units;
+	$doc1["info"]["metadata"]["elevationData"] = $elevation_data;
+	$doc1["info"]["metadata"]["elevationDataUrl"] = $elevation_data_url;
+	$doc1["info"]["metadata"]["elevationUnits"] = $elevation_units;
 	$doc1["info"]["metadata"]["distanceUnits"] = $distance_units;
 	$doc1["info"]["responseTime"]["time"] = $response_time;
 	$doc1["info"]["responseTime"]["units"] = $response_time_units;
