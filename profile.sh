@@ -242,7 +242,7 @@ END{
 	if(lph>h2 && lph!="-9999") el1=el1+lph-h2
 	if(lph<h2 && lph!="-9999") el2=el2+lph-h2
 	# No slope
-	printf("%.2f %.2f %.2f %.2f %.2f\n",mah,mih,avh1/l2,el1,abs(el2))
+	printf("%.2f %.2f %.2f %.2f %.2f %.2f\n",l,mah,mih,avh1/l2,el1,abs(el2))
 	printf("%s",prf)
 	printf("%.2f %s\n",l,lph)
 }
