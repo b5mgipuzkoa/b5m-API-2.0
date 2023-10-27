@@ -98,13 +98,14 @@ if ($statuscode == 0) {
 	foreach ($data as $value) {
 		$value_array = explode(" ", $value);
 		if ($i == -1) {
-			if (count($value_array) == 6) {
+			if (count($value_array) == 7) {
 				$doc2["summary"]["profile_distance"] = $value_array[0];
 				$doc2["summary"]["elevation_high"] = $value_array[1];
 				$doc2["summary"]["elevation_low"] = $value_array[2];
 				$doc2["summary"]["average_elevation"] = $value_array[3];
 				$doc2["summary"]["total_elevation_gain"] = $value_array[4];
 				$doc2["summary"]["total_elevation_loss"] = $value_array[5];
+				$doc2["summary"]["average_percentage_elevation"] = $value_array[6];
 			}
 		} else {
 			$doc2["elevationProfile"][$i]["distance"] = $value_array[0];
