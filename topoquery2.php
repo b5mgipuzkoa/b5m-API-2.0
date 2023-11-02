@@ -655,12 +655,18 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 									$doc2["features"][$q1]["properties"]["b5maplink"] = $b5map_link[$lang] . $wfs_response["features"][$q1]["properties"][$q2];
 									$doc2["features"][$q1]["properties"]["info"][0][$q2 . "2"] = $wfs_response["features"][$q1]["properties"][$q2];
 								} else {
-									if ($q2 != "idname" && $q2 != "type_eu" && $q2 != "type_es" && $q2 != "type_en" && stripos($q2, "b5mcode_others") === false)
+									if ($q2 != "idname" && $q2 != "type_eu" && $q2 != "type_es" && $q2 != "type_en" && $q2 != "type_description_eu" && $q2 != "type_description_es" && $q2 != "type_description_en" && $q2 != "category_eu" && $q2 != "category_es" && $q2 != "category_en" && $q2 != "category_description_eu" && $q2 != "category_description_es" && $q2 != "category_description_en" && stripos($q2, "b5mcode_others") === false)
 										$doc2["features"][$q1]["properties"]["info"][0][$q2] = $wfs_response["features"][$q1]["properties"][$q2];
 
-										// Type
+										// Type and Category
 										if ($q2 == "type_" . $lang)
 											$doc2["features"][$q1]["properties"]["info"][0]["type"] = $wfs_response["features"][$q1]["properties"][$q2];
+										if ($q2 == "type_description_" . $lang)
+											$doc2["features"][$q1]["properties"]["info"][0]["type_description"] = $wfs_response["features"][$q1]["properties"][$q2];
+										if ($q2 == "category_" . $lang)
+											$doc2["features"][$q1]["properties"]["info"][0]["category"] = $wfs_response["features"][$q1]["properties"][$q2];
+										if ($q2 == "category_description_" . $lang)
+											$doc2["features"][$q1]["properties"]["info"][0]["category_description"] = $wfs_response["features"][$q1]["properties"][$q2];
 
 										// More info
 										if(stripos($q2, "b5mcode_others") !== false && strlen($q2) < 18) {
