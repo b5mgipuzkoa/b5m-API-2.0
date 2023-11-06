@@ -428,7 +428,7 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 			if ($featuretypenames == "" && $statuscode == 4)
 				$featuretypes_a[$i]["properties"] = get_feat_info($featuretype_name);
 		}
-		$i++;
+		if ($except_flag == 0) $i++;
 	}
 }
 
@@ -655,7 +655,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 									$doc2["features"][$q1]["properties"]["b5maplink"] = $b5map_link[$lang] . $wfs_response["features"][$q1]["properties"][$q2];
 									$doc2["features"][$q1]["properties"]["info"][0][$q2 . "2"] = $wfs_response["features"][$q1]["properties"][$q2];
 								} else {
-									if ($q2 != "idname" && $q2 != "type_eu" && $q2 != "type_es" && $q2 != "type_en" && $q2 != "type_description_eu" && $q2 != "type_description_es" && $q2 != "type_description_en" && $q2 != "category_eu" && $q2 != "category_es" && $q2 != "category_en" && $q2 != "category_description_eu" && $q2 != "category_description_es" && $q2 != "category_description_en" && stripos($q2, "b5mcode_others") === false)
+									if ($q2 != "idname" && $q2 != "type_eu" && $q2 != "type_es" && $q2 != "type_en" && $q2 != "id_poi" && $q2 != "type_description_eu" && $q2 != "type_description_es" && $q2 != "type_description_en" && $q2 != "category_eu" && $q2 != "category_es" && $q2 != "category_en" && $q2 != "category_description_eu" && $q2 != "category_description_es" && $q2 != "category_description_en" && stripos($q2, "b5mcode_others") === false)
 										$doc2["features"][$q1]["properties"]["info"][0][$q2] = $wfs_response["features"][$q1]["properties"][$q2];
 
 										// Type and Category
