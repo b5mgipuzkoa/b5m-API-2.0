@@ -56,6 +56,7 @@ $offset_v = "";
 $bbox = "";
 $bbox_default = "";
 $featuretypes_a = array();
+$featuretypes_a2 = array();
 $d_addr = "d_postaladdresses";
 $doc1 = array();
 $doc2 = array();
@@ -703,7 +704,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 							//exit;
 
 							// Downloads
-							if ($statuscode != "7" && $featuretypenames != "dw_download") {
+							if ($statuscode != "7" && $featuretypenames == "") {
 								$wfs_response_dw = get_dw_list();
 								foreach ($wfs_response_dw["features"] as $q1_dw => $r1_dw) {
 									$r1_dw = tidy_dw($r1_dw, $lang, $r1_dw);
