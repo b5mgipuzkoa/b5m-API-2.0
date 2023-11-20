@@ -665,7 +665,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 									if ($q2 != "idname" && $q2 != "class_eu" && $q2 != "class_es" && $q2 != "class_en" && $q2 != "id_poi" && $q2 != "class_description_eu" && $q2 != "class_description_es" && $q2 != "class_description_en" && $q2 != "category_eu" && $q2 != "category_es" && $q2 != "category_en" && $q2 != "category_description_eu" && $q2 != "category_description_es" && $q2 != "category_description_en" && $q2 != "poi_eu" && $q2 != "poi_es" && $q2 != "poi_en" && stripos($q2, "b5mcode_others") === false)
 										$doc2["features"][$q1]["properties"]["info"][0][$q2] = $wfs_response["features"][$q1]["properties"][$q2];
 
-										// class and Category
+										// Class and Category
 										if ($q2 == "class_" . $lang)
 											$doc2["features"][$q1]["properties"]["info"][0]["class"] = $wfs_response["features"][$q1]["properties"][$q2];
 										if ($q2 == "class_description_" . $lang)
@@ -675,7 +675,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 										if ($q2 == "category_description_" . $lang)
 											$doc2["features"][$q1]["properties"]["info"][0]["category_description"] = $wfs_response["features"][$q1]["properties"][$q2];
 										if ($q2 == "poi_" . $lang)
-											$doc2["features"][$q1]["properties"]["info"][0]["poi_description"] = $wfs_response["features"][$q1]["properties"][$q2];
+											$doc2["features"][$q1]["properties"]["info"][0]["poi"] = $wfs_response["features"][$q1]["properties"][$q2];
 
 										// More info
 										if(stripos($q2, "b5mcode_others") !== false && strlen($q2) < 18) {
