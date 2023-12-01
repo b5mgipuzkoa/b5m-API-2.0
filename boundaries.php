@@ -208,8 +208,8 @@ if ($response["response"]["numFound"] > 0) {
 						$doc["response"]["docs"][$i]["agreements"][$j]["boundarystones"][$k]["type_name"] = $response3["response"]["docs"][$k]["boundarystone_type_" . $lang];
 						$doc["response"]["docs"][$i]["agreements"][$j]["boundarystones"][$k]["accuracy"] = $response3["response"]["docs"][$k]["accuracy"];
 						$doc["response"]["docs"][$i]["agreements"][$j]["boundarystones"][$k]["accuracy_name"] = $response3["response"]["docs"][$k]["accuracy_" .$lang];
-						$doc["response"]["docs"][$i]["agreements"][$j]["boundarystones"][$k]["accuracy_description"] = $response3["response"]["docs"][$k]["accuracy_description_" .$lang];
-						$doc["response"]["docs"][$i]["agreements"][$j]["boundarystones"][$k]["comment"] = $response3["response"]["docs"][$k]["boundarystone_comment"];
+						$doc["response"]["docs"][$i]["agreements"][$j]["boundarystones"][$k]["accuracy_description"] = $response3["response"]["docs"][$k]["accuracy_description_" . $lang];
+						$doc["response"]["docs"][$i]["agreements"][$j]["boundarystones"][$k]["comment"] = $response3["response"]["docs"][$k]["boundarystone_comment_" . $lang];
 						$doc["response"]["docs"][$i]["agreements"][$j]["boundarystones"][$k]["relationship"] = $response3["response"]["docs"][$k]["relationship"];
 						$doc["response"]["docs"][$i]["agreements"][$j]["boundarystones"][$k]["relationship_comment"] = $response3["response"]["docs"][$k]["relationship_comment"];
 						$doc["response"]["docs"][$i]["agreements"][$j]["boundarystones"][$k]["map_link"] = $response3["response"]["docs"][$k]["map_link_boundarystone_" . $lang2];
