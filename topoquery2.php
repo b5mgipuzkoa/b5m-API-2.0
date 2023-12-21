@@ -591,47 +591,20 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 										$doc2["features"][$t]["properties"]["info"][$u]["description"] = $d_addr_des[$lang2];
 										$doc2["features"][$t]["properties"]["info"][$u]["abstract"] = $d_addr_abs;
 										if ($q2 != "idname" && $q2 != "idut" && $q2 != "b5mcode" && $q2 != "type_eu" && $q2 != "type_es" && $q2 != "type_en" && stripos($q2, "b5mcode_others") === false) {
+										//if ($q2 != "idname" && $q2 != "idut" && $q2 != "b5mcode" && $q2 != "type_eu" && $q2 != "type_es" && $q2 != "type_en" && $q2 != "more_info_eu" && $q2 != "more_info_es" && $q2 != "more_info_en" && stripos($q2, "b5mcode_others") === false) {
 											if ($q2 == "b5mcode2")
 												$q2 = "b5mcode";
-											if ($q2 != "poi_eu" && $q2 != "poi_es" && $q2 != "poi_en") {
+
+											// More info && POI
+											if ($q2 != "more_info_eu" && $q2 != "more_info_es" && $q2 != "more_info_en" && $q2 != "poi_eu" && $q2 != "poi_es" && $q2 != "poi_en") {
 												$doc2["features"][$t]["properties"]["info"][$u]["properties"][$q2] = $r2;
 											} else {
+												if ($q2 == "more_info_" . $lang)
+													$doc2["features"][$t]["properties"]["info"][$u]["properties"]["more_info"] = $wfs_response["features"][$q1]["properties"][$q2];
 												if ($q2 == "poi_" . $lang)
 													$doc2["features"][$t]["properties"]["info"][$u]["properties"]["poi"] = $r2;
 											}
 										}
-
-										// More info
-										if(stripos($q2, "b5mcode_others") !== false)
-										if(stripos($q2, "b5mcode_others") !== false && strlen($q2) < 18) {
-											$b5mcode_others = $wfs_response["features"][$q1]["properties"][$q2];
-											$b5mcode_others_name_eu = $wfs_response["features"][$q1]["properties"][$q2 . "_name_eu"];
-											$b5mcode_others_name_es = $wfs_response["features"][$q1]["properties"][$q2 . "_name_es"];
-											$b5m_code_type2 = strtolower(substr($b5mcode_others, 0, 1));
-											foreach ($wfs_capab_xml->FeatureTypeList->FeatureType as $featuretype) {
-												if ($b5m_code_type2 == strtolower(explode("_", explode(":", $featuretype->Name->__toString())[1])[0])) {
-													$featuretype_name = str_replace("ms:", "", $featuretype->Name);
-													$featuretype_desc =	explode(" / ", $featuretype->Title);
-													$featuretype_abstract = $featuretype->Abstract->__toString();
-													$doc2["features"][$q0]["properties"]["info"][$u]["more_info"][$ot1]["featuretypename"] = $featuretype_name;
-													$doc2["features"][$q0]["properties"]["info"][$u]["more_info"][$ot1]["description"] = $featuretype_desc[$lang2];
-													$doc2["features"][$q0]["properties"]["info"][$u]["more_info"][$ot1]["abstract"] = $featuretype_abstract;
-													$b5mcode_others_a = explode("|", $b5mcode_others);
-													$b5mcode_others_name_eu_a = explode("|", $b5mcode_others_name_eu);
-													$b5mcode_others_name_es_a = explode("|", $b5mcode_others_name_es);
-													$doc2["features"][$q0]["properties"]["info"][$u]["more_info"][$ot1]["numberMatched"] = count($b5mcode_others_a);
-													$ot2 = 0;
-													foreach ($b5mcode_others_a as $b5mcode_others_i) {
-														$doc2["features"][$q0]["properties"]["info"][$u]["more_info"][$ot1]["features"][$ot2]["b5mcode"] = $b5mcode_others_i;
-														$doc2["features"][$q0]["properties"]["info"][$u]["more_info"][$ot1]["features"][$ot2]["name_eu"] = $b5mcode_others_name_eu_a[$ot2];
-														$doc2["features"][$q0]["properties"]["info"][$u]["more_info"][$ot1]["features"][$ot2]["name_es"] = $b5mcode_others_name_es_a[$ot2];
-														$ot2++;
-													}
-												}
-											}
-											$ot1++;
-										}
-										// End more info
 									}
 								}
 								$u++;
@@ -662,7 +635,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 									$doc2["features"][$q1]["properties"]["b5maplink"] = $b5map_link[$lang] . $wfs_response["features"][$q1]["properties"][$q2];
 									$doc2["features"][$q1]["properties"]["info"][0][$q2 . "2"] = $wfs_response["features"][$q1]["properties"][$q2];
 								} else {
-									if ($q2 != "idname" && $q2 != "type_eu" && $q2 != "type_es" && $q2 != "type_en" && $q2 != "class_eu" && $q2 != "class_es" && $q2 != "class_en" && $q2 != "id_poi" && $q2 != "class_description_eu" && $q2 != "class_description_es" && $q2 != "class_description_en" && $q2 != "category_eu" && $q2 != "category_es" && $q2 != "category_en" && $q2 != "category_description_eu" && $q2 != "category_description_es" && $q2 != "category_description_en" && $q2 != "poi_eu" && $q2 != "poi_es" && $q2 != "poi_en" && stripos($q2, "b5mcode_others") === false)
+									if ($q2 != "idname" && $q2 != "type_eu" && $q2 != "type_es" && $q2 != "type_en" && $q2 != "class_eu" && $q2 != "class_es" && $q2 != "class_en" && $q2 != "id_poi" && $q2 != "class_description_eu" && $q2 != "class_description_es" && $q2 != "class_description_en" && $q2 != "category_eu" && $q2 != "category_es" && $q2 != "category_en" && $q2 != "category_description_eu" && $q2 != "category_description_es" && $q2 != "category_description_en" && $q2 != "poi_eu" && $q2 != "poi_es" && $q2 != "poi_en" && $q2 != "more_info_eu" && $q2 != "more_info_es" && $q2 != "more_info_en" && stripos($q2, "b5mcode_others") === false)
 										$doc2["features"][$q1]["properties"]["info"][0][$q2] = $wfs_response["features"][$q1]["properties"][$q2];
 
 										// Type
@@ -682,38 +655,10 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 											$doc2["features"][$q1]["properties"]["info"][0]["poi"] = $wfs_response["features"][$q1]["properties"][$q2];
 
 										// More info
-										if(stripos($q2, "b5mcode_others") !== false && strlen($q2) < 18) {
-											$b5mcode_others = $wfs_response["features"][$q1]["properties"][$q2];
-											$b5mcode_others_name_eu = $wfs_response["features"][$q1]["properties"][$q2 . "_name_eu"];
-											$b5mcode_others_name_es = $wfs_response["features"][$q1]["properties"][$q2 . "_name_es"];
-											$b5m_code_type2 = strtolower(substr($b5mcode_others, 0, 1));
-											foreach ($wfs_capab_xml->FeatureTypeList->FeatureType as $featuretype) {
-												if ($b5m_code_type2 == strtolower(explode("_", explode(":", $featuretype->Name->__toString())[1])[0])) {
-													$featuretype_name = str_replace("ms:", "", $featuretype->Name);
-													$featuretype_desc =	explode(" / ", $featuretype->Title);
-													$featuretype_abstract = $featuretype->Abstract->__toString();
-													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][$ot1]["featuretypename"] = $featuretype_name;
-													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][$ot1]["description"] = $featuretype_desc[$lang2];
-													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][$ot1]["abstract"] = $featuretype_abstract;
-													$b5mcode_others_a = explode("|", $b5mcode_others);
-													$b5mcode_others_name_eu_a = explode("|", $b5mcode_others_name_eu);
-													$b5mcode_others_name_es_a = explode("|", $b5mcode_others_name_es);
-													$doc2["features"][$q1]["properties"]["info"][0]["more_info"][$ot1]["numberMatched"] = count($b5mcode_others_a);
-													$ot2 = 0;
-													foreach ($b5mcode_others_a as $b5mcode_others_i) {
-														$doc2["features"][$q1]["properties"]["info"][0]["more_info"][$ot1]["features"][$ot2]["b5mcode"] = $b5mcode_others_i;
-														$doc2["features"][$q1]["properties"]["info"][0]["more_info"][$ot1]["features"][$ot2]["name_eu"] = $b5mcode_others_name_eu_a[$ot2];
-														$doc2["features"][$q1]["properties"]["info"][0]["more_info"][$ot1]["features"][$ot2]["name_es"] = $b5mcode_others_name_es_a[$ot2];
-														$ot2++;
-													}
-												}
-											}
-											$ot1++;
-										}
-										// End more info
+										if ($q2 == "more_info_" . $lang)
+											$doc2["features"][$q1]["properties"]["info"][0]["more_info"] = $wfs_response["features"][$q1]["properties"][$q2];
 								}
 							}
-							//exit;
 
 							// Downloads
 							if ($statuscode != "7" && $featuretypenames == "") {
@@ -730,7 +675,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 					}
 				} else {
 					if ($wfs_response_count > 0) {
-						// more_info
+						// more_info_coors
 						$doc2["more_info_coors"][$j]["featuretypename"] = $val["featuretypename"];
 						$doc2["more_info_coors"][$j]["description"] = $val["description"][$lang2];
 						$doc2["more_info_coors"][$j]["abstract"] = $val["abstract"];
@@ -755,7 +700,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 			$doc3["numberMatched"] = count($doc2["features"]);
 	}
 
-	// More info
+	// More info coors
 	if ($statuscode == 0) {
 		$coors_number_a = explode(",", $coors);
 		if (count($coors_number_a) == "2") {
@@ -794,7 +739,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 			}
 		}
 	}
-	// End more info
+	// End more info coors
 	if (count($doc2) == 0 && $statuscode != 8 && $statuscode != 9)
 		$statuscode = 5;
 }
