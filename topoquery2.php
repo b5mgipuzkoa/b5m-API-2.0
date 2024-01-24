@@ -8,7 +8,7 @@
 //
 
 // Memory
-ini_set("memory_limit", "200M");
+ini_set("memory_limit", "500M");
 
 // Includes
 include_once("./includes/gipuzkoa_wfs_featuretypes_except.php");
@@ -591,7 +591,6 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 										$doc2["features"][$t]["properties"]["info"][$u]["description"] = $d_addr_des[$lang2];
 										$doc2["features"][$t]["properties"]["info"][$u]["abstract"] = $d_addr_abs;
 										if ($q2 != "idname" && $q2 != "idut" && $q2 != "b5mcode" && $q2 != "type_eu" && $q2 != "type_es" && $q2 != "type_en" && stripos($q2, "b5mcode_others") === false) {
-										//if ($q2 != "idname" && $q2 != "idut" && $q2 != "b5mcode" && $q2 != "type_eu" && $q2 != "type_es" && $q2 != "type_en" && $q2 != "more_info_eu" && $q2 != "more_info_es" && $q2 != "more_info_en" && stripos($q2, "b5mcode_others") === false) {
 											if ($q2 == "b5mcode2")
 												$q2 = "b5mcode";
 
