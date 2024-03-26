@@ -28,6 +28,7 @@ if (isset($_REQUEST['geom'])) $geom = $_REQUEST['geom']; else $geom = "";
 if (isset($_REQUEST['featuretypes'])) $featuretypes = $_REQUEST['featuretypes']; else $featuretypes = "";
 if (isset($_REQUEST['featuretypenames'])) $featuretypenames = $_REQUEST['featuretypenames']; else $featuretypenames = "";
 if (isset($_REQUEST['format'])) $format = $_REQUEST['format']; else $format = "";
+if (isset($_REQUEST['downloadlist'])) $downloadlist = $_REQUEST['downloadlist']; else $downloadlist = "";
 if (isset($_REQUEST['debug'])) $debug = $_REQUEST['debug']; else $debug = 0;
 if ($featuretypes != "") $z = "";
 
@@ -299,6 +300,10 @@ if ($b5m_code != "") {
 if (strtolower($featuretypes) == "true")
 	$statuscode = 4;
 
+// Download types
+if (strtolower($downloadlist) == "true")
+	$statuscode = 10;
+
 // Coors
 if ($coors == "" && $statuscode == 0) {
 	$statuscode = 1;
@@ -433,8 +438,24 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 	}
 }
 
+// Download types
+if ($statuscode == 10) {
+	$wfs_typename = str_replace("dw_", "dw2_", $wfs_typename_dw . "_types");
+	$url_request1 = $wfs_server . $wfs_request1 . $wfs_typename . $wfs_output;
+	$time_i = microtime(true);
+	$wfs_response = json_decode((get_url_info($url_request1)['content']), true);
+	$featuretypes_a = $wfs_response['features'][0]['properties']['dw_types'];
+	$i = 0;
+	foreach ($featuretypes_a as $val) {
+		$doc2['dw_types'][$i]['dw_type_id'] = $val['dw_type_id'];
+		$doc2['dw_types'][$i]['dw_name'] = $val['dw_name_' . $lang];
+		$i++;
+	}
+	get_time($time_i, $url_request1);
+}
+
 // Zoom restriction
-if (($z != "" || $featuretypenames != "") && ($statuscode != 3) && ($statuscode != 9)) {
+if (($z != "" || $featuretypenames != "") && ($statuscode != 3) && ($statuscode != 9) && ($statuscode != 10)) {
 	$data_json = file_get_contents($file_json);
 	$zoom_array = json_decode($data_json);
 	foreach ($zoom_array as $obj) {
@@ -445,9 +466,9 @@ if (($z != "" || $featuretypenames != "") && ($statuscode != 3) && ($statuscode 
 	}
 	if ($featuretypenames != "")
 		$featuretypenames_a = explode(",", $featuretypenames);
-	$i=0;
+	$i = 0;
 	foreach ($featuretypenames_a as $featuretypenames_n) {
-		$j=0;
+		$j = 0;
 		foreach ($featuretypes_a as $featuretypes_n) {
 			if ($featuretypenames_n == $featuretypes_n["featuretypename"]) {
 				$featuretypes_a2[$i] = $featuretypes_a[$j];
@@ -462,7 +483,7 @@ if (($z != "" || $featuretypenames != "") && ($statuscode != 3) && ($statuscode 
 }
 
 // Featuretypes count
-if (count($featuretypes_a) == 0 && $statuscode != 3 && $statuscode != 7 && $statuscode != 9)
+if (count($featuretypes_a) == 0 && $statuscode != 3 && $statuscode != 7 && $statuscode != 9 && $statuscode != 10)
 	$statuscode = 6;
 
 if ($statuscode == 4) {
@@ -743,7 +764,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 		$statuscode = 5;
 }
 
-if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6 || $statuscode == 7 || $statuscode == 8 || $statuscode == 9) {
+if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6 || $statuscode == 7 || $statuscode == 8 || $statuscode == 9 || $statuscode ==10) {
 	// Data license
 	$final_time = microtime(true);
 	$response_time = sprintf("%.2f", $final_time - $init_time);
@@ -772,7 +793,7 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6
 		$doc1["info"]["messages"]["warning"] = $msg008;
 	else if ($statuscode == 9)
 		$doc1["info"]["messages"]["warning"] = $msg009;
-	if ($statuscode != 4) {
+	if ($statuscode != 4 && $statuscode != 10) {
 		if ($statuscode != 6 && $statuscode != 7) {
 				if ($coors != "") $doc1["coors"] = $coors;
 				if ($statuscode != 9) {
