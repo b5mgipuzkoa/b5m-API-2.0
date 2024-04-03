@@ -29,6 +29,7 @@ if (isset($_REQUEST['featuretypes'])) $featuretypes = $_REQUEST['featuretypes'];
 if (isset($_REQUEST['featuretypenames'])) $featuretypenames = $_REQUEST['featuretypenames']; else $featuretypenames = "";
 if (isset($_REQUEST['format'])) $format = $_REQUEST['format']; else $format = "";
 if (isset($_REQUEST['downloadlist'])) $downloadlist = $_REQUEST['downloadlist']; else $downloadlist = "";
+if (isset($_REQUEST['dwtypeid'])) $dwtypeid = $_REQUEST['dwtypeid']; else $dwtypeid = "";
 if (isset($_REQUEST['debug'])) $debug = $_REQUEST['debug']; else $debug = 0;
 if ($featuretypes != "") $z = "";
 
@@ -46,11 +47,13 @@ $wfs_service = "?service=wfs";
 $wfs_capab = $wfs_service . "&request=getcapabilities";
 $wfs_feature = $wfs_service . "&version=1.1.0&request=describefeaturetype&typename=";
 $wfs_request1 = $wfs_service . "&version=2.0.0&request=getFeature&typeNames=";
-//$wfs_request2 = $wfs_service . "&version=2.0.0&request=getPropertyValue&valueReference=" . $wfs_valueref . "&typeNames=";
-$wfs_request3 = "?request=GetMetadata&layer=";
+$wfs_request2 = "?request=GetMetadata&layer=";
 $wfs_output = "&outputFormat=application/json;%20subtype=geojson";
-$b5m_code_filter="B5MCODEFILTER";
-$wfs_filter_base = "&filter=<Filter><PropertyIsEqualTo><PropertyName>b5mcode</PropertyName><Literal>" . $b5m_code_filter . "</Literal></PropertyIsEqualTo></Filter>";
+$b5m_code_filter1="B5MCODEFILTER1";
+$b5m_code_filter2="B5MCODEFILTER2";
+$b5m_code_filter3="B5MCODEFILTER3";
+$wfs_filter_base1 = "&filter=<Filter><PropertyIsEqualTo><PropertyName>b5mcode</PropertyName><Literal>" . $b5m_code_filter1 . "</Literal></PropertyIsEqualTo></Filter>";
+$wfs_filter_base2 = "&filter=<Filter><AND><BBOX><Box%20srsName='" . $b5m_code_filter2 . "'><coordinates>" . $b5m_code_filter3 . "</coordinates></Box></BBOX><PropertyIsLike%20wildcard='*'%20singleChar='.'%20escape='!'><PropertyName>dw_type_ids</PropertyName><Literal>*|" . $b5m_code_filter1 . "|*</Literal></PropertyIsLike></AND></Filter>";
 $offset_default = 1;
 $offset_units = "metres";
 $offset_v = "";
@@ -228,7 +231,10 @@ function get_bbox($x1, $y1, $x2, $y2, $srs, $offset, $statuscode, $srs_extra) {
 			$bbox = $y1 . "," . $x1 . "," . $y2 . "," . $x2;
 		else
 			$bbox = $x1 . "," . $y1 . "," . $x2 . "," . $y2;
-		$bbox2 = $bbox. "," . $srs_extra;
+		if ($srs_extra != "")
+			$bbox2 = $bbox . "," . $srs_extra;
+		else
+			$bbox2 = $bbox;
 	}
 	return $bbox2 . "|" . $wfs_srsname . "|" . $statuscode;
 }
@@ -508,6 +514,8 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 	 $srs_extra = "urn:ogc:def:crs:EPSG::3857";
 	else
 	 $srs_extra = "";
+	if ($dwtypeid != "")
+	 $srs_extra = "";
 
 	if ($statuscode != 7) {
 		// BBOX
@@ -534,7 +542,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 			$wfs_typename = $val["featuretypename"];
 			if ($offset_ori == "" && $statuscode == 5) {
 				// New offset if feature's geometry is curve or point
-				$url_request_md = $wfs_server . $wfs_request3 . $val["featuretypename"];
+				$url_request_md = $wfs_server . $wfs_request2 . $val["featuretypename"];
 				$time_i = microtime(true);
 				$wfs_response_md = (get_url_info($url_request_md)['content']);
 				get_time($time_i, $url_request_md);
@@ -554,9 +562,19 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 				$wfs_filter = "";
 			} else {
 				$wfs_bbox = "";
-				$wfs_filter = str_replace($b5m_code_filter, $b5m_code, $wfs_filter_base);
+				$wfs_filter = str_replace($b5m_code_filter1, $b5m_code, $wfs_filter_base1);
 			}
-			$url_request = $wfs_server . $wfs_request1 . $wfs_typename . $wfs_bbox . $wfs_srsname . $wfs_filter . $wfs_output;
+			if ($featuretypenames == $wfs_typename_dw && $dwtypeid != "") {
+				$wfs_filter = "" ;
+				$bbox_default_a = explode(",", $bbox_default);
+				$bbox_default2 = $bbox_default_a[0] . "," . $bbox_default_a[1] . "%20" . $bbox_default_a[2] . "," . $bbox_default_a[3];
+				$wfs_filter = str_replace($b5m_code_filter1, $dwtypeid, $wfs_filter_base2);
+				$wfs_filter = str_replace($b5m_code_filter2, "EPSG:4326", $wfs_filter);
+				$wfs_filter = str_replace($b5m_code_filter3, $bbox_default2, $wfs_filter);
+				$url_request = $wfs_server . $wfs_request1 . $wfs_typename . $wfs_srsname . $wfs_filter . $wfs_output;
+			} else {
+				$url_request = $wfs_server . $wfs_request1 . $wfs_typename . $wfs_bbox . $wfs_srsname . $wfs_filter . $wfs_output;
+			}
 
 			// Request
 			if (count($featuretypes_a) > 0) {
