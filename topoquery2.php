@@ -663,6 +663,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 							foreach ($wfs_response_dw["features"] as $q1_dw => $r1_dw) {
 								$r1_dw = tidy_dw($r1_dw, $lang, $q1_dw);
 								$doc2["downloads"][$q1_dw] = [$r1_dw][0]["properties"];
+								unset($doc2["downloads"][$q1_dw]["dw_type_ids"]);
 							}
 						}
 					} else {
@@ -721,6 +722,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 								foreach ($wfs_response_dw["features"] as $q1_dw => $r1_dw) {
 									$r1_dw = tidy_dw($r1_dw, $lang, $r1_dw);
 									$doc2["downloads"][$q1_dw] = [$r1_dw][0]["properties"];
+									unset($doc2["downloads"][$q1_dw]["dw_type_ids"]);
 								}
 							}
 
