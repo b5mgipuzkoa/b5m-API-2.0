@@ -30,6 +30,7 @@ if (isset($_REQUEST['featuretypenames'])) $featuretypenames = $_REQUEST['feature
 if (isset($_REQUEST['format'])) $format = $_REQUEST['format']; else $format = "";
 if (isset($_REQUEST['downloadlist'])) $downloadlist = $_REQUEST['downloadlist']; else $downloadlist = "";
 if (isset($_REQUEST['dwtypeid'])) $dwtypeid = $_REQUEST['dwtypeid']; else $dwtypeid = "";
+if (isset($_REQUEST['downloads'])) $downloads = $_REQUEST['downloads']; else $downloads = "";
 if (isset($_REQUEST['debug'])) $debug = $_REQUEST['debug']; else $debug = 0;
 if ($featuretypes != "") $z = "";
 
@@ -42,8 +43,6 @@ if ($lang == "eu") $lang2 = 0; else if ($lang == "es") $lang2 = 1; else $lang2 =
 $b5m_server = "https://" . $_SERVER['SERVER_NAME'];
 $wfs_server = $b5m_server . "/ogc/wfs2/gipuzkoa_wfs";
 $wfs_service = "?service=wfs";
-//$wfs_valueref_arr = array("name_eu", "name_es");
-//$wfs_valueref = "WFSVALUEREFVALUE";
 $wfs_capab = $wfs_service . "&request=getcapabilities";
 $wfs_feature = $wfs_service . "&version=1.1.0&request=describefeaturetype&typename=";
 $wfs_request1 = $wfs_service . "&version=2.0.0&request=getFeature&typeNames=";
@@ -270,6 +269,7 @@ function area_calc($x1, $y1, $x2, $y2, $srs) {
 	 	$area_c = 9999;
 	return $area_c;
 }
+// End of functions
 
 // Messages
 $msg000 = "None";
@@ -396,6 +396,11 @@ if ($x2 != "" && $featuretypenames != "dw_download") {
 	}
 }
 
+// Show only downloads parameter
+if ($downloads == 2)
+	$featuretypenames = "dw_download";
+
+// Process
 if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 	// Collecting featuretype data from getcapabilites request
 	$url_capab = $wfs_server . $wfs_capab;
@@ -653,7 +658,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 						}
 
 						// Downloads
-						if ($statuscode != "7") {
+						if ($statuscode != "7" && $featuretypenames == "" && $downloads == 1) {
 							$wfs_response_dw = get_dw_list();
 							foreach ($wfs_response_dw["features"] as $q1_dw => $r1_dw) {
 								$r1_dw = tidy_dw($r1_dw, $lang, $q1_dw);
@@ -711,7 +716,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 							}
 
 							// Downloads
-							if ($statuscode != "7" && $featuretypenames == "") {
+							if ($statuscode != "7" && $featuretypenames == "" && $downloads == 1) {
 								$wfs_response_dw = get_dw_list();
 								foreach ($wfs_response_dw["features"] as $q1_dw => $r1_dw) {
 									$r1_dw = tidy_dw($r1_dw, $lang, $r1_dw);
