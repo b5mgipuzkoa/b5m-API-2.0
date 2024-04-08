@@ -94,7 +94,7 @@ function get_time($time_i, $url_r) {
 function get_url_info($url) {
 	// Get information from an URL
 	if ($_SERVER['SERVER_NAME'] == "b5m.gipuzkoa.eus") {
-		$ssl_check = true;
+		$ssl_check = 2;
 		$proxy_tunnel = true;
 		$proxy_server = "http://proxy.sare.gipuzkoa.net";
 		$proxy_port = "8080";
