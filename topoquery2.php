@@ -388,7 +388,7 @@ if ($srs == "" && $statuscode == 0) {
 }
 
 // Area if it is a bounding box
-if ($x2 != "" && $featuretypenames != "dw_download") {
+if ($x2 != "" && $featuretypenames != $wfs_typename_dw) {
 	$bbox_area = area_calc($x1, $y1, $x2, $y2, $srs);
 	if ($bbox_area > $max_area) {
 		$statuscode = 9;
@@ -398,7 +398,7 @@ if ($x2 != "" && $featuretypenames != "dw_download") {
 
 // Show only downloads parameter
 if ($downloads == 2)
-	$featuretypenames = "dw_download";
+	$featuretypenames = $wfs_typename_dw;
 
 // Process
 if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
