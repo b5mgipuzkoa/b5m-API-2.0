@@ -70,6 +70,7 @@ $time_t = 0;
 $more_info_a = array();
 $url_request1 = null;
 $wfs_typename_dw = "dw_download";
+$wfs_typename_e = "e_buildings";
 $max_area = 100;
 $x1 = "";
 $y1 = "";
@@ -605,7 +606,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 				if ($statuscode != 7)
 					$statuscode = 0;
 				if ($i == 0) {
-					if ($val["featuretypename"] == "e_buildings") {
+					if ($val["featuretypename"] == $wfs_typename_e) {
 						// e_buildings case, postal addresses nested
 
 						// Listing building areas
