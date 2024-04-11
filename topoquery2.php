@@ -71,6 +71,8 @@ $more_info_a = array();
 $url_request1 = null;
 $wfs_typename_dw = "dw_download";
 $wfs_typename_e = "e_buildings";
+$wfs_typename_k = "k_streets_buildings";
+$wfs_typename_v = "v_streets_axis";
 $max_area = 100;
 $x1 = "";
 $y1 = "";
@@ -728,7 +730,24 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 							}
 
 							if ($geom != "false")
-								$doc2["features"][$q1]["geometry"] = $wfs_response["features"][$q1]["geometry"];
+								if ($val["featuretypename"] == $wfs_typename_k) {
+									// k_streets_buildings case, include axis in a GeometryCollection type
+									$url_request2 = str_replace($wfs_typename_k, $wfs_typename_v, $url_request1);
+									$url_request2 = str_replace("K_", "V_", $url_request2);
+									$wfs_response2 = json_decode((get_url_info($url_request2)['content']), true);
+									get_time($time_i, $url_request2);
+									$wfs_response_feat2 = $wfs_response2["features"];
+									$wfs_response_count2 = count($wfs_response_feat2);
+									if ($wfs_response_count2 == 0) {
+										$doc2["features"][$q1]["geometry"] = $wfs_response["features"][$q1]["geometry"];
+									} else {
+										$doc2["features"][$q1]["geometry"]["type"] = "GeometryCollection";
+										$doc2["features"][$q1]["geometry"]["geometries"][0] = $wfs_response["features"][$q1]["geometry"];
+										$doc2["features"][$q1]["geometry"]["geometries"][1] = $wfs_response2["features"][$q1]["geometry"];
+									}
+								} else {
+									$doc2["features"][$q1]["geometry"] = $wfs_response["features"][$q1]["geometry"];
+								}
 						}
 					}
 				} else {
