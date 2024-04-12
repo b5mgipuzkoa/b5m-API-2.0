@@ -302,7 +302,12 @@ $init_time = microtime(true);
 if ($b5m_code != "") {
 	$statuscode = 7;
 	$z = "";
-	$b5m_code_type = strtolower(explode("_", $b5m_code)[0]);
+	$b5m_code_a = explode("_", $b5m_code);
+	$b5m_code_type = strtolower($b5m_code_a[0]);
+
+	// kp case
+	if ($b5m_code_type == "t" && count($b5m_code_a) == 3)
+		$b5m_code_type = "kp";
 }
 
 // Types Request
