@@ -177,6 +177,8 @@ function tidy_dw($tidy_a, $tidy_l, $tidy_i) {
 	$tidy_a = rep_key_a($tidy_a, "name_grid_eu", "name_grid");
 	$tidy_a = rep_key_a($tidy_a, "type_grid_" . $tidy_l, "type_grid");
 	$tidy_a = rep_key_a($tidy_a, "name_" . $tidy_l, "name");
+	$tidy_a = rep_key_a($tidy_a, "url_" . $tidy_l, "url");
+	$tidy_a = rep_key_a($tidy_a, "owner_" . $tidy_l, "owner");
 	unset($tidy_a["properties"]["b5mcode"]);
 	unset($tidy_a["properties"]["name_grid_es"]);
 	unset($tidy_a["properties"]["type_grid_eu"]);
@@ -187,6 +189,21 @@ function tidy_dw($tidy_a, $tidy_l, $tidy_i) {
 		unset($tidy_a["properties"]["types_dw"][$i_dw]["name_eu"]);
 		unset($tidy_a["properties"]["types_dw"][$i_dw]["name_es"]);
 		unset($tidy_a["properties"]["types_dw"][$i_dw]["name_en"]);
+		// url and owner
+		$j_dw = 0;
+		foreach ($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"] as $series_dw) {
+			$k_dw = 0;
+			foreach ($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["metadata"] as $metadata_dw) {
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["metadata"]["url_eu"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["metadata"]["url_es"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["metadata"]["url_en"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["metadata"]["owner_eu"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["metadata"]["owner_es"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["metadata"]["owner_en"]);
+				$k_dw++;
+			}
+			$j_dw++;
+		}
 		$i_dw++;
 	}
 	return $tidy_a;
@@ -720,7 +737,57 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 
 									// More info
 									if ($q2 == "more_info_" . $lang)
-											$doc2["features"][$q1]["properties"]["info"][0]["more_info"] = $wfs_response["features"][$q1]["properties"][$q2];
+										$doc2["features"][$q1]["properties"]["info"][0]["more_info"] = $wfs_response["features"][$q1]["properties"][$q2];
+
+									// Filter download by lang
+									if ($q2 == "name_grid_" . $lang) {
+										$doc2["features"][$q1]["properties"]["info"][0]["name_grid"] = $wfs_response["features"][$q1]["properties"][$q2];
+									}
+									unset($doc2["features"][$q1]["properties"]["info"][0]["name_grid_eu"]);
+									unset($doc2["features"][$q1]["properties"]["info"][0]["name_grid_es"]);
+									if ($q2 == "type_grid_" . $lang) {
+										$doc2["features"][$q1]["properties"]["info"][0]["type_grid"] = $wfs_response["features"][$q1]["properties"][$q2];
+									}
+									unset($doc2["features"][$q1]["properties"]["info"][0]["type_grid_eu"]);
+									unset($doc2["features"][$q1]["properties"]["info"][0]["type_grid_es"]);
+									unset($doc2["features"][$q1]["properties"]["info"][0]["type_grid_en"]);
+									if ($q2 == "types_dw") {
+										foreach ($r2 as $q3 => $r3) {
+											foreach ($r3 as $q4 => $r4) {
+												if ($q4 == "name_" . $lang) {
+													$doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3]["name"] = $r3["name_" . $lang];
+													$doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3]["series_dw2"] = $doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3]["series_dw"];
+													unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3]["series_dw"]);
+													$doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3]["series_dw"] = $doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3]["series_dw2"];
+													unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3]["series_dw2"]);
+												}
+												unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3]["name_eu"]);
+												unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3]["name_es"]);
+												unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3]["name_en"]);
+												if ($q4 == "series_dw") {
+													foreach ($r4 as $q5 => $r5) {
+														foreach ($r5 as $q6 => $r6) {
+															if ($q6 == "metadata") {
+																foreach ($r6 as $q7 => $r7) {
+																	if ($q7 == "url_" . $lang)
+																		$doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6]["url"] = $r7;
+																	if ($q7 == "owner_" . $lang)
+																		$doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6]["owner"] = $r7;
+																	unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6]["url_eu"]);
+																	unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6]["url_es"]);
+																	unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6]["url_en"]);
+																	unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6]["owner_eu"]);
+																	unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6]["owner_es"]);
+																	unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6]["owner_en"]);
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+									// End of filter download by lang
 								}
 							}
 
