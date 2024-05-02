@@ -8,7 +8,7 @@
 //
 
 // Memory
-ini_set("memory_limit", "500M");
+ini_set("memory_limit", "1000M");
 
 // Includes
 include_once("./includes/gipuzkoa_wfs_featuretypes_except.php");
