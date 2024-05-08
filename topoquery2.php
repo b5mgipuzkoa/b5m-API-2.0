@@ -799,10 +799,28 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 																			unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6][$q8]["url_ref_es"]);
 																			unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6][$q8]["url_ref_en"]);
 																		}
-																	} else if ($q8 == "data_processing") {
+																	} else if ($q8 == "height_type") {
 																		foreach ($r8 as $q10 => $r10) {
 																			if ($q10 == "description_" . $lang)
 																				$doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6][$q8]["description"] = $r10;
+																			unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6][$q8]["description_eu"]);
+																			unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6][$q8]["description_es"]);
+																			unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6][$q8]["description_en"]);
+																			if ($q10 == "url_ref1_" . $lang)
+																				$doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6][$q8]["url_ref1"] = $r10;
+																			unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6][$q8]["url_ref1_eu"]);
+																			unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6][$q8]["url_ref1_es"]);
+																			unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6][$q8]["url_ref1_en"]);
+																			if ($q10 == "url_ref2_" . $lang)
+																				$doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6][$q8]["url_ref2"] = $r10;
+																			unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6][$q8]["url_ref2_eu"]);
+																			unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6][$q8]["url_ref2_es"]);
+																			unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6][$q8]["url_ref2_en"]);
+																		}
+																	} else if ($q8 == "data_processing") {
+																		foreach ($r8 as $q11 => $r11) {
+																			if ($q11 == "description_" . $lang)
+																				$doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6][$q8]["description"] = $r11;
 																			unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6][$q8]["description_eu"]);
 																			unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6][$q8]["description_es"]);
 																			unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6][$q8]["description_en"]);
