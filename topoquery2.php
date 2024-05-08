@@ -83,6 +83,9 @@ $y2 = "";
 $b5map_link["eu"] = $b5m_server . "/map-2022/eu/";
 $b5map_link["es"] = $b5m_server . "/map-2022/es/";
 $b5map_link["en"] = $b5m_server . "/map-2022/en/";
+$url_dw_info["eu"] = "https://b5m.gipuzkoa.eus/url5000/ayuda/lidar_eu.html";
+$url_dw_info["es"] = "https://b5m.gipuzkoa.eus/url5000/ayuda/lidar.html";
+$url_dw_info["en"] = "https://b5m.gipuzkoa.eus/url5000/ayuda/lidar_in.html";
 
 // Functions
 function get_time($time_i, $url_r) {
@@ -640,11 +643,11 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 						$type_e_a = array_unique($type_e_a);
 						$t = 0;
 						foreach ($type_e_a as $q0 => $r0) {
+							$b5m_code_e = $wfs_response["features"][$q0]["properties"]["b5mcode"];
 							$doc2["features"][$t]["type"] = $wfs_response["features"][$q0]["type"];
 							$doc2["features"][$t]["featuretypename"] = $val["featuretypename"];
 							$doc2["features"][$t]["description"] = $val["description"][$lang2];
 							$doc2["features"][$t]["abstract"] = $val["abstract"];
-							$b5m_code_e = $wfs_response["features"][$q0]["properties"]["b5mcode"];
 							$doc2["features"][$t]["properties"]["b5mcode"] = $b5m_code_e;
 							$doc2["features"][$t]["properties"]["b5maplink"] = $b5map_link[$lang] . $b5m_code_e;
 							$u = 0;
@@ -700,8 +703,11 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 							$ot1 = 0;
 							foreach ($r1["properties"] as $q2 => $r2) {
 								if ($q2 == "b5mcode") {
+									$b5m_code_f = $wfs_response["features"][$q1]["properties"][$q2];
 									$doc2["features"][$q1]["properties"][$q2] = $wfs_response["features"][$q1]["properties"][$q2];
-									$doc2["features"][$q1]["properties"]["b5maplink"] = $b5map_link[$lang] . $wfs_response["features"][$q1]["properties"][$q2];
+									$doc2["features"][$q1]["properties"]["b5maplink"] = $b5map_link[$lang] . $b5m_code_f;
+									if (substr($b5m_code_f, 0, 3) == "DW_")
+										$doc2["features"][$q1]["properties"]["url_dw_info"] = $url_dw_info[$lang];
 									$doc2["features"][$q1]["properties"]["info"][0][$q2 . "2"] = $wfs_response["features"][$q1]["properties"][$q2];
 								} else {
 									// Remove not desired dwtypeids
