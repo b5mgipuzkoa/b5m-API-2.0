@@ -80,9 +80,9 @@ $x2 = "";
 $y2 = "";
 
 // Variable Links
-$b5map_link["eu"] = $b5m_server . "/b5map/r1/eu/mapa/lekutu/";
-$b5map_link["es"] = $b5m_server . "/b5map/r1/es/mapa/localizar/";
-$b5map_link["en"] = $b5m_server . "/b5map/r1/en/map/locate/";
+$b5map_link["eu"] = $b5m_server . "/map-2022/eu/";
+$b5map_link["es"] = $b5m_server . "/map-2022/es/";
+$b5map_link["en"] = $b5m_server . "/map-2022/en/";
 
 // Functions
 function get_time($time_i, $url_r) {
