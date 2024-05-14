@@ -710,17 +710,6 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 										$doc2["features"][$q1]["properties"]["url_dw_info"] = $url_dw_info[$lang];
 									$doc2["features"][$q1]["properties"]["info"][0][$q2 . "2"] = $wfs_response["features"][$q1]["properties"][$q2];
 								} else {
-									// Remove not desired dwtypeids
-									if ($dwtypeid != "" ) {
-										$i_types = 0;
-										foreach ($wfs_response["features"][$q1]["properties"]["types_dw"] as $types_dw_a) {
-											if ($types_dw_a["dw_type_id"] != $dwtypeid)
-												array_splice($wfs_response["features"][$q1]["properties"]["types_dw"], $i_types, 1);
-											else
-												$i_types++;
-										}
-									}
-
 									// Remove not desired fields
 									if ($q2 != "idname" && $q2 != "type_eu" && $q2 != "type_es" && $q2 != "type_en" && $q2 != "class_eu" && $q2 != "class_es" && $q2 != "class_en" && $q2 != "id_poi" && $q2 != "class_description_eu" && $q2 != "class_description_es" && $q2 != "class_description_en" && $q2 != "category_eu" && $q2 != "category_es" && $q2 != "category_en" && $q2 != "category_description_eu" && $q2 != "category_description_es" && $q2 != "category_description_en" && $q2 != "poi_eu" && $q2 != "poi_es" && $q2 != "poi_en" && $q2 != "way_eu" && $q2 != "way_es" && $q2 != "way_en" && $q2 != "more_info_eu" && $q2 != "more_info_es" && $q2 != "more_info_en" && stripos($q2, "b5mcode_others") === false && $q2 != "dw_type_ids")
 										$doc2["features"][$q1]["properties"]["info"][0][$q2] = $wfs_response["features"][$q1]["properties"][$q2];
@@ -944,6 +933,34 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 	// End more info coors
 	if (count($doc2) == 0 && $statuscode != 8 && $statuscode != 9)
 		$statuscode = 5;
+}
+
+// Remove not desired dwtypeids
+if ($dwtypeid != "" && $dwtypeid <= 4) {
+	$doc2a = array();
+	foreach ($doc2["features"] as $q1_dwt => $r1_dwt) {
+		$doc2a["features"][$q1_dwt]["type"] = $doc2["features"][$q1_dwt]["type"];
+		$doc2a["features"][$q1_dwt]["featuretypename"] = $doc2["features"][$q1_dwt]["featuretypename"];
+		$doc2a["features"][$q1_dwt]["description"] = $doc2["features"][$q1_dwt]["description"];
+		$doc2a["features"][$q1_dwt]["abstract"] = $doc2["features"][$q1_dwt]["abstract"];
+		$doc2a["features"][$q1_dwt]["properties"]["b5mcode"] = $doc2["features"][$q1_dwt]["properties"]["b5mcode"];
+		$doc2a["features"][$q1_dwt]["properties"]["b5maplink"] = $doc2["features"][$q1_dwt]["properties"]["b5maplink"];
+		$doc2a["features"][$q1_dwt]["properties"]["url_dw_info"] = $doc2["features"][$q1_dwt]["properties"]["url_dw_info"];
+		foreach ($r1_dwt["properties"]["info"] as $q2_dwt => $r2_dwt) {
+			$doc2a["features"][$q1_dwt]["properties"]["info"][$q2_dwt]["b5mcode2"] = $doc2["features"][$q1_dwt]["properties"]["info"][$q2_dwt]["b5mcode2"];
+			$doc2a["features"][$q1_dwt]["properties"]["info"][$q2_dwt]["name_grid"] = $doc2["features"][$q1_dwt]["properties"]["info"][$q2_dwt]["name_grid"];
+			$doc2a["features"][$q1_dwt]["properties"]["info"][$q2_dwt]["type_grid"] = $doc2["features"][$q1_dwt]["properties"]["info"][$q2_dwt]["type_grid"];
+			$doc2a["features"][$q1_dwt]["properties"]["info"][$q2_dwt]["official"] = $doc2["features"][$q1_dwt]["properties"]["info"][$q2_dwt]["official"];
+			foreach ($r2_dwt["types_dw"] as $q3_dwt => $r3_dwt) {
+				if ($r3_dwt["dw_type_id"] == $dwtypeid) {
+					$doc2a["features"][$q1_dwt]["properties"]["info"][$q2_dwt]["types_dw"][0] = $doc2["features"][$q1_dwt]["properties"]["info"][$q2_dwt]["types_dw"][$q3_dwt];
+				}
+			}
+		}
+		$doc2a["features"][$q1_dwt]["geometry"] = $doc2["features"][$q1_dwt]["geometry"];
+	}
+	$doc2 = $doc2a;
+	$doc2a = array();
 }
 
 if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6 || $statuscode == 7 || $statuscode == 8 || $statuscode == 9 || $statuscode ==10) {
