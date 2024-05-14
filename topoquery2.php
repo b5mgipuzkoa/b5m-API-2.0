@@ -657,7 +657,6 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 									if ($w == 0)
 										$u = 0;
 									$w++;
-									$ot1 = 0;
 									foreach ($r1["properties"] as $q2 => $r2) {
 										$doc2["features"][$t]["properties"]["info"][$u]["featuretypename"] = $d_addr;
 										$doc2["features"][$t]["properties"]["info"][$u]["description"] = $d_addr_des[$lang2];
@@ -700,7 +699,6 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 							$doc2["features"][$q1]["featuretypename"] = $val["featuretypename"];
 							$doc2["features"][$q1]["description"] = $val["description"][$lang2];
 							$doc2["features"][$q1]["abstract"] = $val["abstract"];
-							$ot1 = 0;
 							foreach ($r1["properties"] as $q2 => $r2) {
 								if ($q2 == "b5mcode") {
 									$b5m_code_f = $wfs_response["features"][$q1]["properties"][$q2];
