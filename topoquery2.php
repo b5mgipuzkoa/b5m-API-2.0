@@ -934,7 +934,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 }
 
 // Remove not desired dwtypeids
-if ($dwtypeid != "" && $dwtypeid <= 4) {
+if ($dwtypeid != "" && ($dwtypeid <= 4 || $dwtypeid ==5 || $dwtypeid == 8)) {
 	$doc2a = array();
 	foreach ($doc2["features"] as $q1_dwt => $r1_dwt) {
 		$doc2a["features"][$q1_dwt]["type"] = $doc2["features"][$q1_dwt]["type"];
