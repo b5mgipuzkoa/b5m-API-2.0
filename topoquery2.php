@@ -488,6 +488,7 @@ if ($statuscode == 10) {
 	foreach ($featuretypes_a as $val) {
 		$doc2['dw_types'][$i]['dw_type_id'] = $val['dw_type_id'];
 		$doc2['dw_types'][$i]['dw_name'] = $val['dw_name_' . $lang];
+		$doc2['dw_types'][$i]['dw_grid'] = $val['dw_grid'];
 		$i++;
 	}
 	get_time($time_i, $url_request1);
