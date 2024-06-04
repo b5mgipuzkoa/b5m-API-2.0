@@ -13,7 +13,8 @@ ini_set("memory_limit", "1000M");
 // Includes
 include_once("./includes/gipuzkoa_wfs_featuretypes_except.php");
 include_once("./includes/json2xml.php");
-$file_json = "./json/topoquery2_zoom.json";
+$file_json_zoom = "./json/topoquery2_zoom.json";
+$file_json_locales = "./json/topoquery2_locales.json";
 
 // Requests
 if (isset($_REQUEST['lang'])) $lang = $_REQUEST['lang']; else $lang = "";
@@ -78,6 +79,7 @@ $x1 = "";
 $y1 = "";
 $x2 = "";
 $y2 = "";
+$coors_a = array();
 
 // Variable Links
 $b5map_link["eu"] = $b5m_server . "/map-2022/eu/";
@@ -86,6 +88,7 @@ $b5map_link["en"] = $b5m_server . "/map-2022/en/";
 $url_dw_info["eu"] = "https://b5m.gipuzkoa.eus/url5000/ayuda/lidar_eu.html";
 $url_dw_info["es"] = "https://b5m.gipuzkoa.eus/url5000/ayuda/lidar.html";
 $url_dw_info["en"] = "https://b5m.gipuzkoa.eus/url5000/ayuda/lidar_in.html";
+$cadastre_url = "https://ssl6.gipuzkoa.eus/Catastro/map.htm?Lon=_LONCADAS&Lat=_LATCADAS&CodM=_CODMCADAS&MapScale=_SCALECADAS&idioma=_LANGCADAS";
 
 // Functions
 function get_time($time_i, $url_r) {
@@ -496,12 +499,12 @@ if ($statuscode == 10) {
 
 // Zoom restriction
 if (($z != "" || $featuretypenames != "") && ($statuscode != 3) && ($statuscode != 9) && ($statuscode != 10)) {
-	$data_json = file_get_contents($file_json);
-	$zoom_array = json_decode($data_json);
-	foreach ($zoom_array as $obj) {
-		if ($obj->zoom == $z) {
-			$featuretypenames_a = $obj->featuretypenames;
-			$offset_v = $obj->offset;
+	$zoom_array = json_decode("[" . file_get_contents($file_json_zoom) . "]");
+	foreach ($zoom_array as $obj_zoom) {
+		if ($obj_zoom->zoom == $z) {
+			$featuretypenames_a = $obj_zoom->featuretypenames;
+			$offset_v = $obj_zoom->offset;
+			$scale_v = $obj_zoom->scale;
 		}
 	}
 	if ($featuretypenames != "")
@@ -883,6 +886,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 			}
 			$i++;
 		}
+
 		// Number matched
 		if (count($doc2) == 0)
 			$doc3["numberMatched"] = 0;
@@ -930,6 +934,86 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 		}
 	}
 	// End more info coors
+
+	// External Links
+	if (count($coors_a) == 2 && $featuretypenames != $wfs_typename_dw) {
+		// One point, there are external links
+		$i_ext = -1;
+		$doc2["external_links"] = array();
+
+		// 1. Cadastre
+		// Municipality
+		$codmuni_link = "";
+		foreach ($doc2["features"] as $muni_s_01) {
+			if ($muni_s_01["featuretypename"] == "m_municipalities") {
+				$codmuni_link = $muni_s_01["properties"]["b5mcode"];
+					break;
+				}
+		}
+		if ($codmuni_link == "") {
+			foreach ($doc2["more_info_coors"] as $muni_s_02) {
+				if ($muni_s_02["featuretypename"] == "m_municipalities") {
+					$codmuni_link = $muni_s_02["features"][0]["b5mcode"];
+					break;
+				}
+			}
+		}
+		if ($codmuni_link != "") {
+			$i_ext++;
+			$extlink_code = "EXT_001";
+			$codmuni_link = substr($codmuni_link, 3, 2);
+			if (substr($codmuni_link, 0 ,1) == "0")
+				$codmuni_link = substr($codmuni_link, 1, 1);
+
+			// Special cases of Cadastre
+			if ($codmuni_link == "97" || $codmuni_link == "99")
+				$codmuni_link = 98;
+			else if ($codmuni_link == "98")
+				$codmuni_link = 99;
+			else if ($codmuni_link == "96")
+				$codmuni_link = 45;
+
+			// SRS
+			if ($srs != "epsg:4326") {
+				$coors_4326_a = cs2cs($x1, $y1, 5, $srs, "epsg:4326");
+				$x1_4326 = $coors_4326_a[0];
+				$y1_4326 = $coors_4326_a[1];
+			} else {
+				$x1_4326 = $x1;
+				$y1_4326 = $y1;
+			}
+
+			// Scale
+			if ($scale == "")
+				$scale = $scale_v;
+			if ($scale == "")
+				$scale = 5000;
+
+			// Lang
+			if ($lang == "es")
+				$lang3 = "esp";
+			else
+				$lang3 = "eus";
+
+			$locales_array = json_decode("[" . file_get_contents($file_json_locales) . "]");
+			foreach ($locales_array as $obj_locales) {
+				$cadastre_name_locales = "cadastre_name_" . $lang;
+				$cadastre_desc_locales = "cadastre_desc_" . $lang;
+				$cadastre_name = $obj_locales->$cadastre_name_locales;
+				$cadastre_desc = $obj_locales->$cadastre_desc_locales;
+			}
+			$cadastre_url2 = str_replace("_LONCADAS", $x1_4326, $cadastre_url);
+			$cadastre_url2 = str_replace("_LATCADAS", $y1_4326, $cadastre_url2);
+			$cadastre_url2 = str_replace("_CODMCADAS", $codmuni_link, $cadastre_url2);
+			$cadastre_url2 = str_replace("_SCALECADAS", $scale, $cadastre_url2);
+			$cadastre_url2 = str_replace("_LANGCADAS", $lang3, $cadastre_url2);
+			$doc2["external_links"][$i_ext]["extlink_code"] = $extlink_code;
+			$doc2["external_links"][$i_ext]["name"] = $cadastre_name;
+			$doc2["external_links"][$i_ext]["description"] = $cadastre_desc;
+			$doc2["external_links"][$i_ext]["url_link"] = $cadastre_url2;
+		}
+	}
+
 	if (count($doc2) == 0 && $statuscode != 8 && $statuscode != 9)
 		$statuscode = 5;
 }
