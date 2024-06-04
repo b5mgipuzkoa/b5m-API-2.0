@@ -988,6 +988,8 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 				$scale = $scale_v;
 			if ($scale == "")
 				$scale = 5000;
+			if ($scale > 30000)
+				$scale = 30000;
 
 			// Lang
 			if ($lang == "es")
