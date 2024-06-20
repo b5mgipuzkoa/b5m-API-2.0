@@ -82,9 +82,9 @@ $y2 = "";
 $coors_a = array();
 
 // Variable Links
-$b5map_link["eu"] = $b5m_server . "/map-2022/eu/";
-$b5map_link["es"] = $b5m_server . "/map-2022/es/";
-$b5map_link["en"] = $b5m_server . "/map-2022/en/";
+$b5map_link["eu"] = $b5m_server . "/map/eu/";
+$b5map_link["es"] = $b5m_server . "/map/es/";
+$b5map_link["en"] = $b5m_server . "/map/en/";
 $url_dw_info["eu"] = "https://b5m.gipuzkoa.eus/url5000/ayuda/lidar_eu.html";
 $url_dw_info["es"] = "https://b5m.gipuzkoa.eus/url5000/ayuda/lidar.html";
 $url_dw_info["en"] = "https://b5m.gipuzkoa.eus/url5000/ayuda/lidar_in.html";
