@@ -680,6 +680,11 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 											}
 										}
 									}
+									// Official
+									$doc2["features"][$t]["properties"]["info"][$u]["properties"]["official"]["official_text"] = $doc2["features"][$t]["properties"]["info"][$u]["properties"]["official"]["official_text_" . $lang];
+									unset($doc2["features"][$t]["properties"]["info"][$u]["properties"]["official"]["official_text_eu"]);
+									unset($doc2["features"][$t]["properties"]["info"][$u]["properties"]["official"]["official_text_es"]);
+									unset($doc2["features"][$t]["properties"]["info"][$u]["properties"]["official"]["official_text_en"]);
 								}
 								$u++;
 							}
@@ -719,6 +724,14 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 									// Type
 									if ($q2 == "type_" . $lang)
 										$doc2["features"][$q1]["properties"]["info"][0]["type"] = $wfs_response["features"][$q1]["properties"][$q2];
+
+									// Official
+									if ($q2 == "official") {
+										$doc2["features"][$q1]["properties"]["info"][0]["official"]["offical_text"] = $wfs_response["features"][$q1]["properties"][$q2]["official_text_" . $lang];
+										unset($doc2["features"][$q1]["properties"]["info"][0][$q2]["official_text_eu"]);
+										unset($doc2["features"][$q1]["properties"]["info"][0][$q2]["official_text_es"]);
+										unset($doc2["features"][$q1]["properties"]["info"][0][$q2]["official_text_en"]);
+									}
 
 									// Class and Category
 									if ($q2 == "class_" . $lang)
