@@ -182,22 +182,57 @@ function tidy_dw($tidy_a, $tidy_l, $tidy_i) {
 	// Tidy download keys
 	$tidy_a = rep_key_a($tidy_a, "name_grid_eu", "name_grid");
 	$tidy_a = rep_key_a($tidy_a, "type_grid_" . $tidy_l, "type_grid");
+	$tidy_a = rep_key_a($tidy_a, "official_text_" . $tidy_l, "official_text");
 	$tidy_a = rep_key_a($tidy_a, "name_" . $tidy_l, "name");
 	$tidy_a = rep_key_a($tidy_a, "url_" . $tidy_l, "url");
 	$tidy_a = rep_key_a($tidy_a, "owner_" . $tidy_l, "owner");
+	$tidy_a = rep_key_a($tidy_a, "description_" . $tidy_l, "description");
+	$tidy_a = rep_key_a($tidy_a, "url_ref_" . $tidy_l, "url_ref");
+	$tidy_a = rep_key_a($tidy_a, "url_ref1_" . $tidy_l, "url_ref1");
+	$tidy_a = rep_key_a($tidy_a, "url_ref2_" . $tidy_l, "url_ref2");
 	unset($tidy_a["properties"]["b5mcode"]);
 	unset($tidy_a["properties"]["name_grid_es"]);
 	unset($tidy_a["properties"]["type_grid_eu"]);
 	unset($tidy_a["properties"]["type_grid_es"]);
 	unset($tidy_a["properties"]["type_grid_en"]);
+	unset($tidy_a["properties"]["official"]["official_text_eu"]);
+	unset($tidy_a["properties"]["official"]["official_text_es"]);
+	unset($tidy_a["properties"]["official"]["official_text_en"]);
 	$i_dw = 0;
 	foreach ($tidy_a["properties"]["types_dw"] as $types_dw) {
 		unset($tidy_a["properties"]["types_dw"][$i_dw]["name_eu"]);
 		unset($tidy_a["properties"]["types_dw"][$i_dw]["name_es"]);
 		unset($tidy_a["properties"]["types_dw"][$i_dw]["name_en"]);
-		// url and owner
+		// lidar_features and metadata
 		$j_dw = 0;
 		foreach ($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"] as $series_dw) {
+			// lidar_features
+			$k_dw = 0;
+			foreach ($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"] as $lidar_features_dw) {
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"]["model_type"]["description_eu"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"]["model_type"]["description_es"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"]["model_type"]["description_en"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"]["model_type"]["url_ref_eu"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"]["model_type"]["url_ref_es"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"]["model_type"]["url_ref_en"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"]["height_type"]["description_eu"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"]["height_type"]["description_es"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"]["height_type"]["description_en"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"]["height_type"]["url_ref_eu"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"]["height_type"]["url_ref_es"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"]["height_type"]["url_ref_en"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"]["height_type"]["url_ref1_eu"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"]["height_type"]["url_ref1_es"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"]["height_type"]["url_ref1_en"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"]["height_type"]["url_ref2_eu"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"]["height_type"]["url_ref2_es"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"]["height_type"]["url_ref2_en"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"]["data_processing"]["description_eu"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"]["data_processing"]["description_es"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["lidar_features"]["data_processing"]["description_en"]);
+				$k_dw++;
+			}
+			// metadata
 			$k_dw = 0;
 			foreach ($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["metadata"] as $metadata_dw) {
 				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["metadata"]["url_eu"]);
