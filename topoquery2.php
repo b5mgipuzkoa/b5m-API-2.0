@@ -789,7 +789,11 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 										$doc2["features"][$q1]["properties"]["info"][0]["more_info"] = $wfs_response["features"][$q1]["properties"][$q2];
 
 									// Filter download by lang
-									if ($q2 == "name_grid_" . $lang) {
+									if ($lang = "en")
+										$lang_name_grid = "eu";
+									else
+										$lang_name_grid = $lang;
+									if ($q2 == "name_grid_" . $lang_name_grid) {
 										$doc2["features"][$q1]["properties"]["info"][0]["name_grid"] = $wfs_response["features"][$q1]["properties"][$q2];
 									}
 									unset($doc2["features"][$q1]["properties"]["info"][0]["name_grid_eu"]);
