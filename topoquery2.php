@@ -85,9 +85,9 @@ $coors_a = array();
 $b5map_link["eu"] = $b5m_server . "/map/eu/";
 $b5map_link["es"] = $b5m_server . "/map/es/";
 $b5map_link["en"] = $b5m_server . "/map/en/";
-$url_dw_info["eu"] = "https://b5m.gipuzkoa.eus/url5000/ayuda/lidar_eu.html";
-$url_dw_info["es"] = "https://b5m.gipuzkoa.eus/url5000/ayuda/lidar.html";
-$url_dw_info["en"] = "https://b5m.gipuzkoa.eus/url5000/ayuda/lidar_in.html";
+$url_dw_info["eu"] = "https://b5m.gipuzkoa.eus/web5000/eu/fitxategi-deskargak";
+$url_dw_info["es"] = "https://b5m.gipuzkoa.eus/web5000/es/descarga-archivos";
+$url_dw_info["en"] = "https://b5m.gipuzkoa.eus/web5000/en/file-downloads";
 $cadastre_url = "https://ssl6.gipuzkoa.eus/Catastro/map.htm?Lon=_LONCADAS&Lat=_LATCADAS&CodM=_CODMCADAS&MapScale=_SCALECADAS&idioma=_LANGCADAS";
 
 // Functions
