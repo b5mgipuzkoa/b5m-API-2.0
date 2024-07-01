@@ -730,6 +730,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 
 						// Downloads
 						if ($statuscode != "7" && $featuretypenames == "" && $downloads == 1) {
+							echo "KK6";
 							$wfs_response_dw = get_dw_list();
 							foreach ($wfs_response_dw["features"] as $q1_dw => $r1_dw) {
 								$r1_dw = tidy_dw($r1_dw, $lang, $q1_dw);
@@ -789,7 +790,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 										$doc2["features"][$q1]["properties"]["info"][0]["more_info"] = $wfs_response["features"][$q1]["properties"][$q2];
 
 									// Filter download by lang
-									if ($lang = "en")
+									if ($lang == "en")
 										$lang_name_grid = "eu";
 									else
 										$lang_name_grid = $lang;
@@ -889,6 +890,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 
 							// Downloads
 							if ($statuscode != "7" && $featuretypenames == "" && $downloads == 1) {
+								echo "KK7";
 								$wfs_response_dw = get_dw_list();
 								foreach ($wfs_response_dw["features"] as $q1_dw => $r1_dw) {
 									$r1_dw = tidy_dw($r1_dw, $lang, $r1_dw);
