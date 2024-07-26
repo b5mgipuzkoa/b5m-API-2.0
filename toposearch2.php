@@ -733,7 +733,7 @@ if ($response_coor) {
 	$q_road_2 = strtoupper(mb_substr($q, 0, 3));
 	if ($q_road_1 == 'A-' || $q_road_1 == 'N-' || $q_road_2 == "AP-" || $q_road_2 == "GI-") {
 		query_function("topo1");
-		if ($count != 1) query_function("pk3");
+		if ($count == 0) query_function("pk3");
 		if ($count != 0) $count_topo = 10;
 	}
 	if ($count == 0 && empty($b5m_id)) query_function("code");
