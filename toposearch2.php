@@ -45,9 +45,9 @@ $word = strtolower(@$_REQUEST["word"]);
 $listwords = strtolower(@$_REQUEST["listwords"]);
 
 // map_link
-$map_link_eu="/map-2021/mapa/";
-$map_link_es="/map-2021/mapa/";
-$map_link_en="/map-2021/mapa/";
+$map_link_eu="/map/eu/";
+$map_link_es="/map/es/";
+$map_link_en="/map/en/";
 if ($lang == "en") $map_link = $map_link_en;
 else if ($lang == "es") $map_link = $map_link_es;
 else $map_link = $map_link_eu;
