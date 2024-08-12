@@ -30,12 +30,10 @@ if ($lang == "es") {
 	$field_muni = "muni_es";
 	$field_name = "nombre_es";
 	$field_owner = "propietario_es";
-	$field_map = "map_link_es";
 } else {
 	$field_muni = "muni_eu";
 	$field_name = "nombre_eu";
 	$field_owner = "propietario_eu";
-	$field_map = "map_link_eu";
 }
 $field_company = "empresa";
 
@@ -97,7 +95,7 @@ $solr_query->addField("scale:escala");
 $solr_query->addField("digitalization_date:f_digitalizacion");
 $solr_query->addField("survey_date:f_levanoriginal");
 $solr_query->addField("update_date:f_ultactua");
-$solr_query->addField("map_link:" . $field_map);
+$solr_query->addField("map_link:url_mapa");
 
 // Omitting Header
 $solr_query->setOmitHeader(true);
