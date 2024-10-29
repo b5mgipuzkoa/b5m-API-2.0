@@ -830,14 +830,6 @@ if ($count == -1) {
   ];
 }
 
-// map_link issue
-$i_doc = 0;
-foreach ($response["response"]["docs"] as $docs_a) {
-	$maplink_ori = $docs_a["map_link"];
-	$response["response"]["docs"][$i_doc]["map_link"] = str_replace('eu/', '', $maplink_ori);
-	$i_doc++;
-}
-
 // Output Format (JSON by default)
 header('Access-Control-Allow-Origin: *');
 if ((strtolower($format) == "php") || (strtolower($format) == "phps")) {
