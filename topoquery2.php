@@ -190,6 +190,7 @@ function tidy_dw($tidy_a, $tidy_l, $tidy_i) {
 	$tidy_a = rep_key_a($tidy_a, "url_ref_" . $tidy_l, "url_ref");
 	$tidy_a = rep_key_a($tidy_a, "url_ref1_" . $tidy_l, "url_ref1");
 	$tidy_a = rep_key_a($tidy_a, "url_ref2_" . $tidy_l, "url_ref2");
+	$tidy_a = rep_key_a($tidy_a, "documentation_" . $tidy_l, "documentation");
 	unset($tidy_a["properties"]["b5mcode"]);
 	unset($tidy_a["properties"]["name_grid_es"]);
 	unset($tidy_a["properties"]["type_grid_eu"]);
@@ -241,6 +242,20 @@ function tidy_dw($tidy_a, $tidy_l, $tidy_i) {
 				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["metadata"]["owner_eu"]);
 				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["metadata"]["owner_es"]);
 				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["metadata"]["owner_en"]);
+				$k_dw++;
+			}
+			// viewer
+			$k_dw = 0;
+			foreach ($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["viewer"] as $viewer_dw) {
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["viewer"]["url_eu"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["viewer"]["url_es"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["viewer"]["url_en"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["viewer"]["description_eu"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["viewer"]["description_es"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["viewer"]["description_en"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["viewer"]["documentation_eu"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["viewer"]["documentation_es"]);
+				unset($tidy_a["properties"]["types_dw"][$i_dw]["series_dw"][$j_dw]["viewer"]["documentation_en"]);
 				$k_dw++;
 			}
 			$j_dw++;
@@ -875,6 +890,24 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 																			unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6][$q8]["description_en"]);
 																		}
 																	}
+																}
+															} else if ($q6 == "viewer") {
+																foreach ($r6 as $q12 => $r12) {
+																	if ($q12 == "url_" . $lang)
+																		$doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6]["url"] = $r12;
+																	if ($q12 == "description_" . $lang)
+																		$doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6]["description"] = $r12;
+																	if ($q12 == "documentation_" . $lang)
+																		$doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6]["documentation"] = $r12;
+																	unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6]["url_eu"]);
+																	unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6]["url_es"]);
+																	unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6]["url_en"]);
+																	unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6]["description_eu"]);
+																	unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6]["description_es"]);
+																	unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6]["description_en"]);
+																	unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6]["documentation_eu"]);
+																	unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6]["documentation_es"]);
+																	unset($doc2["features"][$q1]["properties"]["info"][0]["types_dw"][$q3][$q4][$q5][$q6]["documentation_en"]);
 																}
 															}
 														}
