@@ -656,7 +656,7 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 				$bbox_default_a = explode(",", $bbox_default);
 				$bbox_default2 = $bbox_default_a[0] . "," . $bbox_default_a[1] . "%20" . $bbox_default_a[2] . "," . $bbox_default_a[3];
 				$wfs_filter = str_replace($b5m_code_filter1, $dwtypeid, $wfs_filter_base2);
-				$wfs_filter = str_replace($b5m_code_filter2, "EPSG:4326", $wfs_filter);
+				$wfs_filter = str_replace($b5m_code_filter2, $srs, $wfs_filter);
 				$wfs_filter = str_replace($b5m_code_filter3, $bbox_default2, $wfs_filter);
 				$url_request = $wfs_server . $wfs_request1 . $wfs_typename . $wfs_srsname . $wfs_filter . $wfs_output;
 			} else {
