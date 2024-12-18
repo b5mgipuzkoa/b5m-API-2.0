@@ -14,6 +14,8 @@ ini_set("memory_limit", "1000M");
 if (isset($_REQUEST['year'])) $year = $_REQUEST['year']; else $year = "";
 if (isset($_REQUEST['x'])) $x = $_REQUEST['x']; else $x = "";
 if (isset($_REQUEST['y'])) $y = $_REQUEST['y']; else $y = "";
+if (isset($_REQUEST['px'])) $px = $_REQUEST['px']; else $px = "";
+if (isset($_REQUEST['py'])) $py = $_REQUEST['py']; else $py = "";
 if (isset($_REQUEST['srid'])) $srid = $_REQUEST['srid']; else $srid = "";
 if (isset($_REQUEST['name'])) $name = $_REQUEST['name']; else $name = "";
 if (isset($_REQUEST['type'])) $type = $_REQUEST['type']; else $type = "";
@@ -24,7 +26,8 @@ if (isset($_REQUEST['debug'])) $debug = $_REQUEST['debug']; else $debug = 0;
 $b5m_server = "https://" . $_SERVER['SERVER_NAME'];
 $obliquo_api = "/obliquo/api/oblique";
 $obliquo_api_features = $obliquo_api . "/features";
-$obliquo_api_measure = $obliquo_api . "/measure3";
+$obliquo_api_measure1 = $obliquo_api . "/measure3";
+$obliquo_api_measure2 = $obliquo_api . "/measure";
 $directions = array("N", "S", "E", "W");
 
 // Functions
@@ -103,7 +106,7 @@ function polygonCentroid($llx, $lly, $lrx, $lry, $urx, $ury, $ulx, $uly) {
 
 // Messages
 $msg000 = "None";
-$msg001 = "Missing required parameter: x";
+$msg001 = "Missing required parameter: x or px";
 $msg999 = "No data found";
 
 // License and metadata variables
@@ -119,16 +122,21 @@ $messages = "";
 $statuscode = 0;
 $init_time = microtime(true);
 
-if ($x == "") {
+if ($x == "" && $px == "") {
 	$statuscode = 1;
 	$messages = $msg001;
 }
 
 // Request type
-if ($type ==  "measure")
-	$url_request = $b5m_server . $obliquo_api_measure . "?u_x=" . $x. "&u_y=" . $y . "&name=" . $name . "&layer=guipuzcoa" . $year;
-else
+if ($type ==  "measure") {
+	if ($x != "")
+		$url_request = $b5m_server . $obliquo_api_measure1 . "?u_x=" . $x. "&u_y=" . $y;
+	else
+		$url_request = $b5m_server . $obliquo_api_measure2 . "?pixelX=" . $px. "&pixelY=" . $py;
+	$url_request = $url_request  . "&name=" . $name . "&layer=guipuzcoa" . $year;
+} else {
 	$url_request = $b5m_server . $obliquo_api_features . "?layers=guipuzcoa%3Aguipuzcoa" . $year. "%3Aguipuzcoa" . $year . "&feature_count=200&x=" . $x . "&y=" . $y . "&srid=" . $srid . "&op=getFeatureInfo";
+}
 
 // Request
 $response = get_url_info($url_request)['content'];
