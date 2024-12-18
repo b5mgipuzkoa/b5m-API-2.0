@@ -23,7 +23,10 @@ if (isset($_REQUEST['format'])) $format = $_REQUEST['format']; else $format = ""
 if (isset($_REQUEST['debug'])) $debug = $_REQUEST['debug']; else $debug = 0;
 
 // Variables
-$b5m_server = "https://" . $_SERVER['SERVER_NAME'];
+if ($_SERVER['SERVER_NAME'] == "172.23.128.130")
+	$b5m_server = "http://" . $_SERVER['SERVER_NAME'];
+else
+	$b5m_server = "https://" . $_SERVER['SERVER_NAME'];
 $obliquo_api = "/obliquo/api/oblique";
 $obliquo_api_features = $obliquo_api . "/features";
 $obliquo_api_measure1 = $obliquo_api . "/measure3";
@@ -143,7 +146,7 @@ $response = get_url_info($url_request)['content'];
 $response = json_decode($response, true);
 
 // Type features, return only the most centered obliquo image
-if ($type == "features") {
+if ($type == "features" && $response["features"] != 0) {
 	// Point data in EPSG:25830 srid
 	if ($srid != "25830") {
 		$coors_25830 = cs2cs($x, $y, 0, "epsg:" . $srid, "epsg:25830");
@@ -176,13 +179,15 @@ if ($type == "features") {
 				$image_distance[] = array("Image" => $imagename, "Distance" => $distance);
 			}
 		}
-		$nearest = $image_distance[0];
-		foreach ($image_distance as $image_d) {
-				if ($image_d["Distance"] < $nearest["Distance"]) {
-						$nearest = $image_d;
-		    }
+		if (count($image_distance) > 0) {
+			$nearest = $image_distance[0];
+			foreach ($image_distance as $image_d) {
+					if ($image_d["Distance"] < $nearest["Distance"]) {
+							$nearest = $image_d;
+			    }
+			}
+			$image_selected[] = $nearest;
 		}
-		$image_selected[] = $nearest;
 	}
 	$response2["features"] = count($image_selected);
 	$response2["data"]["type"] = $response["data"]["type"];
