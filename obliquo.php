@@ -18,6 +18,7 @@ if (isset($_REQUEST['px'])) $px = $_REQUEST['px']; else $px = "";
 if (isset($_REQUEST['py'])) $py = $_REQUEST['py']; else $py = "";
 if (isset($_REQUEST['srid'])) $srid = $_REQUEST['srid']; else $srid = "";
 if (isset($_REQUEST['name'])) $name = $_REQUEST['name']; else $name = "";
+if (isset($_REQUEST['noimage'])) $noimage = $_REQUEST['noimage']; else $noimage = "";
 if (isset($_REQUEST['type'])) $type = $_REQUEST['type']; else $type = "";
 if (isset($_REQUEST['format'])) $format = $_REQUEST['format']; else $format = "";
 if (isset($_REQUEST['debug'])) $debug = $_REQUEST['debug']; else $debug = 0;
@@ -172,7 +173,7 @@ if ($type == "features" && $response["features"] != 0) {
 			$uly = $feature["properties"]["uly"];
 			$urx = $feature["properties"]["urx"];
 			$ury = $feature["properties"]["ury"];
-			if ($shotorient == $direction) {
+			if ($shotorient == $direction && $imagename != $noimage) {
 				// Obtain the distance from the image centroid to the point
 				$centroid = polygonCentroid($llx, $lly, $lrx, $lry, $urx, $ury, $ulx, $uly);
 				$distance = round(sqrt(pow($x_25830 - $centroid["x"], 2) + pow($y_25830 - $centroid["y"], 2)), 2);
@@ -194,9 +195,8 @@ if ($type == "features" && $response["features"] != 0) {
 	foreach ($response["data"]["features"] as $feature) {
 			$imagename = $feature["properties"]["imagename"];
 			foreach ($image_selected as $item) {
-				if ($imagename == $item["Image"]) {
+				if ($imagename == $item["Image"])
 					$response2["data"]["features"][] = $feature;
-				}
 			}
 	}
 	$response = $response2;
