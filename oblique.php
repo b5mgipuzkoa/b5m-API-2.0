@@ -1,8 +1,11 @@
 <?php
-// b5m obliquo API
+// b5m oblique API
 //
 // Dependencies
 // cs2cs from PROJ: https://proj.org/apps/cs2cs.html
+//
+// Other Dependencies
+// obliquo API installed from voxel3D: https://voxel3d.es/obliquo
 //
 
 // Memory
@@ -146,7 +149,7 @@ if ($type ==  "measure") {
 $response = get_url_info($url_request)['content'];
 $response = json_decode($response, true);
 
-// Type features, return only the most centered obliquo image
+// Type features, return only the most centered oblique image
 if ($type == "features" && $response["features"] != 0) {
 	// Point data in EPSG:25830 srid
 	if ($srid != "25830") {
