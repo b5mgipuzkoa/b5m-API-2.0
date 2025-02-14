@@ -29,6 +29,8 @@ if (isset($_REQUEST['debug'])) $debug = $_REQUEST['debug']; else $debug = 0;
 // Variables
 if ($_SERVER['SERVER_NAME'] == "172.23.128.130")
 	$b5m_server = "http://" . $_SERVER['SERVER_NAME'];
+else if ($_SERVER['SERVER_NAME'] == "b5mlive1.gipuzkoa.eus" || $_SERVER['SERVER_NAME'] == "b5mlive2.gipuzkoa.eus")
+	$b5m_server = "https://b5m.gipuzkoa.eus";
 else
 	$b5m_server = "https://" . $_SERVER['SERVER_NAME'];
 $obliquo_api = "/obliquo/api/oblique";
