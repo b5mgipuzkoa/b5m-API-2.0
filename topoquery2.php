@@ -672,6 +672,15 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 					get_time($time_i, $url_request1);
 					$wfs_response_feat = $wfs_response["features"];
 					$wfs_response_count = count($wfs_response_feat);
+					if ($wfs_typename == $wfs_typename_k && $wfs_response_count == 0) {
+						$url_request1 = str_replace("K_", "V_", $url_request1);
+						$url_request1 = str_replace($wfs_typename_k, $wfs_typename_v, $url_request1);
+						$time_i = microtime(true);
+						$wfs_response = json_decode((get_url_info($url_request1)['content']), true);
+						get_time($time_i, $url_request1);
+						$wfs_response_feat = $wfs_response["features"];
+						$wfs_response_count = count($wfs_response_feat);
+					}
 					if ($wfs_response_count == 0)
 						$i = -1;
 				} else {
