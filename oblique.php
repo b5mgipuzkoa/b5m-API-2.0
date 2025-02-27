@@ -215,7 +215,7 @@ if ($type == "features") {
 		foreach ($response['data']['features'] as $feature) {
 	    if (isset($feature['properties'])) {
 	    	$properties = $feature['properties'];
-		      $result['data']['features'][] = [
+					$result['data']['features'][]['properties'] = [
 	      	'imagename' => $properties['imagename'] ?? null,
 	        'imagecols' => $properties['imagecols'] ?? null,
 	        'imagerows' => $properties['imagerows'] ?? null,
