@@ -209,25 +209,31 @@ if ($type == "features" && $response["features"] != 0) {
 
 // Filters
 if ($type == "features") {
-	$result['features'] = $response['features'] ?? null;
-	$result['data']['type'] = $response['data']['type'] ?? null;
-	if (isset($response['data']['features'])) {
-		foreach ($response['data']['features'] as $feature) {
-	    if (isset($feature['properties'])) {
-	    	$properties = $feature['properties'];
-					$result['data']['features'][]['properties'] = [
-	      	'imagename' => $properties['imagename'] ?? null,
-	        'imagecols' => $properties['imagecols'] ?? null,
-	        'imagerows' => $properties['imagerows'] ?? null,
-	        'shotdate' => $properties['shotdate'] ?? null,
-	        'shotorient' => $properties['shotorient'] ?? null
-	        ];
-	    }
-	  }
+	if (is_null($response['data'])) {
+		$result = $response;
+	} else {
+		$result['features'] = $response['features'] ?? null;
+		$result['data']['type'] = $response['data']['type'] ?? null;
+		if (isset($response['data']['features'])) {
+			foreach ($response['data']['features'] as $feature) {
+		    if (isset($feature['properties'])) {
+		    	$properties = $feature['properties'];
+						$result['data']['features'][]['properties'] = [
+		      	'imagename' => $properties['imagename'] ?? null,
+		        'imagecols' => $properties['imagecols'] ?? null,
+		        'imagerows' => $properties['imagerows'] ?? null,
+		        'shotdate' => $properties['shotdate'] ?? null,
+		        'shotorient' => $properties['shotorient'] ?? null
+		        ];
+		    }
+		  }
+		}
 	}
 } else {
 	$result['message'] = $response['message'] ?? null;
-	if ($response['message'] == "Correct RealCoordinates to Photocoordinates transformation") {
+	if ($response['message'] == "No query DB.") {
+		$result = $response;
+	} else if ($response['message'] == "Correct RealCoordinates to Photocoordinates transformation") {
 		$result['x'] = $response['x'] ?? null;
 		$result['y'] = $response['y'] ?? null;
 	} else {
