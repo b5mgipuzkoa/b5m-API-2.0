@@ -15,7 +15,7 @@ function message_404($message) {
 $server = $_SERVER['SERVER_NAME'];
 
 // Detect browser language
-$lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
+$lang = isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2) : 'eu';
 if ($lang == "es") {
 	$lang2 = "es";
 } else {
