@@ -56,23 +56,23 @@
   "zoom": 18,
   "scale": 1758,
   "offset": 20,
-  "featuretypenames": ["e_buildings", "poi_pointsofinterest", "cv_speleology", "gk_megaliths", "sg_geodeticbenchmarks", "i_hydrography", "v_streets_axis", "t_roads_railways", "bi_biotopes", "z_districts", "g_orography", "m_municipalities", "c_basins", "s_regions"]
+  "featuretypenames": ["e_buildings", "poi_pointsofinterest", "cv_speleology", "gk_megaliths", "sg_geodeticbenchmarks", "vt_veteran_trees", "i_hydrography", "v_streets_axis", "t_roads_railways", "bi_biotopes", "z_districts", "g_orography", "m_municipalities", "c_basins", "s_regions"]
 },
 {
   "zoom": 19,
   "scale": 879,
   "offset": 10,
-  "featuretypenames": ["e_buildings", "poi_pointsofinterest", "cv_speleology", "gk_megaliths", "sg_geodeticbenchmarks", "i_hydrography", "v_streets_axis", "bi_biotopes", "z_districts", "g_orography", "m_municipalities", "c_basins", "s_regions"]
+  "featuretypenames": ["e_buildings", "poi_pointsofinterest", "cv_speleology", "gk_megaliths", "sg_geodeticbenchmarks", "vt_veteran_trees", "i_hydrography", "v_streets_axis", "bi_biotopes", "z_districts", "g_orography", "m_municipalities", "c_basins", "s_regions"]
 },
 {
   "zoom": 20,
   "scale": 439,
   "offset": 5,
-  "featuretypenames": ["e_buildings", "poi_pointsofinterest", "cv_speleology", "gk_megaliths", "sg_geodeticbenchmarks", "i_hydrography", "v_streets_axis", "bi_biotopes", "z_districts", "g_orography", "m_municipalities", "c_basins", "s_regions"]
+  "featuretypenames": ["e_buildings", "poi_pointsofinterest", "cv_speleology", "gk_megaliths", "sg_geodeticbenchmarks", "vt_veteran_trees", "i_hydrography", "v_streets_axis", "bi_biotopes", "z_districts", "g_orography", "m_municipalities", "c_basins", "s_regions"]
 },
 {
   "zoom": 21,
   "scale": 220,
   "offset": 3,
-  "featuretypenames": ["e_buildings", "poi_pointsofinterest", "cv_speleology", "gk_megaliths", "sg_geodeticbenchmarks", "i_hydrography", "v_streets_axis", "bi_biotopes", "z_districts", "g_orography", "m_municipalities", "c_basins", "s_regions"]
+  "featuretypenames": ["e_buildings", "poi_pointsofinterest", "cv_speleology", "gk_megaliths", "sg_geodeticbenchmarks", "vt_veteran_trees", "i_hydrography", "v_streets_axis", "bi_biotopes", "z_districts", "g_orography", "m_municipalities", "c_basins", "s_regions"]
 }
