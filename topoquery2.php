@@ -730,20 +730,20 @@ if ($statuscode == 0 || $statuscode == 7 || $statuscode == 9) {
 
 											// More info && POI
 											if ($q2 != "more_info_eu" && $q2 != "more_info_es" && $q2 != "more_info_en" && $q2 != "poi_eu" && $q2 != "poi_es" && $q2 != "poi_en") {
-												$doc2["features"][$t]["properties"]["info"][$u]["properties"][$q2] = $r2;
+												$doc2["features"][$t]["properties"]["info"][$u][$q2] = $r2;
 											} else {
 												if ($q2 == "more_info_" . $lang)
-													$doc2["features"][$t]["properties"]["info"][$u]["properties"]["more_info"] = $wfs_response["features"][$q1]["properties"][$q2];
+													$doc2["features"][$t]["properties"]["info"][$u]["more_info"] = $wfs_response["features"][$q1]["properties"][$q2];
 												if ($q2 == "poi_" . $lang)
-													$doc2["features"][$t]["properties"]["info"][$u]["properties"]["poi"] = $r2;
+													$doc2["features"][$t]["properties"]["info"][$u]["poi"] = $r2;
 											}
 										}
 									}
 									// Official
-									$doc2["features"][$t]["properties"]["info"][$u]["properties"]["official"]["official_text"] = $doc2["features"][$t]["properties"]["info"][$u]["properties"]["official"]["official_text_" . $lang];
-									unset($doc2["features"][$t]["properties"]["info"][$u]["properties"]["official"]["official_text_eu"]);
-									unset($doc2["features"][$t]["properties"]["info"][$u]["properties"]["official"]["official_text_es"]);
-									unset($doc2["features"][$t]["properties"]["info"][$u]["properties"]["official"]["official_text_en"]);
+									$doc2["features"][$t]["properties"]["info"][$u]["official"]["official_text"] = $doc2["features"][$t]["properties"]["info"][$u]["properties"]["official"]["official_text_" . $lang];
+									unset($doc2["features"][$t]["properties"]["info"][$u]["official"]["official_text_eu"]);
+									unset($doc2["features"][$t]["properties"]["info"][$u]["official"]["official_text_es"]);
+									unset($doc2["features"][$t]["properties"]["info"][$u]["official"]["official_text_en"]);
 								}
 								$u++;
 							}
