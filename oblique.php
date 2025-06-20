@@ -38,6 +38,8 @@ $obliquo_api_features = $obliquo_api . "/features";
 $obliquo_api_measure1 = $obliquo_api . "/measure3";
 $obliquo_api_measure2 = $obliquo_api . "/measure";
 $directions = array("N", "S", "E", "W");
+$years_a = array(2007, 2009);
+$years_oblique = [];
 
 // Functions
 function get_time($time_i, $url_r) {
@@ -137,7 +139,25 @@ if ($x == "" && $px == "") {
 }
 
 // Request type
-if ($type ==  "measure") {
+
+// No year
+$is_oblique = 2;
+if ($year === "") {
+	$is_oblique = 0;
+	foreach ($years_a as $year_q) {
+		$url_request = $b5m_server . $obliquo_api_features . "?layers=guipuzcoa%3Aguipuzcoa" . $year_q. "%3Aguipuzcoa" . $year_q . "&feature_count=200&x=" . $x . "&y=" . $y . "&srid=" . $srid . "&op=getFeatureInfo";
+		$response = get_url_info($url_request)['content'];
+		$response = json_decode($response, true);
+		if ($response['data'] !== null) {
+			$is_oblique = 1;
+			$years_oblique[] = $year_q;
+		}
+	}
+	if ($is_oblique === 0)
+		$years_oblique = null;
+	$response = [];
+	$response["data"]["years"] = $years_oblique;
+} else if ($type ==  "measure") {
 	if ($x != "")
 		$url_request = $b5m_server . $obliquo_api_measure1 . "?u_x=" . $x. "&u_y=" . $y;
 	else
@@ -147,102 +167,105 @@ if ($type ==  "measure") {
 	$url_request = $b5m_server . $obliquo_api_features . "?layers=guipuzcoa%3Aguipuzcoa" . $year. "%3Aguipuzcoa" . $year . "&feature_count=200&x=" . $x . "&y=" . $y . "&srid=" . $srid . "&op=getFeatureInfo";
 }
 
-// Request
-$response = get_url_info($url_request)['content'];
-$response = json_decode($response, true);
+if ($is_oblique == 2) {
+	// Request
+	$response = get_url_info($url_request)['content'];
+	$response = json_decode($response, true);
 
-// Type features, return only the most centered oblique image
-if ($type == "features" && $response["features"] != 0) {
-	// Point data in EPSG:25830 srid
-	if ($srid != "25830") {
-		$coors_25830 = cs2cs($x, $y, 0, "epsg:" . $srid, "epsg:25830");
-		$x_25830 = $coors_25830[0];
-		$y_25830 = $coors_25830[1];
-	} else {
-		$x_25830 = $x;
-		$y_25830 = $y;
-	}
+	// Type features, return only the most centered oblique image
+	if ($type == "features" && $response["features"] != 0) {
+		// Point data in EPSG:25830 srid
+		if ($srid != "25830") {
+			$coors_25830 = cs2cs($x, $y, 0, "epsg:" . $srid, "epsg:25830");
+			$x_25830 = $coors_25830[0];
+			$y_25830 = $coors_25830[1];
+		} else {
+			$x_25830 = $x;
+			$y_25830 = $y;
+		}
 
-	// Directions
-	$image_selected = array();
-	foreach ($directions as $direction) {
-		$image_distance = array();
+
+		// Directions
+		$image_selected = array();
+		foreach ($directions as $direction) {
+			$image_distance = array();
+			foreach ($response["data"]["features"] as $feature) {
+				$shotorient = $feature["properties"]["shotorient"];
+				$imagename = $feature["properties"]["imagename"];
+				$llx = $feature["properties"]["llx"];
+				$lly = $feature["properties"]["lly"];
+				$lrx = $feature["properties"]["lrx"];
+				$lry = $feature["properties"]["lry"];
+				$ulx = $feature["properties"]["ulx"];
+				$uly = $feature["properties"]["uly"];
+				$urx = $feature["properties"]["urx"];
+				$ury = $feature["properties"]["ury"];
+				if ($shotorient == $direction && $imagename != $noimage) {
+					// Obtain the distance from the image centroid to the point
+					$centroid = polygonCentroid($llx, $lly, $lrx, $lry, $urx, $ury, $ulx, $uly);
+					$distance = round(sqrt(pow($x_25830 - $centroid["x"], 2) + pow($y_25830 - $centroid["y"], 2)), 2);
+					$image_distance[] = array("Image" => $imagename, "Distance" => $distance);
+				}
+			}
+			if (count($image_distance) > 0) {
+				$nearest = $image_distance[0];
+				foreach ($image_distance as $image_d) {
+						if ($image_d["Distance"] < $nearest["Distance"]) {
+								$nearest = $image_d;
+				    }
+				}
+				$image_selected[] = $nearest;
+			}
+		}
+		$response2["features"] = count($image_selected);
+		$response2["data"]["type"] = $response["data"]["type"];
 		foreach ($response["data"]["features"] as $feature) {
-			$shotorient = $feature["properties"]["shotorient"];
-			$imagename = $feature["properties"]["imagename"];
-			$llx = $feature["properties"]["llx"];
-			$lly = $feature["properties"]["lly"];
-			$lrx = $feature["properties"]["lrx"];
-			$lry = $feature["properties"]["lry"];
-			$ulx = $feature["properties"]["ulx"];
-			$uly = $feature["properties"]["uly"];
-			$urx = $feature["properties"]["urx"];
-			$ury = $feature["properties"]["ury"];
-			if ($shotorient == $direction && $imagename != $noimage) {
-				// Obtain the distance from the image centroid to the point
-				$centroid = polygonCentroid($llx, $lly, $lrx, $lry, $urx, $ury, $ulx, $uly);
-				$distance = round(sqrt(pow($x_25830 - $centroid["x"], 2) + pow($y_25830 - $centroid["y"], 2)), 2);
-				$image_distance[] = array("Image" => $imagename, "Distance" => $distance);
-			}
+				$imagename = $feature["properties"]["imagename"];
+				foreach ($image_selected as $item) {
+					if ($imagename == $item["Image"])
+						$response2["data"]["features"][] = $feature;
+				}
 		}
-		if (count($image_distance) > 0) {
-			$nearest = $image_distance[0];
-			foreach ($image_distance as $image_d) {
-					if ($image_d["Distance"] < $nearest["Distance"]) {
-							$nearest = $image_d;
-			    }
-			}
-			$image_selected[] = $nearest;
-		}
+		$response = $response2;
 	}
-	$response2["features"] = count($image_selected);
-	$response2["data"]["type"] = $response["data"]["type"];
-	foreach ($response["data"]["features"] as $feature) {
-			$imagename = $feature["properties"]["imagename"];
-			foreach ($image_selected as $item) {
-				if ($imagename == $item["Image"])
-					$response2["data"]["features"][] = $feature;
-			}
-	}
-	$response = $response2;
-}
 
-// Filters
-if ($type == "features") {
-	if (is_null($response['data'])) {
-		$result = $response;
+	// Filters
+	if ($type == "features") {
+		if (is_null($response['data'])) {
+			$result = $response;
+		} else {
+			$result['features'] = $response['features'] ?? null;
+			$result['data']['type'] = $response['data']['type'] ?? null;
+			if (isset($response['data']['features'])) {
+				foreach ($response['data']['features'] as $feature) {
+			    if (isset($feature['properties'])) {
+			    	$properties = $feature['properties'];
+							$result['data']['features'][]['properties'] = [
+			      	'imagename' => $properties['imagename'] ?? null,
+			        'imagecols' => $properties['imagecols'] ?? null,
+			        'imagerows' => $properties['imagerows'] ?? null,
+			        'shotdate' => $properties['shotdate'] ?? null,
+			        'shotorient' => $properties['shotorient'] ?? null
+			        ];
+			    }
+			  }
+			}
+		}
 	} else {
-		$result['features'] = $response['features'] ?? null;
-		$result['data']['type'] = $response['data']['type'] ?? null;
-		if (isset($response['data']['features'])) {
-			foreach ($response['data']['features'] as $feature) {
-		    if (isset($feature['properties'])) {
-		    	$properties = $feature['properties'];
-						$result['data']['features'][]['properties'] = [
-		      	'imagename' => $properties['imagename'] ?? null,
-		        'imagecols' => $properties['imagecols'] ?? null,
-		        'imagerows' => $properties['imagerows'] ?? null,
-		        'shotdate' => $properties['shotdate'] ?? null,
-		        'shotorient' => $properties['shotorient'] ?? null
-		        ];
-		    }
-		  }
+		$result['message'] = $response['message'] ?? null;
+		if ($response['message'] == "No query DB.") {
+			$result = $response;
+		} else if ($response['message'] == "Correct RealCoordinates to Photocoordinates transformation") {
+			$result['x'] = $response['x'] ?? null;
+			$result['y'] = $response['y'] ?? null;
+		} else {
+			$result['X'] = $response['X'] ?? null;
+			$result['Y'] = $response['Y'] ?? null;
+			$result['Z'] = $response['Z'] ?? null;
 		}
 	}
-} else {
-	$result['message'] = $response['message'] ?? null;
-	if ($response['message'] == "No query DB.") {
-		$result = $response;
-	} else if ($response['message'] == "Correct RealCoordinates to Photocoordinates transformation") {
-		$result['x'] = $response['x'] ?? null;
-		$result['y'] = $response['y'] ?? null;
-	} else {
-		$result['X'] = $response['X'] ?? null;
-		$result['Y'] = $response['Y'] ?? null;
-		$result['Z'] = $response['Z'] ?? null;
-	}
+	$response = $result;
 }
-$response = $result;
 
 if ($statuscode == 0 ) {
 	// Data license
