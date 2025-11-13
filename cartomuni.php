@@ -25,6 +25,12 @@ $sort = str_replace("udalerria", "2", strtolower($sort));
 $sort = str_replace("municipio", "2", strtolower($sort));
 $sort = str_replace("municipality", "2", strtolower($sort));
 
+// Lang
+$lang = match($lang) {
+	'eu', 'es', 'en' => $lang,
+	default => 'eu',
+};
+
 // Search, Order and Display Fields
 if ($lang == "es") {
 	$field_muni = "muni_es";
@@ -95,7 +101,7 @@ $solr_query->addField("scale:escala");
 $solr_query->addField("digitalization_date:f_digitalizacion");
 $solr_query->addField("survey_date:f_levanoriginal");
 $solr_query->addField("update_date:f_ultactua");
-$solr_query->addField("map_link:url_mapa");
+$solr_query->addField("map_link:url_mapa_" . $lang);
 
 // Omitting Header
 $solr_query->setOmitHeader(true);
