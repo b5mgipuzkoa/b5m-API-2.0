@@ -64,3 +64,8 @@ RewriteRule ^(oblique)$ oblique.php
 
 # Oblique TMS
 RewriteRule ^oblique_tms/([^/]+)/([^/]+)/([0-9]+)/([0-9]+)/([0-9]+).jpg$ oblique_tms.php?year=$1&image=$2&z=$3&x=$4&y=$5 [L,QSA]
+
+# Terrain
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^terrain(.*)$ terrain.php$1 [L,QSA]
