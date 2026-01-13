@@ -277,14 +277,14 @@ function query_function($search_type) {
 		$viewbox = str_replace(", ", " ", $viewbox);
 		$viewbox = str_replace(",", " ", $viewbox);
 		$coormbr = explode(" ", $viewbox);
-		$latm=$coormbr[3];
-		$lonm=$coormbr[0];
-		$latx=$coormbr[1];
-		$lonx=$coormbr[2];
+		$latm = $coormbr[1];
+		$lonm = $coormbr[0];
+		$latx = $coormbr[3];
+		$lonx = $coormbr[2];
 		if ($latm == "0" && $lonm == "0" && $latx == "0" && $lonx == "0")
 			$filter = "";
 		else
-			$filter = "{!field f=bbox}Intersects(ENVELOPE(" . $latm . "," . $latx . "," . $lonx . "," . $lonm. "))";
+			$filter = "{!field f=bbox}Intersects(ENVELOPE(" . $latm . "," . $latx . "," . $lonx . "," . $lonm . "))";
 			$solr_query->addFilterQuery($filter);
 	}
 
@@ -443,18 +443,21 @@ function query_function($search_type) {
 
 	// Centroid Filter
 	if (!empty($pt)) {
-		if (empty($dist)) $dist="80";
-		$pt = str_replace(", ", ",", $pt);
-		$pt = str_replace(" ", ",", $pt);
-		$solr_query->setQuery(" _query_:\"{!func}scale(query(\$main_string),1,50)\" AND _query_:\"{!func}div(50,map(geodist(),0,1,1))\"");
-		$solr_query->addFilterQuery("{!cache=false v=\$main_string}");
-		$solr_query->addFilterQuery("{!geofilt}");
-		$solr_query->addParam("pt", $pt);
-		$solr_query->addParam("sfield", "center");
-		$solr_query->addParam("d", $dist);
-		$solr_query->addParam("main_string", $string);
-		$solr_query->addField("distance:div(rint(product(geodist(),100)),100)");
-		$solr_query->addParam("q.op", "AND");
+		if (empty($dist)) $dist = "80";
+    $pt = str_replace(", ", ",", $pt);
+    $pt = str_replace(" ", ",", $pt);
+    $pt2 = explode(",", $pt);
+    $pt3 = $pt2[1] . "," . $pt2[0];
+    $solr_query->setQuery($string);
+    $solr_query->addParam("defType", "edismax");
+    $solr_query->addParam("qf", $search_field);
+    $solr_query->addParam("bf", "div(50,map(geodist(),0,1,1))");
+    $solr_query->addParam("mm", "100%");
+    $solr_query->addFilterQuery("{!geofilt}");
+    $solr_query->addParam("pt", $pt3);
+    $solr_query->addParam("sfield", "center");
+    $solr_query->addParam("d", $dist);
+    $solr_query->addField("distance:div(rint(product(geodist(),100)),100)");
 	} else {
 		if ($nor == "1") {
 			$solr_query->setQuery("_query_:\"{!func}scale(query(\$main_string),1,100)\"");
