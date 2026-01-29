@@ -285,7 +285,6 @@ function query_function($search_type) {
 			$filter = "";
 		else
 			$filter = "{!field f=bbox}Intersects(ENVELOPE(" . $latm . "," . $latx . "," . $lonx . "," . $lonm . "))";
-			$solr_query->addParam("defType", "edismax");
 			$solr_query->addFilterQuery($filter);
 	}
 
