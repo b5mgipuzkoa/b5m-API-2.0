@@ -360,6 +360,7 @@ function get_coordinates($b5m_code_a, $lang, $srs) {
 
   // Transform coordinates
 	$transformed_coords = cs2cs($longitude, $latitude, 2, "EPSG:4326", $srs);
+	$transformed_coords_25830 = cs2cs($longitude, $latitude, 0, "EPSG:4326", "EPSG:25830");
 
   // Build result array
   $features = array(
@@ -374,8 +375,8 @@ function get_coordinates($b5m_code_a, $lang, $srs) {
         "info" => array(
           array(
             "b5mcode2" => $b5mcode,
-            "name_eu" => "Koordenatuak - ETRS89-UTM30N (EPSG:25830): 570000, 4780000 / WGS84 (EPSG:4326): " . $longitude . ", " . $latitude . " / WGS84 sexag. (EPSG:4326): " . convert_to_dms($longitude, "longitude") . ", " . convert_to_dms($latitude, "latitude"),
-            "name_es" => "Coordenadas - ETRS89-UTM30N (EPSG:25830): 570000, 4780000 / WGS84 (EPSG:4326): " . $longitude . ", " . $latitude . " / WGS84 sexag. (EPSG:4326): " . convert_to_dms($longitude, "longitude") . ", " . convert_to_dms($latitude, "latitude"),
+						"name_eu" => "Koordenatuak - ETRS89-UTM30N (EPSG:25830): ". $transformed_coords_25830[0] . ", " . $transformed_coords_25830[1] . " / WGS84 (EPSG:4326): " . $longitude . ", " . $latitude . " / WGS84 sexag. (EPSG:4326): " . convert_to_dms($longitude, "longitude") . ", " . convert_to_dms($latitude, "latitude"),
+            "name_es" => "Coordenadas - ETRS89-UTM30N (EPSG:25830): ". $transformed_coords_25830[0] . ", " . $transformed_coords_25830[1] . " / WGS84 (EPSG:4326): " . $longitude . ", " . $latitude . " / WGS84 sexag. (EPSG:4326): " . convert_to_dms($longitude, "longitude") . ", " . convert_to_dms($latitude, "latitude"),
             "type" => ($lang == "eu") ? "Koordenatuak" : (($lang == "es") ? "Coordenadas" : "Coordinates"),
             "official" => array(
               "official_id" => 1,
