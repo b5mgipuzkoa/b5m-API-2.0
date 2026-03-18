@@ -345,6 +345,72 @@ function area_calc($x1, $y1, $x2, $y2, $srs) {
 	 	$area_c = 9999;
 	return $area_c;
 }
+
+function get_coordinates($b5m_code_a, $lang, $srs) {
+  // Extract coordinates
+  $longitude = $b5m_code_a[1];
+  $latitude = $b5m_code_a[2];
+  $original_srs = $b5m_code_a[3];
+
+  // Generate B5m code
+  $b5mcode = $b5m_code_a[0] . "_" . $longitude . "_" . $latitude . "_" . $original_srs;
+
+  // Generate map link
+  $b5maplink = "https://b5mdev/map/" . $lang . "/" . $b5mcode;
+
+  // Transform coordinates
+	$transformed_coords = cs2cs($longitude, $latitude, 2, "EPSG:4326", $srs);
+
+  // Build result array
+  $features = array(
+    array(
+      "type" => "Feature",
+      "featuretypename" => "l_coordinates",
+      "description" => ($lang == "eu") ? "Koordenatuak" : (($lang == "es") ? "Coordenadas" : "Coordinates"),
+      "abstract" => "B5m code " . $b5mcode,
+      "properties" => array(
+        "b5mcode" => $b5mcode,
+        "b5maplink" => $b5maplink,
+        "info" => array(
+          array(
+            "b5mcode2" => $b5mcode,
+            "name_eu" => "Koordenatuak - ETRS89-UTM30N (EPSG:25830): 570000, 4780000 / WGS84 (EPSG:4326): " . $longitude . ", " . $latitude . " / WGS84 sexag. (EPSG:4326): " . convert_to_dms($longitude, "longitude") . ", " . convert_to_dms($latitude, "latitude"),
+            "name_es" => "Coordenadas - ETRS89-UTM30N (EPSG:25830): 570000, 4780000 / WGS84 (EPSG:4326): " . $longitude . ", " . $latitude . " / WGS84 sexag. (EPSG:4326): " . convert_to_dms($longitude, "longitude") . ", " . convert_to_dms($latitude, "latitude"),
+            "type" => ($lang == "eu") ? "Koordenatuak" : (($lang == "es") ? "Coordenadas" : "Coordinates"),
+            "official" => array(
+              "official_id" => 1,
+              "offical_text" => ""
+            )
+          )
+        )
+      ),
+      "geometry" => array(
+        "type" => "Point",
+        "coordinates" => $transformed_coords
+      )
+    )
+  );
+
+  return array("features" => $features);
+}
+
+function convert_to_dms($decimal, $type) {
+	// Convert decimal coordinates to DMS (Degrees, Minutes, Seconds)
+  $abs_decimal = abs($decimal);
+  $degrees = floor($abs_decimal);
+  $minutes = floor(($abs_decimal - $degrees) * 60);
+  $seconds = round((($abs_decimal - $degrees) * 60 - $minutes) * 60, 1);
+
+  // Determining the direction
+  if ($type == "latitude") {
+    $direction = ($decimal >= 0) ? "N" : "S";
+  } else {
+    $direction = ($decimal >= 0) ? "E" : "W";
+  }
+
+  return $degrees . "d" . $minutes . "'" . $seconds . "\"" . $direction;
+}
+
 // End of functions
 
 // Messages
@@ -373,10 +439,14 @@ $init_time = microtime(true);
 
 // Id Request
 if ($b5m_code != "") {
-	$statuscode = 7;
 	$z = "";
 	$b5m_code_a = explode("_", $b5m_code);
 	$b5m_code_type = strtolower($b5m_code_a[0]);
+
+	if ($b5m_code_type == "l")
+		$statuscode = 11; // Coordinates case
+	else
+		$statuscode = 7;
 
 	// kp case
 	if ($b5m_code_type == "t" && count($b5m_code_a) == 3)
@@ -481,7 +551,7 @@ if ($x2 != "" && $featuretypenames != $wfs_typename_dw) {
 if ($downloads == 2)
 	$featuretypenames = $wfs_typename_dw;
 
-// Process
+// Query Process
 if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 	// Collecting featuretype data from getcapabilites request
 	$url_capab = $wfs_server . $wfs_capab;
@@ -530,6 +600,15 @@ if ($statuscode == 0 || $statuscode == 4 || $statuscode == 7) {
 	}
 }
 
+// Coordinates process
+if ($statuscode == 11) {
+	$doc2 = get_coordinates($b5m_code_a, $lang, $srs);
+	if (empty($doc2))
+		$doc3["numberMatched"] = 0;
+	else
+		$doc3["numberMatched"] = 1;
+}
+
 // Download types
 if ($statuscode == 10) {
 	$wfs_typename = str_replace("dw_", "dw2_", $wfs_typename_dw . "_types");
@@ -576,7 +655,7 @@ if (($z != "" || $featuretypenames != "") && ($statuscode != 3) && ($statuscode 
 }
 
 // Featuretypes count
-if (count($featuretypes_a) == 0 && $statuscode != 3 && $statuscode != 7 && $statuscode != 9 && $statuscode != 10)
+if (count($featuretypes_a) == 0 && $statuscode != 3 && $statuscode != 7 && $statuscode != 9 && $statuscode != 10 && $statuscode != 11)
 	$statuscode = 6;
 
 if ($statuscode == 4) {
@@ -1142,7 +1221,7 @@ if ($dwtypeid != "" && $dwtypeid != 7) {
 	$doc2a = array();
 }
 
-if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6 || $statuscode == 7 || $statuscode == 8 || $statuscode == 9 || $statuscode ==10) {
+if ($statuscode == 0 || $statuscode == 4 || $statuscode == 5 || $statuscode == 6 || $statuscode == 7 || $statuscode == 8 || $statuscode == 9 || $statuscode == 10 || $statuscode == 11) {
 	// Data license
 	$final_time = microtime(true);
 	$response_time = sprintf("%.2f", $final_time - $init_time);
