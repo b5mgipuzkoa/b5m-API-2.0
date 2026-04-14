@@ -7,18 +7,28 @@
 #
 # Requeriments: GDAL (https://gdal.org) and PROJ4 (http://proj4js.org)
 
-if [ $# -ne 1 ] && [ $# -ne 2 ] && [ $# -ne 3 ]
+if [ $# -ne 1 ] && [ $# -ne 2 ] && [ $# -ne 3 ] && [ $# -ne 4 ]
 then
-	echo "Usage: $0 coors epsg precision [$0 592000,4800000,592090,4799910 EPSG:25830 precision]"
-	exit 1
+  echo "Usage: $0 coors epsg precision srs_out [$0 592000,4800000,592090,4799910 EPSG:25830 1 EPSG:4326]"
+  exit 1
 fi
 
 # precision
-if [ "$3" = "" ]
+precision=$3
+
+# SRS output (default EPSG:4326)
+if [ "$4" = "" ]
 then
-	precision=1
+  srs_out="epsg:4326"
 else
-	precision=$3
+  srs_out="$(echo "$4" | gawk '{print tolower($1)}')"
+fi
+
+# Validation
+if [ "$srs_out" != "epsg:4326" ] && [ "$srs_out" != "epsg:3857" ] && [ "$srs_out" != "epsg:25830" ]
+then
+	echo "Error: srs_out '$4' not supported. Use: EPSG:4326, EPSG:3857 or EPSG:25830"
+  exit 1
 fi
 
 # Entry variables
@@ -158,12 +168,16 @@ profile_2p () {
 	res2="$(gdalinfo "$f3" 2> /dev/null | gawk '{if($1=="Pixel"){split($4,a,"(");split(a[2],b,",");printf("%f\n",b[1])}}')"
 	rm "$f3" 2> /dev/null
 
-	# Height data processing
-	gawk -v res2=$res2 '
+	# Height data processing — X,Y tpeqd-tik lon/lat-era bihurtu
+	cs2cs -f "%.8f" +proj=tpeqd +lon_1=${x3} +lat_1=${y3} +lon_2=${x4} +lat_2=${y4} +to +init="$srs_out" < <(gawk '{print $1, $2, $3}' "$f4") | \
+  gawk -v res2=$res2 -v srs_out="$srs_out" '
 	{
-		printf("%s,%.2f\n",res2,$3)
+    if (srs_out == "epsg:4326")
+		  printf("%s,%.6f,%.6f,%.2f\n",res2,$1,$2,$3)
+    else
+		  printf("%s,%.2f,%.2f,%.2f\n",res2,$1,$2,$3)
 	}
-	' "$f4" 2> /dev/null
+	' 2> /dev/null
 	rm "$f4" 2> /dev/null
 }
 
@@ -194,9 +208,18 @@ done
 
 # Last point
 lph="$(gdallocationinfo -valonly -l_srs "$srs" "$f_lidar" $x2 $y2)"
+if [ "$srs" != "$srs_out" ]
+then
+	lp_lonlat="$(echo "$x2 $y2" | cs2cs -f "%.8f" +init="$srs" +to +init="$srs_out")"
+	lp_lon="$(echo "$lp_lonlat" | gawk '{print $1}')"
+	lp_lat="$(echo "$lp_lonlat" | gawk '{print $2}')"
+else
+	lp_lon="$x2"
+	lp_lat="$y2"
+fi
 
 # Result
-gawk -v lph="$lph" '
+gawk -v lph="$lph" -v lp_lon="$lp_lon" -v lp_lat="$lp_lat" -v srs_out="$srs_out" '
 function abs(v) { v += 0; return v < 0 ? -v : v }
 BEGIN{
 	FS=","
@@ -219,7 +242,7 @@ BEGIN{
 	}
 	if(NR!=1 && $2>h2 && $2!="-9999" && h2!="-9999") el1=el1+$2-h2
 	if(NR!=1 && $2<h2 && $2!="-9999" && h2!="-9999") el2=el2+$2-h2
-	prf=prf""sprintf("%.2f %s\n",l,$2)
+	prf=prf""sprintf("%.2f %s %s %s\n",l,$2,$3,$4)
 	if($2!="-9999"){
 		lz=l
 		z2=$2
@@ -249,7 +272,10 @@ END{
 		slo=(z2-z1)/lz*100
 	printf("%.2f %.2f %.2f %.2f %.2f %.2f %.1f\n",l,mah,mih,avh1/l2,el1,abs(el2),slo)
 	printf("%s",prf)
-	printf("%.2f %s\n",l,lph)
+  if (srs_out == "epsg:4326")
+	 printf("%.2f %.6f %.6f %s\n",l,lp_lon,lp_lat,lph)
+  else
+	 printf("%.2f %.2f %.2f %s\n",l,lp_lon,lp_lat,lph)
 }
 ' "$f5"
 rm "$f5" 2> /dev/null

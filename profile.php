@@ -12,6 +12,7 @@
 // Requests
 if (isset($_REQUEST['coors'])) $coors = $_REQUEST['coors']; else $coors = "";
 if (isset($_REQUEST['srs'])) $srs = $_REQUEST['srs']; else $srs = "";
+if (isset($_REQUEST['srs_out'])) $srs_out = $_REQUEST['srs_out']; else $srs_out = "epsg:4326";
 if (isset($_REQUEST['precision'])) $precision = $_REQUEST['precision']; else $precision = "";
 if (isset($_REQUEST['format'])) $format = $_REQUEST['format']; else $format = "";
 
@@ -68,6 +69,11 @@ if ($srs != "" && strtolower($srs) != "epsg:25830" && strtolower($srs) != "epsg:
 	$messages = $msg004;
 }
 
+// SRS_OUT
+$srs_out = strtolower($srs_out);
+if ($srs_out != "epsg:25830" && $srs_out != "epsg:4326" && $srs_out != "epsg:3857")
+	$srs_out = "epsg:4326";
+
 // Maximum number of coordinates
 if ($statuscode == 0) {
 	$coors_array = explode(",", $coors);
@@ -89,12 +95,19 @@ if ($srs == "" && $statuscode == 0) {
 
 if ($statuscode == 0) {
 	// Data request
-	$output = shell_exec("./profile.sh $coors $srs $precision");
+	$output = shell_exec("./profile.sh $coors $srs $precision $srs_out");
 	$data = explode("\n", $output);
 	$data_last = array_pop($data);
 
 	$i = -1;
 	$statuscode2 = 2;
+	if ($srs_out == "epsg:4326") {
+		$x_label = "longitude";
+		$y_label = "latitude";
+	} else {
+		$x_label = "x";
+		$y_label = "y";
+	}
 	foreach ($data as $value) {
 		$value_array = explode(" ", $value);
 		if ($i == -1) {
@@ -109,7 +122,9 @@ if ($statuscode == 0) {
 			}
 		} else {
 			$doc2["elevationProfile"][$i]["distance"] = $value_array[0];
-			$doc2["elevationProfile"][$i]["height"] = $value_array[1];
+			$doc2["elevationProfile"][$i][$x_label] = $value_array[1];
+			$doc2["elevationProfile"][$i][$y_label] = $value_array[2];
+			$doc2["elevationProfile"][$i]["height"] = $value_array[3];
 		}
 
 		// Detecting out of range values
@@ -150,6 +165,7 @@ if ($statuscode == 0 || $statuscode == 1) {
 		$doc1["info"]["messages"]["warning"] = $msg001;
 	$doc1["coordinates"] = $coors;
 	$doc1["srs"] = $srs;
+	$doc1["srs_out"] = $srs_out;
 	$doc1["precision"] = $precision;
 
 	// Merge Arrays
